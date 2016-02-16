@@ -2,11 +2,9 @@ module Tables
 
 export Field, DefaultKey, FieldIndex, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
-export rename, getname, getnames, gettype, gettypes, field, index, key, keyname, ncol, nrow
+export rename, name, eltypes, field, index, key, keyname, ncol, nrow
 
-# TODO DataFrames.jl uses names and eltypes (could also use name/eltype? eltype should be safe for a single column or variable)
-# TODO "cell" is the common term for the intersection of a row and column, not Datum (which is currently unused, see next)
-# TODO should we have Column as a generalization of Datum/Cell? Indexing by number of a Table/Row would give a Column/Datum (a bit confusing for table... maybe like table[:,1] vs table[1,:])
+# TODO should we have Column as a generalization of Cell? Indexing by number of a Table/Row would give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
 # TODO fix TableKey so it always references the length of the current table, not its parent
 # TODO macro for constructing tables, etc
 # TODO implement copy() and possibly subtable (with no ability to push! or change rows, though can setindex!)
@@ -27,10 +25,10 @@ abstract AbstractField
 immutable DefaultKey <: AbstractField
 end
 Base.show(io::IO,::DefaultKey) = print(io,"Default:$Int")
-@inline gettype(::Type{DefaultKey}) = Int
-@inline gettype(::DefaultKey) = Int
-@inline getname(::Type{DefaultKey}) = :Default
-@inline getname(::DefaultKey) = :Default
+@inline eltype(::Type{DefaultKey}) = Int
+@inline eltype(::DefaultKey) = Int
+@inline name(::Type{DefaultKey}) = :Default
+@inline name(::DefaultKey) = :Default
 
 
 """
@@ -53,69 +51,69 @@ end
 check_field(Name,T) = error("Field name $Name must be a Symbol and type $T must be a DataType")
 
 "Extract the type parameter of a Field"
-@inline gettype{Name,T}(::Type{Field{Name,T}}) = T
-@inline gettype{Name,T}(::Field{Name,T}) = T
+@inline eltype{Name,T}(::Type{Field{Name,T}}) = T
+@inline eltype{Name,T}(::Field{Name,T}) = T
 "Extract the name parameter of a Field"
-@inline getname{Name,T}(::Type{Field{Name,T}}) = Name
-@inline getname{Name,T}(::Field{Name,T}) = Name
+@inline name{Name,T}(::Type{Field{Name,T}}) = Name
+@inline name{Name,T}(::Field{Name,T}) = Name
 @inline Base.length{Name,T}(::Field{Name,T}) = 1 # seems to be defined for scalars in Julia
 
 Base.show{Name,T}(io::IO,::Field{Name,T}) = print(io,"$Name:$T")
 
 # ==========================================
-#    Datum - a single piece of table data
+#    Cell - a single piece of table data
 # ==========================================
 
 """
-A Datum is a single piece of data annotated by a Field name
+A Cell is a single piece of data annotated by a Field name
 """
-immutable Datum{F, DatumType}
-    data::DatumType
-    function Datum(x::DatumType)
-        check_datum(F,DatumType)
+immutable Cell{F, CellType}
+    data::CellType
+    function Cell(x::CellType)
+        check_Cell(F,CellType)
         new(x)
     end
 end
-@generated Datum{F<:Field,DatumType}(::F,x::DatumType) = :(Datum{$(F()),$DatumType}(x))
-@generated Base.call{Name,T}(::Field{Name,T},x::T) = :(Datum{$(Field{Name,T}()),$T}(x))
+@generated Cell{F<:Field,CellType}(::F,x::CellType) = :(Cell{$(F()),$CellType}(x))
+@generated Base.call{Name,T}(::Field{Name,T},x::T) = :(Cell{$(Field{Name,T}()),$T}(x))
 
 # TODO All of these converts give wierd dispatch warnings (possibly a Julia bug? Clashes with similar things from Nullable and Ref)
-#Base.convert{F,T1,T2}(::Type{Ref{T1}},x::Datum{F,T2}) = convert(Ref{T1},x.data)
-#Base.convert{F,T1,T2}(::Type{Nullable{T1}},x::Datum{F,T2}) = convert(Nullable{T1},x.data)
-#Base.convert{F,T1,T2}(t1::Type{T1},x::Datum{F,T2}) = convert(T1,x.data)
+#Base.convert{F,T1,T2}(::Type{Ref{T1}},x::Cell{F,T2}) = convert(Ref{T1},x.data)
+#Base.convert{F,T1,T2}(::Type{Nullable{T1}},x::Cell{F,T2}) = convert(Nullable{T1},x.data)
+#Base.convert{F,T1,T2}(t1::Type{T1},x::Cell{F,T2}) = convert(T1,x.data)
 
-#Base.convert{Name,T}(::Type{Ref{T}},x::Datum{F,T}) = Ref{T}(x.data)
-#@generated Base.convert{F,T<:DataType}(::Type{T},x::Datum{F,T}) = :(x.data)
-#@generated Base.convert{F,T}(::Type{Ref{T}},x::Datum{F,T}) = :(x.data)
+#Base.convert{Name,T}(::Type{Ref{T}},x::Cell{F,T}) = Ref{T}(x.data)
+#@generated Base.convert{F,T<:DataType}(::Type{T},x::Cell{F,T}) = :(x.data)
+#@generated Base.convert{F,T}(::Type{Ref{T}},x::Cell{F,T}) = :(x.data)
 
-@generated function Base.convert{F1,F2,T1,T2}(::Type{Datum{F2,T2}},x::Datum{F1,T1})
-    if getname(F1) != getname(F2)
+@generated function Base.convert{F1,F2,T1,T2}(::Type{Cell{F2,T2}},x::Cell{F1,T1})
+    if name(F1) != name(F2)
         return :(error("Names do not match"))
     else
-        return :(Datum{F2,T2}(convert(T2,x.data)))
+        return :(Cell{F2,T2}(convert(T2,x.data)))
     end
 end
 
-@generated function check_datum{F,DatumType}(::F,::Type{DatumType})
+@generated function check_Cell{F,CellType}(::F,::Type{CellType})
     if !isa(F(),Field)
         return :(error("Field $F should be an instance of field"))
-    elseif DatumType != gettype(F())
-        return :(error("DatumType $DatumType does not match fieldtype $F"))
+    elseif CellType != eltype(F())
+        return :(error("CellType $CellType does not match fieldtype $F"))
     else
         return nothing
     end
 end
 
-Base.show{F,DatumType}(io::IO,x::Datum{F,DatumType}) = print(io,"$(getname(F)):$(x.data)")
+Base.show{F,CellType}(io::IO,x::Cell{F,CellType}) = print(io,"$(name(F)):$(x.data)")
 
-@inline getname{F,DatumType}(::Datum{F,DatumType}) = getname(F)
-@inline gettype{F,DatumType}(::Datum{F,DatumType}) = DatumType
-@inline field{F,DatumType}(::Datum{F,DatumType}) = F
+@inline name{F,CellType}(::Cell{F,CellType}) = name(F)
+@inline eltype{F,CellType}(::Cell{F,CellType}) = CellType
+@inline field{F,CellType}(::Cell{F,CellType}) = F
 
-@inline rename{F1,F2,DatumType}(x::Datum{F1,DatumType},::F2) = rename(x,F1,F2())
-@generated function rename{F1,F1_type,F2,DatumType}(x::Datum{F1,DatumType},::F1_type,::F2)
+@inline rename{F1,F2,CellType}(x::Cell{F1,CellType},::F2) = rename(x,F1,F2())
+@generated function rename{F1,F1_type,F2,CellType}(x::Cell{F1,CellType},::F1_type,::F2)
     if F1_type() == F1
-        return :(Datum{$(F2()),DatumType}(x.data))
+        return :(Cell{$(F2()),CellType}(x.data))
     else
         str = "Cannot rename: can't find field $F1"
         return :(error($str))
@@ -162,7 +160,7 @@ end
             end
         end
 
-        if isunique(ntuple(i->getname(Fields.parameters[i]),length(Fields.parameters)))
+        if isunique(ntuple(i->name(Fields.parameters[i]),length(Fields.parameters)))
             return nothing
         else
             return :(error("Fields $fields must have unique names"))
@@ -180,9 +178,9 @@ end
 @generated Base.length{Fields}(::FieldIndex{Fields}) = :($(length(Fields)))
 
 "Extract the type parameters of a FieldIndex as a Tuple{...}"
-@inline gettypes{Fields}(::Type{FieldIndex{Fields}}) = gettypes(FieldIndex{Fields}())
-@generated function gettypes{Fields}(::FieldIndex{Fields})
-    types = ntuple(i->gettype(Fields[i]),length(Fields))
+@inline eltypes{Fields}(::Type{FieldIndex{Fields}}) = eltypes(FieldIndex{Fields}())
+@generated function eltypes{Fields}(::FieldIndex{Fields})
+    types = ntuple(i->eltype(Fields[i]),length(Fields))
     # Insert hack here... previous hack seems to crash julia (*) so reverting to strings
     #    * mental note: never overwrite a type paramemter list with a new svec...
     # TODO convert this to an expression...
@@ -202,9 +200,9 @@ end
 end
 
 "Extract the name parameters of a FieldIndex as a tuple of symbols (...)"
-@inline getnames{Fields}(::Type{FieldIndex{Fields}}) = getnames(FieldIndex{Fields}())
-@generated function getnames{Fields}(::FieldIndex{Fields}) # The output is not strongly typed...
-    names = ntuple(i->getname(Fields[i]),length(Fields))
+@inline names{Fields}(::Type{FieldIndex{Fields}}) = names(FieldIndex{Fields}())
+@generated function names{Fields}(::FieldIndex{Fields}) # The output is not strongly typed...
+    names = ntuple(i->name(Fields[i]),length(Fields))
     return quote
         $(Expr(:meta, :inline))
         return $names
@@ -217,7 +215,7 @@ end
         return :(error($str))
     end
 
-    if gettype(F_new()) != gettype(F_old())
+    if eltype(F_new()) != eltype(F_old())
         str = "Cannot rename: type of new field $(F_new()) does not match old field $(F_old())"
         return :(error($str))
     end
@@ -239,7 +237,7 @@ end
     end
 
     for i = 1:length(Fields_old)
-        if gettype(Fields_new[i]) != gettype(Fields_old[i])
+        if eltype(Fields_new[i]) != eltype(Fields_old[i])
             str = "Cannot rename: type of new field $(Fields_new[i]) does not match old field $(Fields_old[i])"
             return :(error($str))
         end
@@ -253,7 +251,7 @@ end
 
 
 # TODO: Here we could define sizeof, fieldoffsets, etc for use in Row
-# Actually, is this a good idea?? Might confuse Julia if we overload these, but we get them for free in Row or from gettypes(::FieldIndex)
+# Actually, is this a good idea?? Might confuse Julia if we overload these, but we get them for free in Row or from eltypes(::FieldIndex)
 
 # Iterators (TODO not fast... should they even be implemented? They could be made type-safe but still wouldn't work for for loops (maybe some kind of for macro or generated function?) Possibly still useful for code generators
 @generated Base.start{Fields}(::FieldIndex{Fields}) = :(Val{1})
@@ -405,8 +403,8 @@ Row{Index<:FieldIndex}(::Index, data_in...) = error("Must instantiate Row with a
 Base.call{Index<:FieldIndex}(::Index,x...) = error("Must instantiate Row with a tuple")
 
 @generated function check_row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,::Type{DataTypes})
-    if gettypes(Index()) != DataTypes
-        return :(error("Data types $DataTypes do not match field index $(gettypes(Index()))"))
+    if eltypes(Index()) != DataTypes
+        return :(error("Data types $DataTypes do not match field index $(eltypes(Index()))"))
     else
         return nothing
     end
@@ -417,8 +415,8 @@ function check_row(i,d)
 end
 
 # Some interrogation
-@inline getnames{Index,DataTypes}(row::Row{Index,DataTypes}) = getnames(Index)
-@inline gettypes{Index,DataTypes}(row::Row{Index,DataTypes}) = DataTypes
+@inline names{Index,DataTypes}(row::Row{Index,DataTypes}) = names(Index)
+@inline eltypes{Index,DataTypes}(row::Row{Index,DataTypes}) = DataTypes
 @inline index{Index,DataTypes}(row::Row{Index,DataTypes}) = Index
 @generated Base.length{Index,DataTypes}(row::Row{Index,DataTypes}) = :($(length(Index)))
 @generated ncol{Index,DataTypes}(row::Row{Index,DataTypes}) = :($(length(Index)))
@@ -430,7 +428,7 @@ rename{Index,DataTypes}(row::Row{Index,DataTypes}, old_names::Union{FieldIndex,F
 function Base.show{Index,DataTypes}(io::IO,row::Row{Index,DataTypes})
     print(io,"(")
     for i = 1:length(Index)
-        print(io,"$(getname(Index[i])):$(row.data[i])")
+        print(io,"$(name(Index[i])):$(row.data[i])")
         if i < length(Index)
             print(io,", ")
         end
@@ -460,11 +458,11 @@ DefaultKey(), which represents the intrinsic row number of a table)
 """
 abstract AbstractTable{Index,Key}
 @inline index{Index,Key}(::AbstractTable{Index,Key}) = Index
-@inline gettypes{Index,Key}(::AbstractTable{Index,Key}) = gettypes(Index)
-@inline getnames{Index,Key}(::AbstractTable{Index,Key}) = getnames(Index)
+@inline eltypes{Index,Key}(::AbstractTable{Index,Key}) = eltypes(Index)
+@inline names{Index,Key}(::AbstractTable{Index,Key}) = names(Index)
 @inline key{Index,Key}(::AbstractTable{Index,Key}) = Key
-@inline Base.keytype{Index,Key}(::AbstractTable{Index,Key}) = gettype(Key)
-@inline keyname{Index,Key}(::AbstractTable{Index,Key}) = getname(Key)
+@inline Base.keytype{Index,Key}(::AbstractTable{Index,Key}) = eltype(Key)
+@inline keyname{Index,Key}(::AbstractTable{Index,Key}) = name(Key)
 
 """
 A table stores the data as a vector of row-tuples.
@@ -491,7 +489,7 @@ end
 
 @generated function check_table{Index <: FieldIndex,StorageTypes <: Tuple}(::Index,::Type{StorageTypes})
     try
-        types = (gettypes(Index).parameters...)
+        types = (eltypes(Index).parameters...)
         storage_eltypes = ntuple(i->eltype(StorageTypes.parameters[i]), length(StorageTypes.parameters))
         if types == storage_eltypes
             return nothing
@@ -515,8 +513,8 @@ end
 
 
 # Data from the index
-getnames{Index,DataTypes}(table::Table{Index,DataTypes}) = getnames(Index)
-gettypes{Index,DataTypes}(table::Table{Index,DataTypes}) = gettypes(Index)
+names{Index,DataTypes}(table::Table{Index,DataTypes}) = names(Index)
+eltypes{Index,DataTypes}(table::Table{Index,DataTypes}) = eltypes(Index)
 @generated rename{Index,DataTypes}(table::Table{Index,DataTypes}, new_names::FieldIndex) = :(Table($(rename(Index,new_names())),table.data, Val{false}))
 @generated rename{Index,DataTypes,OldFields,NewFields}(table::Table{Index,DataTypes}, old_names::OldFields, ::NewFields) = :(Table($(rename(Index,OldFields(),NewFields())),table.data, Val{false}))
 
@@ -526,7 +524,7 @@ Base.length{Index,StorageTypes}(table::Table{Index,StorageTypes}) = length(table
 nrow{Index,StorageTypes}(table::Table{Index,StorageTypes}) = length(table.data[1])
 Base.size{Index,StorageTypes}(table::Table{Index,StorageTypes}) = (length(Index),length(table.data[1]))
 Base.size{Index,StorageTypes}(table::Table{Index,StorageTypes},i::Int) = i == 1 ? length(Index) : (i == 2 ? length(table.data[1]) : error("Tables are two-dimensional"))
-@generated Base.eltype{Index,StorageTypes}(table::Table{Index,StorageTypes}) = :($(gettypes(Index)))
+@generated Base.eltype{Index,StorageTypes}(table::Table{Index,StorageTypes}) = :($(eltypes(Index)))
 Base.isempty{Index,StorageTypes}(table::Table{Index,StorageTypes}) = isempty(table.data[1])
 Base.endof{Index,StorageTypes}(table::Table{Index,StorageTypes}) = endof(table.data[1])
 
@@ -575,10 +573,10 @@ function Base.append!{Index,StorageTypes}(table::Table{Index,StorageTypes},data_
     end
 end
 function Base.pop!{Index,StorageTypes}(table::Table{Index,StorageTypes})
-    return Row{Index,gettypes(Index)}(ntuple(i->pop!(table.data[i]),length(Index)))
+    return Row{Index,eltypes(Index)}(ntuple(i->pop!(table.data[i]),length(Index)))
 end
 function Base.shift!{Index,StorageTypes}(table::Table{Index,StorageTypes})
-    return Row{Index,gettypes(Index)}(ntuple(i->shift!(table.data[i]),length(Index)))
+    return Row{Index,eltypes(Index)}(ntuple(i->shift!(table.data[i]),length(Index)))
 end
 function Base.empty!{Index,StorageTypes}(table::Table{Index,StorageTypes})
     for i = 1:length(Index)
@@ -686,7 +684,7 @@ immutable DenseTable{Index,DataTypes} <: AbstractTable{Index,DefaultKey()}
     end
 end
 
-DenseTable{Index}(::Index) = DenseTable{Index,gettypes(Index)}(Vector{Row{Index,gettypes(Index)}}())
+DenseTable{Index}(::Index) = DenseTable{Index,eltypes(Index)}(Vector{Row{Index,eltypes(Index)}}())
 DenseTable{Index,DataTypes}(::Index,data::Vector{DataTypes}) = DenseTable{Index,DataTypes}(Vector{Row{Index,DataTypes}}(data))
 # Constructor that takes index and seperate values
 # Conversion between Dense and normal Tables??
@@ -729,7 +727,7 @@ immutable KeyTable{Index,StorageTypes,Key,KeyType} <: AbstractTable{Index,Key}
     end
 end
 
-@generated check_key{Key,KeyType}(::Key,::Type{KeyType}) = (gettype(Key()) == KeyType) ? (return nothing) : (str = "KeyType $KeyType doesn't match Key $Key"; return :(error(str)))
+@generated check_key{Key,KeyType}(::Key,::Type{KeyType}) = (eltype(Key()) == KeyType) ? (return nothing) : (str = "KeyType $KeyType doesn't match Key $Key"; return :(error(str)))
 
 """
 A dense key table stores the data as a single dictionary of row-tuples.
