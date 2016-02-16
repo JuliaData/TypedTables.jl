@@ -77,8 +77,8 @@ end
 end
 
 "Extract the name parameters of a FieldIndex as a tuple of symbols (...)"
-@inline names{Fields}(::Type{FieldIndex{Fields}}) = names(FieldIndex{Fields}())
-@generated function names{Fields}(::FieldIndex{Fields}) # The output is not strongly typed...
+@inline Base.names{Fields}(::Type{FieldIndex{Fields}}) = names(FieldIndex{Fields}())
+@generated function Base.names{Fields}(::FieldIndex{Fields}) # The output is not strongly typed...
     names = ntuple(i->name(Fields[i]),length(Fields))
     return quote
         $(Expr(:meta, :inline))

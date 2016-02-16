@@ -45,8 +45,11 @@ end
 Base.show{F,CellType}(io::IO,x::Cell{F,CellType}) = print(io,"$(name(F)):$(x.data)")
 
 @inline name{F,CellType}(::Cell{F,CellType}) = name(F)
-@inline eltype{F,CellType}(::Cell{F,CellType}) = CellType
+@inline name{F,CellType}(::Type{Cell{F,CellType}}) = name(F)
+@inline Base.eltype{F,CellType}(::Cell{F,CellType}) = CellType
+@inline Base.eltype{F,CellType}(::Type{Cell{F,CellType}}) = CellType
 @inline field{F,CellType}(::Cell{F,CellType}) = F
+@inline field{F,CellType}(::Type{Cell{F,CellType}}) = F
 
 @inline rename{F1,F2,CellType}(x::Cell{F1,CellType},::F2) = rename(x,F1,F2())
 @generated function rename{F1,F1_type,F2,CellType}(x::Cell{F1,CellType},::F1_type,::F2)
@@ -56,4 +59,23 @@ Base.show{F,CellType}(io::IO,x::Cell{F,CellType}) = print(io,"$(name(F)):$(x.dat
         str = "Cannot rename: can't find field $F1"
         return :(error($str))
     end
+end
+
+macro cell(expr)
+    if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
+        error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+    end
+    local field
+    if isa(expr.args[1],Symbol)
+        field = expr.args[1]
+    elseif isa(expr.args[1],Expr)
+        if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
+            error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        end
+        field = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
+    else
+        error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+    end
+    value = expr.args[2]
+    return :($field($value))
 end

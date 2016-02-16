@@ -33,7 +33,7 @@ function check_row(i,d)
 end
 
 # Some interrogation
-@inline names{Index,DataTypes}(row::Row{Index,DataTypes}) = names(Index)
+@inline Base.names{Index,DataTypes}(row::Row{Index,DataTypes}) = names(Index)
 @inline eltypes{Index,DataTypes}(row::Row{Index,DataTypes}) = DataTypes
 @inline index{Index,DataTypes}(row::Row{Index,DataTypes}) = Index
 @generated Base.length{Index,DataTypes}(row::Row{Index,DataTypes}) = :($(length(Index)))

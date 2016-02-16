@@ -64,7 +64,7 @@ end
 
 
 # Data from the index
-names{Index,DataTypes}(table::Table{Index,DataTypes}) = names(Index)
+Base.names{Index,DataTypes}(table::Table{Index,DataTypes}) = names(Index)
 eltypes{Index,DataTypes}(table::Table{Index,DataTypes}) = eltypes(Index)
 @generated rename{Index,DataTypes}(table::Table{Index,DataTypes}, new_names::FieldIndex) = :(Table($(rename(Index,new_names())),table.data, Val{false}))
 @generated rename{Index,DataTypes,OldFields,NewFields}(table::Table{Index,DataTypes}, old_names::OldFields, ::NewFields) = :(Table($(rename(Index,OldFields(),NewFields())),table.data, Val{false}))

@@ -4,6 +4,8 @@ export Field, DefaultKey, FieldIndex, Row, Table, DenseTable, KeyTable, DenseKey
 
 export rename, name, eltypes, field, index, key, keyname, ncol, nrow
 
+export @cell, @field
+
 # TODO should we have Column as a generalization of Cell? Indexing by number of a Table/Row would give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
 # TODO fix TableKey so it always references the length of the current table, not its parent
 # TODO macro for constructing tables, etc
@@ -15,6 +17,7 @@ export rename, name, eltypes, field, index, key, keyname, ncol, nrow
 # TODO implement KeyTable ?
 # TODO implement DenseKeyTable ?
 # TODO other types of computed joins, map, do, etc
+
 
 include("Field.jl")
 include("Cell.jl")
