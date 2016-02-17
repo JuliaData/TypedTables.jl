@@ -42,6 +42,15 @@ check_field(Name,T) = error("Field name $Name must be a Symbol and type $T must 
 
 Base.show{Name,T}(io::IO,::Field{Name,T}) = print(io,"$Name:$T")
 
+# Create a cell or column from a field
+@generated function Base.call{Name,T1,T2}(::Field{Name,T1},x::T2)
+    if T1 == T2 # T2 is a scalar, clearly... but we have excluded automatic conversion...
+        return :(Cell{$(Field{Name,T1}()),$T1}(x))
+    else # T2 is probably a storage container
+        return :(Column{$(Field{Name,T1}()),$T2}(x))
+    end
+end
+
 macro field(x)
     if x.head != :(::) || length(x.args) != 2
         error("Expecting expression of form @field(:name :: Type)")

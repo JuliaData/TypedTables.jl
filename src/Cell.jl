@@ -61,6 +61,7 @@ Base.show{F,CellType}(io::IO,x::Cell{F,CellType}) = print(io,"$(name(F)):$(x.dat
     end
 end
 
+# Currently @column and @cell do the same thing, by calling field
 macro cell(expr)
     if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
         error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")

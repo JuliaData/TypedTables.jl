@@ -1,10 +1,10 @@
 module Tables
 
-export Field, DefaultKey, FieldIndex, Row, Table, DenseTable, KeyTable, DenseKeyTable
+export Field, DefaultKey, FieldIndex, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
 export rename, name, eltypes, field, index, key, keyname, ncol, nrow
 
-export @cell, @field
+export @cell, @field, @column
 
 # TODO should we have Column as a generalization of Cell? Indexing by number of a Table/Row would give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
 # TODO fix TableKey so it always references the length of the current table, not its parent
