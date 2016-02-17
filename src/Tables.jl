@@ -9,7 +9,7 @@ export @cell, @field, @column
 # TODO Indexing by number of a Table/Row could give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
 # TODO fix TableKey so it always references the length of the current table, not its parent
 # TODO macro for constructing tables, etc
-# TODO implement copy() and possibly subtable (with no ability to push! or change rows, though can setindex!)
+# TODO possibly implement subtable (with no ability to push! or change rows, though can setindex!)
 # TODO join for row, join for table, somehow make sense of the key mess
 # TODO sub for generating a sub-table (i.e. simply a table with different StorageTypes)
 # TODO other DataFrames things like unique!

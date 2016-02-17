@@ -135,22 +135,31 @@ function Base.empty!{Index,StorageTypes}(table::Table{Index,StorageTypes})
     end
 end
 
+# copies
+Base.copy{Index,StorageTypes}(table::Table{Index,StorageTypes}) = Table{Index,StorageTypes}(copy(table.data))
+Base.deepcopy{Index,StorageTypes}(table::Table{Index,StorageTypes}) = Table{Index,StorageTypes}(deepcopy(table.data))
+
 # Some output
 function Base.summary{Index,StorageTypes}(io::IO,table::Table{Index,StorageTypes})
     println(io,"$(ncol(table))-column, $(nrow(table))-row Table{$Index,$StorageTypes}")
 end
 
+_displaysize(io) = haskey(io, :displaysize) ? io[:displaysize] : _displaysize(io.io)
+
 function Base.show{Index,StorageTypes}(io::IO,table::Table{Index,StorageTypes})
     summary(io,table)
-    if length(table) > 10
-        for i = 1:5
+    s = Base.tty_size()
+    l = div(s[1],2)-3
+
+    if length(table) > 2*l
+        for i = 1:l
             println(io,i," ",table[i])
         end
         for i = 0:ncol(table)
             print("⋮  ")
         end
         println()
-        for i = endof(table)-4:endof(table)
+        for i = endof(table)-l:endof(table)
             if i == endof(table)
                 print(io,i," ",table[i])
             else

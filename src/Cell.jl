@@ -5,14 +5,14 @@
 """
 A Cell is a single piece of data annotated by a Field name
 """
-immutable Cell{F, CellType}
-    data::CellType
-    function Cell(x::CellType)
-        check_Cell(F,CellType)
+immutable Cell{F, ElType}
+    data::ElType
+    function Cell(x::ElType)
+        check_Cell(F,ElType)
         new(x)
     end
 end
-@generated Cell{F<:Field,CellType}(::F,x::CellType) = :(Cell{$(F()),$CellType}(x))
+@generated Cell{F<:Field,ElType}(::F,x::ElType) = :(Cell{$(F()),$ElType}(x))
 @generated Base.call{Name,T}(::Field{Name,T},x::T) = :(Cell{$(Field{Name,T}()),$T}(x))
 
 # TODO All of these converts give wierd dispatch warnings (possibly a Julia bug? Clashes with similar things from Nullable and Ref)
@@ -32,34 +32,37 @@ end
     end
 end
 
-@generated function check_Cell{F,CellType}(::F,::Type{CellType})
+@generated function check_Cell{F,ElType}(::F,::Type{ElType})
     if !isa(F(),Field)
         return :(error("Field $F should be an instance of field"))
-    elseif CellType != eltype(F())
-        return :(error("CellType $CellType does not match fieldtype $F"))
+    elseif ElType != eltype(F())
+        return :(error("ElType $ElType does not match fieldtype $F"))
     else
         return nothing
     end
 end
 
-Base.show{F,CellType}(io::IO,x::Cell{F,CellType}) = print(io,"$(name(F)):$(x.data)")
+Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F)):$(x.data)")
 
-@inline name{F,CellType}(::Cell{F,CellType}) = name(F)
-@inline name{F,CellType}(::Type{Cell{F,CellType}}) = name(F)
-@inline Base.eltype{F,CellType}(::Cell{F,CellType}) = CellType
-@inline Base.eltype{F,CellType}(::Type{Cell{F,CellType}}) = CellType
-@inline field{F,CellType}(::Cell{F,CellType}) = F
-@inline field{F,CellType}(::Type{Cell{F,CellType}}) = F
+@inline name{F,ElType}(::Cell{F,ElType}) = name(F)
+@inline name{F,ElType}(::Type{Cell{F,ElType}}) = name(F)
+@inline Base.eltype{F,ElType}(::Cell{F,ElType}) = ElType
+@inline Base.eltype{F,ElType}(::Type{Cell{F,ElType}}) = ElType
+@inline field{F,ElType}(::Cell{F,ElType}) = F
+@inline field{F,ElType}(::Type{Cell{F,ElType}}) = F
 
-@inline rename{F1,F2,CellType}(x::Cell{F1,CellType},::F2) = rename(x,F1,F2())
-@generated function rename{F1,F1_type,F2,CellType}(x::Cell{F1,CellType},::F1_type,::F2)
+@inline rename{F1,F2,ElType}(x::Cell{F1,ElType},::F2) = rename(x,F1,F2())
+@generated function rename{F1,F1_type,F2,ElType}(x::Cell{F1,ElType},::F1_type,::F2)
     if F1_type() == F1
-        return :(Cell{$(F2()),CellType}(x.data))
+        return :(Cell{$(F2()),ElType}(x.data))
     else
         str = "Cannot rename: can't find field $F1"
         return :(error($str))
     end
 end
+
+Base.copy{F,ElType}(cell::Cell{F,ElType}) = Cell{F,ElType}(copy(cell.data))
+Base.deepcopy{F,ElType}(cell::Cell{F,ElType}) = Cell{F,ElType}(deepcopy(cell.data))
 
 # Currently @column and @cell do the same thing, by calling field
 macro cell(expr)
