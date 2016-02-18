@@ -56,7 +56,7 @@ end
 
 # Can index with integers or rows
 @inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i) = row.data[i] #::DataTypes.parameters[i] # Is this considered "type safe"??
-@inline Base.getindex{Index,DataTypes,F<:Field}(row::Row{Index,DataTypes},::F) = row.data[Index[F()]] #::DataTypes.parameters[i] # Is this considered "type safe"??
+@inline Base.getindex{Index,DataTypes,F<:Union{Field,FieldIndex}}(row::Row{Index,DataTypes},::F) = row.data[Index[F()]] #::DataTypes.parameters[i] # Is this considered "type safe"??
 
 # copies
 Base.copy{Index,DataTypes}(row::Row{Index,DataTypes}) = Row{Index,DataTypes}(copy(row.data))
@@ -68,3 +68,34 @@ Base.deepcopy{Index,DataTypes}(row::Row{Index,DataTypes}) = Row{Index,DataTypes}
 #    idx = Cols[Col()]
 #    return :(Expr(:meta,:inline), row.data[$idx]) # Under investigation, I'm not certain inline is a great idea...
 #end
+
+
+
+
+macro row(exprs...)
+    N = length(exprs)
+    field = Vector{Any}(N)
+    value = Vector{Any}(N)
+    for i = 1:N
+        expr = exprs[i]
+        if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
+            error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        end
+        if isa(expr.args[1],Symbol)
+            field[i] = expr.args[1]
+        elseif isa(expr.args[1],Expr)
+            if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
+                error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+            end
+            field[i] = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
+        else
+            error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        end
+        value[i] = expr.args[2]
+    end
+
+    fields = Expr(:tuple,field...)
+    values = Expr(:tuple,value...)
+
+    return :(Tables.Row(Tables.FieldIndex{$fields}(),$values))
+end

@@ -81,5 +81,5 @@ macro cell(expr)
         error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
     end
     value = expr.args[2]
-    return :($field($value))
+    return :(Tables.Cell($field,$value))
 end

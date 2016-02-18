@@ -40,7 +40,7 @@ check_field(Name,T) = error("Field name $Name must be a Symbol and type $T must 
 @inline name{Name,T}(::Field{Name,T}) = Name
 @inline Base.length{Name,T}(::Field{Name,T}) = 1 # seems to be defined for scalars in Julia
 
-Base.show{Name,T}(io::IO,::Field{Name,T}) = print(io,"$Name:$T")
+Base.show{Name,T}(io::IO,::Field{Name,T}) = print(io,"$Name::$T")
 
 # Create a cell or column from a field
 @generated function Base.call{Name,T1,T2}(::Field{Name,T1},x::T2)

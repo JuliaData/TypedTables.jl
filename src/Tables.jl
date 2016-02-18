@@ -4,7 +4,7 @@ export Field, DefaultKey, FieldIndex, Cell, Column, Row, Table, DenseTable, KeyT
 
 export rename, name, eltypes, field, index, key, keyname, ncol, nrow
 
-export @cell, @field, @column
+export  @field, @index, @cell, @row, @column, @table
 
 # TODO Indexing by number of a Table/Row could give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
 # TODO fix TableKey so it always references the length of the current table, not its parent

@@ -255,3 +255,19 @@ import Base.-
         return :(error($str))
     end
 end
+
+macro index(exprs...)
+    N = length(exprs)
+    field = Vector{Any}(N)
+    for i = 1:N
+        x = exprs[i]
+        if x.head != :(::) || length(x.args) != 2
+            error("Expecting expression of form @field(:name :: Type)")
+        end
+        field[i] :(Tables.Field{$(Expr(:quote,x.args[1])),$(x.args[2])}())
+    end
+
+    fields = Expr(:tuple,field...)
+
+    return :(Tables.FieldIndex{$fields}())
+end

@@ -218,6 +218,36 @@ Base.getindex{Index,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,Storag
     end
 end
 
+macro table(exprs...)
+    N = length(exprs)
+    field = Vector{Any}(N)
+    value = Vector{Any}(N)
+    for i = 1:N
+        expr = exprs[i]
+        if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
+            error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        end
+        if isa(expr.args[1],Symbol)
+            field[i] = expr.args[1]
+        elseif isa(expr.args[1],Expr)
+            if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
+                error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+            end
+            field[i] = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
+        else
+            error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        end
+        value[i] = expr.args[2]
+    end
+
+    fields = Expr(:tuple,field...)
+    values = Expr(:tuple,value...)
+
+    return :(Tables.Table(Tables.FieldIndex{$fields}(),$values))
+end
+
+
+
 "This is a fake 'storage container' for the field DefaultKey() in a Table"
 immutable TableKey{Index,StorageTypes}
     parent::Ref{Table{Index,StorageTypes}}

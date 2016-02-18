@@ -146,5 +146,5 @@ macro column(expr)
         error("Expecting expression like @column(name::Type = value) or @cell(field = value)")
     end
     value = expr.args[2]
-    return :($field($value))
+    return :(Tables.Column($field,$value))
 end
