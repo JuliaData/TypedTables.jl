@@ -97,5 +97,5 @@ macro row(exprs...)
     fields = Expr(:tuple,field...)
     values = Expr(:tuple,value...)
 
-    return :(Tables.Row(Tables.FieldIndex{$fields}(),$values))
+    return :(Tables.Row(Tables.FieldIndex{$(esc(fields))}(),$(esc(values))))
 end

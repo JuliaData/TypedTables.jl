@@ -72,6 +72,7 @@ macro cell(expr)
         error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")
     end
     local field
+    value = expr.args[2]
     if isa(expr.args[1],Symbol)
         field = expr.args[1]
     elseif isa(expr.args[1],Expr)
@@ -82,6 +83,6 @@ macro cell(expr)
     else
         error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
     end
-    value = expr.args[2]
-    return :(Tables.Cell($field,$value))
+
+    return :(Tables.Cell($(esc(field)),$(esc(value))))
 end

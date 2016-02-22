@@ -6,6 +6,8 @@ export rename, name, eltypes, field, index, key, keyname, ncol, nrow
 
 export  @field, @index, @cell, @row, @column, @table
 
+import Base.(==)
+
 # TODO Indexing by number of a Table/Row could give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
 # TODO fix TableKey so it always references the length of the current table, not its parent
 # TODO macro for constructing tables, etc

@@ -243,7 +243,7 @@ macro table(exprs...)
     fields = Expr(:tuple,field...)
     values = Expr(:tuple,value...)
 
-    return :(Tables.Table(Tables.FieldIndex{$fields}(),$values))
+    return :(Tables.Table(Tables.FieldIndex{$(esc(fields))}(),$(esc(values))))
 end
 
 

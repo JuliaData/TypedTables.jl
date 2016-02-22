@@ -11,8 +11,10 @@ immutable Column{F, ElType, StorageType}
 end
 @generated Column{F<:Field,StorageType}(::F,x::StorageType) = :(Column{$(F()),$(eltype(F())),$StorageType}(x))
 @generated Column{Name,T}(::Field{Name,T}) = :(Column{$(Field{Name,T}()),T,Vector{T}}(Vector{T}()))
-@generated Column{F,ElType}(x::Cell{F,ElType}...) = :(Column{$(F()),$(eltype(F())),Vector{$(eltype(F))}}([x[i].data for i=1:length(x)]))
 @generated Column{Name,T}(::Field{Name,T},x::T...) = :(Column{$(Field{Name,T}()),T,Vector{T}}([x...]))
+
+@generated Column{F,ElType}(x::Cell{F,ElType}...) = :(Column{$(F),ElType,Vector{ElType}}([x[i].data for i=1:length(x)]))
+
 
 @generated function check_Column{F,ElType,StorageType}(::F,::Type{ElType},::Type{StorageType})
     if !isa(F(),Field)
@@ -31,7 +33,7 @@ function Base.show{F,ElType,StorageType}(io::IO,x::Column{F,ElType,StorageType})
     Base.showarray(x.data,header=false)
 end
 
-Base.=={F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{F,ElType,StorageType}) = (col1.data == col2.data)
+=={F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{F,ElType,StorageType}) = (col1.data == col2.data)
 
 @inline name{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = name(F)
 @inline name{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = name(F)
@@ -57,7 +59,6 @@ nrow{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = length(col.data)
 Base.ndims{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = 1
 Base.size{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = (length(col.data),)
 Base.size{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i::Int) = i == 1 ? length(col.data) : error("Columns are one-dimensional")
-Base.eltype{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = ElType
 Base.isempty{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = isempty(col.data)
 Base.endof{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = endof(col.data)
 
@@ -70,7 +71,7 @@ Base.done{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i) = (i-1 == l
 Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx::Int) = Cell(F,getindex(col.data,idx))
 Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx) = Column(F,getindex(col.data,idx))
 
-# Union seems to fail... annoying!
+# Union seems to fail... annoying! (because of the Cell/Cell combination doesn't use all template parameters, that function signature is not callable...)
 #Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Union{Column{F,ElType,StorageType},Cell{F,ElType}},idx) = setindex!(col.data,val.data,idx)
 #Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Union{ElType,StorageType},idx) = setindex!(col.data,val,idx)
 Base.setindex!{F,ElType}(col::Column{F,ElType,ElType},val::ElType,idx) = setindex!(col.data,val,idx) # To make Julia happy (maybe error??)
@@ -148,5 +149,5 @@ macro column(expr)
         error("Expecting expression like @column(name::Type = value) or @cell(field = value)")
     end
     value = expr.args[2]
-    return :(Tables.Column($field,$value))
+    return :(Tables.Column($(esc(field)),$(esc(value))))
 end
