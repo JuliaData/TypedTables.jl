@@ -10,7 +10,7 @@ immutable Column{F, ElType, StorageType}
     end
 end
 @generated Column{F<:Field,StorageType}(::F,x::StorageType) = :(Column{$(F()),$(eltype(F())),$StorageType}(x))
-@generated Column{Name,T}(::Field{Name,T}) = :(Column{$(Field{Name,T}()),$(eltype(F())),Vector{T}}(Vector{T}()))
+@generated Column{Name,T}(::Field{Name,T}) = :(Column{$(Field{Name,T}()),T,Vector{T}}(Vector{T}()))
 @generated Column{F,ElType}(x::Cell{F,ElType}...) = :(Column{$(F()),$(eltype(F())),Vector{$(eltype(F))}}([x[i].data for i=1:length(x)]))
 @generated Column{Name,T}(::Field{Name,T},x::T...) = :(Column{$(Field{Name,T}()),T,Vector{T}}([x...]))
 
@@ -30,6 +30,8 @@ function Base.show{F,ElType,StorageType}(io::IO,x::Column{F,ElType,StorageType})
     println(io, "Column $F")
     Base.showarray(x.data,header=false)
 end
+
+Base.=={F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{F,ElType,StorageType}) = (col1.data == col2.data)
 
 @inline name{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = name(F)
 @inline name{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = name(F)

@@ -42,12 +42,14 @@ end
     end
 end
 
-Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F)):$(x.data)")
+Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F))=$(x.data)")
 
 @inline name{F,ElType}(::Cell{F,ElType}) = name(F)
 @inline name{F,ElType}(::Type{Cell{F,ElType}}) = name(F)
 @inline Base.eltype{F,ElType}(::Cell{F,ElType}) = ElType
 @inline Base.eltype{F,ElType}(::Type{Cell{F,ElType}}) = ElType
+@inline Base.length{F,ElType}(::Cell{F,ElType}) = 1
+@inline Base.length{F,ElType}(::Type{Cell{F,ElType}}) = 1
 @inline field{F,ElType}(::Cell{F,ElType}) = F
 @inline field{F,ElType}(::Type{Cell{F,ElType}}) = F
 
