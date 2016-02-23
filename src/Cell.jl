@@ -53,6 +53,22 @@ Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F))=$(x.data)")
 @inline field{F,ElType}(::Cell{F,ElType}) = F
 @inline field{F,ElType}(::Type{Cell{F,ElType}}) = F
 
+Base.start(c::Cell) = false # Same iterators as Julia scalars
+Base.next(c::Cell,i::Bool) = (c,true)
+Base.done(c::Cell,i::Bool) = i
+Base.endof(c::Cell) = 1
+@generated function Base.getindex{F1,F2<:Field,ElType}(c::Cell{F1,ElType},::F2)
+    if F1 == F2()
+        return :(c.data)
+    else
+        str = "Tried to index cell of field $F1 with field $(F2())"
+        return :(error($str))
+    end
+end
+Base.getindex(c::Cell,i::Int) = i == 1 ? c :  # This matches the behaviour of other scalars in Julia
+
+# TODO - Figure out this Julia dispatch problem (rename(cell,f_new) doesn't work without the column version defined first!!)
+@inline rename{F1,F2,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F2) = rename(x,F1,F2())
 @inline rename{F1,F2,ElType}(x::Cell{F1,ElType},::F2) = rename(x,F1,F2())
 @generated function rename{F1,F1_type,F2,ElType}(x::Cell{F1,ElType},::F1_type,::F2)
     if F1_type() == F1

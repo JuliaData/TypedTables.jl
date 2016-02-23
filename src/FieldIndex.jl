@@ -53,6 +53,8 @@ end
 # Length, sizes, offsets, etc
 @generated ncol{Fields}(::FieldIndex{Fields}) = :($(length(Fields)))
 @generated Base.length{Fields}(::FieldIndex{Fields}) = :($(length(Fields)))
+@generated Base.endof{Fields}(::FieldIndex{Fields}) = :($(length(Fields)))
+
 
 "Extract the type parameters of a FieldIndex as a Tuple{...}"
 @inline eltypes{Fields}(::Type{FieldIndex{Fields}}) = eltypes(FieldIndex{Fields}())
@@ -60,7 +62,7 @@ end
     types = ntuple(i->eltype(Fields[i]),length(Fields))
     # Insert hack here... previous hack seems to crash julia (*) so reverting to strings
     #    * mental note: never overwrite a type paramemter list with a new svec...
-    # TODO convert this to an expression...
+    # TODO convert this to an expression manipulation instead of a string manipulation...
     str = "Tuple{"
     for i = 1:length(types)
         str *= "$(types[i])"
@@ -264,7 +266,7 @@ macro index(exprs...)
         if x.head != :(::) || length(x.args) != 2
             error("Expecting expression of form @field(:name :: Type)")
         end
-        field[i] :(Tables.Field{$(Expr(:quote,x.args[1])),$(x.args[2])}())
+        field[i] = :(Tables.Field{$(Expr(:quote,x.args[1])),$(x.args[2])}())
     end
 
     fields = Expr(:tuple,field...)

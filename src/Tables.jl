@@ -2,7 +2,7 @@ module Tables
 
 export Field, DefaultKey, FieldIndex, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
-export rename, name, eltypes, field, index, key, keyname, ncol, nrow
+export rename, name, eltypes, field, index, key, keyname, ncol, nrow, join
 
 export  @field, @index, @cell, @row, @column, @table
 
