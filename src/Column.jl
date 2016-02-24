@@ -63,12 +63,12 @@ Base.isempty{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = isempty(
 Base.endof{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = endof(col.data)
 
 # Iterators
-Base.start{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = 1
-Base.next{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i) = (col.data[i],i+1)
-Base.done{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i) = (i-1 == length(col.data))
+Base.start{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = start(col.data)
+Base.next{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i) = next(col.data,i)
+Base.done{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i) = done(col.data,i)
 
 # get/set index
-Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx::Int) = Cell(F,getindex(col.data,idx))
+Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx::Int) = getindex(col.data,idx)
 Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx) = Column(F,getindex(col.data,idx))
 
 # Union seems to fail... annoying! (because of the Cell/Cell combination doesn't use all template parameters, that function signature is not callable...)
@@ -77,7 +77,7 @@ Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx) = Col
 Base.setindex!{F,ElType}(col::Column{F,ElType,ElType},val::ElType,idx) = setindex!(col.data,val,idx) # To make Julia happy (maybe error??)
 Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Cell{F,ElType},idx) = setindex!(col.data,val.data,idx)
 Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::ElType,idx) = setindex!(col.data,val,idx)
-Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Column{F,StorageType},idx) = setindex!(col.data,val.data,idx)
+Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Column{F,ElType,StorageType},idx) = setindex!(col.data,val.data,idx)
 Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::StorageType,idx) = setindex!(col.data,val,idx)
 
 Base.unsafe_getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx::Int) = Cell(F,Base.unsafe_getindex(col.data,idx))

@@ -51,8 +51,8 @@ end
 @inline isunique{T<:Tuple}(t::T) = length(t) == length(unique(t))
 
 # Length, sizes, offsets, etc
-@generated ncol{Fields}(::FieldIndex{Fields}) = :($(length(Fields)))
-@generated Base.length{Fields}(::FieldIndex{Fields}) = :($(length(Fields)))
+@generated ncol{Fields}(::Union{FieldIndex{Fields},Type{FieldIndex{Fields}}}) = :($(length(Fields)))
+@generated Base.length{Fields}(::Union{FieldIndex{Fields},Type{FieldIndex{Fields}}}) = :($(length(Fields)))
 @generated Base.endof{Fields}(::FieldIndex{Fields}) = :($(length(Fields)))
 
 
@@ -120,14 +120,15 @@ end
 # TODO: Here we could define sizeof, fieldoffsets, etc for use in Row
 # Actually, is this a good idea?? Might confuse Julia if we overload these, but we get them for free in Row or from eltypes(::FieldIndex)
 
-# Iterators (TODO not fast... should they even be implemented? They could be made type-safe but still wouldn't work for for loops (maybe some kind of for macro or generated function?) Possibly still useful for code generators
+# Iterators (TODO not fast... should they even be implemented? They -could be- *have been* made type-safe but still wouldn't work for for loops (maybe some kind of for macro or generated function? or do in Julia 0.5?) Possibly still useful for code generators
 @generated Base.start{Fields}(::FieldIndex{Fields}) = :(Val{1})
 @generated Base.next{Fields,I}(::FieldIndex{Fields},::Type{Val{I}}) = :(($(Fields[I]),Val{$(I+1)}))
 @generated Base.done{Fields,I}(::FieldIndex{Fields},::Type{Val{I}}) = :($(I-1 == length(Fields)))
 
 # Getting indices (immutable, so no setindex)
-@inline Base.getindex{Fields}(::FieldIndex{Fields},i) = Fields[i]
-@inline Base.getindex{Fields}(::FieldIndex{Fields},::Colon) = Fields
+@inline Base.getindex{Fields}(::FieldIndex{Fields},i::Int) = Fields[i]
+@generated Base.getindex{Fields}(::FieldIndex{Fields},i) = :(FieldIndex{Fields[i]}())
+@inline Base.getindex{Fields}(idx::FieldIndex{Fields},::Colon) = idx
 
 @generated function Base.getindex{F<:Field,Fields}(::FieldIndex{Fields},::F)
     j = 0
@@ -166,7 +167,7 @@ Base.show{Fields}(io::IO,::FieldIndex{Fields}) = show(io,Fields)
 # unions, intersections, differences, etc.
 @generated Base.union{F <: AbstractField}(::F) = :(FieldIndex{($(F()),)}())
 @inline Base.union{Fields}(::FieldIndex{Fields}) = FieldIndex{Fields}()
-@inline Base.union{F1 <: Union{AbstractField,FieldIndex}, F2 <: Union{AbstractField,FieldIndex}}(f1::F1,f2::F2,fields...) = union(union(c1,c2),fields...) # TODO check of this results in no-ops? Otherwise will need a (disgusting)_chain of generated functions...
+@inline Base.union{F1 <: Union{AbstractField,FieldIndex}, F2 <: Union{AbstractField,FieldIndex}}(f1::F1,f2::F2,fields...) = union(union(f1,f2),fields...) # TODO check of this results in no-ops? Otherwise will need a (disgusting)_chain of generated functions...
 
 @generated function Base.union{F1 <: AbstractField, F2 <: AbstractField}(::F1,::F2)
     fields_out = (unique((F1(),F2()))...)

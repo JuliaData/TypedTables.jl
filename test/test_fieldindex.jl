@@ -20,30 +20,50 @@ idx = FieldIndex{(a,b)}()
 
 @testset "Introspection" begin
     @test ncol(idx) == 2
+    @test ncol(typeof(idx)) == 2
     @test length(idx) == 2
+    @test length(typeof(idx)) == 2
     @test endof(idx) == 2
 
     @test eltypes(idx) == Tuple{Int64,Float64}
+    @test eltypes(typeof(idx)) == Tuple{Int64,Float64}
     @test names(idx) == (:A,:B)
+    @test names(typeof(idx)) == (:A,:B)
 
-    @test show(idx) == nothing
-    println()
+    @test (show(idx); println(); true)
 
-    #TODO rename
+    @test names(rename(idx,a,a_new)) == (:A_new,:B)
+    @test names(rename(idx,FieldIndex(a),FieldIndex(a_new))) == (:A_new,:B)
 end
 
-
 @testset "Accessing and iterating" begin
+    @test first(idx) == a
+    @test idx[1] == a
+    @test idx[:] == idx
+    @test idx[1:2] == idx
 
+    @test idx[a] == 1
+    @test idx[idx] == (1,2)
 end
 
 @testset "Union, intersect, setdiff, +, -" begin
+    @test union(a) == FieldIndex(a)
+    @test union(a,b) == idx
+    @test union(a,b,c,d) == FieldIndex((a,b,c,d))
 
+    @test intersect(a,b) == FieldIndex(())
+    @test intersect(a,a) == FieldIndex((a,))
+    @test intersect(idx,a) == FieldIndex((a,))
+    @test intersect(idx,idx) == idx
+
+    @test setdiff(a,a) == FieldIndex(())
+    @test setdiff(idx,b) == FieldIndex((a,))
+    @test setdiff(idx,idx) == FieldIndex(())
+    @test setdiff(idx,c) == idx
+    @test setdiff(idx,FieldIndex(c)) == idx
+
+    @test a+b+c+d == FieldIndex((a,b,c,d))
+    @test idx - b == FieldIndex((a,))
 end
-
-#@test @index(a::Int64) == FieldIndex{(Field{:a,Int64}(),)}()
-#@test @index(a::Int64,b::Float64) == FieldIndex{(Field{:a,Int64}(),Field{:b,Float64}())}()
-
-#@test idx[a] ==
 
 end

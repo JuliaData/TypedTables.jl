@@ -14,13 +14,12 @@ end
     @test name(Field{:A,Int64}) == :A
     @test eltype(Field{:A,Int64}()) == Int64
     @test eltype(Field{:A,Int64}) == Int64
-    @test show(a) == nothing
-    println()
+    @test (show(a);println();true)
     @test length(a) == 1
 end
 
 @testset "DefaultKey" begin
-    @test show(DefaultKey()) == nothing
+    @test (show(DefaultKey());println();true)
     @test eltype(DefaultKey()) == Int
     @test eltype(DefaultKey) == Int
     @test name(DefaultKey()) == :Row

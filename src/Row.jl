@@ -15,10 +15,13 @@ immutable Row{Index,DataTypes}
 end
 
 # Convenient methods of instantiation
+@generated Row{F<:Field,DataTypes<:Tuple}(::F,data_in::DataTypes) = :(Row{$(FieldIndex{(F(),)}()),$DataTypes}(data_in) )
+@generated Row{F<:Field,T}(::F,data_in::T) = :(Row{$(FieldIndex{(F(),)}()),Tuple{$T}}((data_in,)) )
+@generated Row{Fields<:Tuple,DataTypes<:Tuple}(::Fields,data_in::DataTypes) = :(Row{$(FieldIndex(instantiate_tuple(Fields))),$DataTypes}(data_in) )
 @generated Row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,data_in::DataTypes) = :(Row{$(Index()),$DataTypes}(data_in))
-Row{Index<:FieldIndex}(::Index, data_in...) = error("Must instantiate Row with a tuple")
+Row{Index<:FieldIndex}(::Index, data_in...) = error("Must instantiate Row with a tuple of type $(eltypes(Index))")
 @generated Base.call{Index<:FieldIndex,DataTypes<:Tuple}(::Index,x::DataTypes) = :(Row{$(Index()),$DataTypes}(x))
-Base.call{Index<:FieldIndex}(::Index,x...) = error("Must instantiate Row with a tuple")
+Base.call{Index<:FieldIndex}(::Index,x...) = error("Must instantiate Row with a tuple of type $(eltypes(Index))")
 
 @generated function check_row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,::Type{DataTypes})
     if eltypes(Index()) != DataTypes
@@ -33,12 +36,12 @@ function check_row(i,d)
 end
 
 # Some interrogation
-@inline Base.names{Index,DataTypes}(row::Row{Index,DataTypes}) = names(Index)
-@inline eltypes{Index,DataTypes}(row::Row{Index,DataTypes}) = DataTypes
-@inline index{Index,DataTypes}(row::Row{Index,DataTypes}) = Index
-@generated Base.length{Index,DataTypes}(row::Row{Index,DataTypes}) = :($(length(Index)))
-@generated ncol{Index,DataTypes}(row::Row{Index,DataTypes}) = :($(length(Index)))
-nrow{Index,DataTypes}(row::Row{Index,DataTypes}) = 1
+@inline Base.names{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = names(Index)
+@inline eltypes{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = DataTypes
+@inline index{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = Index
+@generated Base.length{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = :($(length(Index)))
+@generated ncol{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = :($(length(Index)))
+nrow{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = 1
 
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, new_names::FieldIndex) = Row(rename(Index,new_names),row.data)
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, old_names::Union{FieldIndex,Field}, new_names::Union{FieldIndex,Field}) = Row(rename(Index,old_names,new_names),row.data)
@@ -54,8 +57,11 @@ function Base.show{Index,DataTypes}(io::IO,row::Row{Index,DataTypes})
     print(io,")")
 end
 
-# Can index with integers or rows
+# Can index with integers or fields
+# TODO: Make it so that a single field returns a scalar value, an integer a cell, a FieldIndex or other collection returns a smaller Row.
+@inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i::Field) = row.data[Index[i]] #::DataTypes.parameters[i] # Is this considered "type safe"??
 @inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i) = row.data[i] #::DataTypes.parameters[i] # Is this considered "type safe"??
+
 @inline Base.getindex{Index,DataTypes,F<:Union{Field,FieldIndex}}(row::Row{Index,DataTypes},::F) = row.data[Index[F()]] #::DataTypes.parameters[i] # Is this considered "type safe"??
 
 # copies
@@ -69,7 +75,7 @@ Base.deepcopy{Index,DataTypes}(row::Row{Index,DataTypes}) = Row{Index,DataTypes}
 #    return :(Expr(:meta,:inline), row.data[$idx]) # Under investigation, I'm not certain inline is a great idea...
 #end
 
-
+# TODO hcat - any variation of cells or rows, but not data (no field name)
 
 
 macro row(exprs...)

@@ -1,3 +1,43 @@
 @testset "Row" begin
 
+@testset "Constructors and macros" begin
+    @test Row(Field{:A,Int64}(),(1,)) == Row{FieldIndex{(Field{:A,Int64}(),)}(),Tuple{Int64}}((1,))
+    @test Row(Field{:A,Int64}(),1) == Row{FieldIndex{(Field{:A,Int64}(),)}(),Tuple{Int64}}((1,))
+    @test Row((Field{:A,Int64}(),Field{:B,Float64}()),(1,2.0)) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
+    @test Row(FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),(1,2.0)) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
+
+    @test @index(A::Int64,B::Float64)((1,2.0)) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
+
+    @test @row(A::Int64=1, B::Float64=2.0) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
+    @test (@row A::Int64=1 B::Float64=2.0)  == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
+end
+
+@testset "Introspection" begin
+    @test names(@row(A::Int64=1, B::Float64=2.0)) == (:A,:B)
+    @test names(typeof(@row(A::Int64=1, B::Float64=2.0))) == (:A,:B)
+    @test eltypes(@row(A::Int64=1, B::Float64=2.0)) == Tuple{Int64,Float64}
+    @test eltypes(typeof(@row(A::Int64=1, B::Float64=2.0))) == Tuple{Int64,Float64}
+    @test index(@row(A::Int64=1, B::Float64=2.0)) == @index(A::Int64,B::Float64)
+    @test index(typeof(@row(A::Int64=1, B::Float64=2.0))) == @index(A::Int64,B::Float64)
+    @test length(@row(A::Int64=1, B::Float64=2.0)) == 2
+    @test length(typeof(@row(A::Int64=1, B::Float64=2.0))) == 2
+    @test ncol(@row(A::Int64=1, B::Float64=2.0)) == 2
+    @test ncol(typeof(@row(A::Int64=1, B::Float64=2.0))) == 2
+    @test nrow(@row(A::Int64=1, B::Float64=2.0)) == 1
+    @test nrow(typeof(@row(A::Int64=1, B::Float64=2.0))) == 1
+
+    @test (show(@row(A::Int64=1, B::Float64=2.0));println();true)
+
+    @test names(rename(@index(A::Int64,B::Float64),@field(A::Int64),@field(A_new::Int64))) == (:A_new,:B)
+    @test names(rename(@index(A::Int64,B::Float64),@index(A::Int64),@index(A_new::Int64))) == (:A_new,:B)
+end
+
+@testset "Accessing and iterating" begin
+
+end
+
+@testset "Composing" begin
+
+end
+
 end

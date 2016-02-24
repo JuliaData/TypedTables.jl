@@ -10,7 +10,7 @@ DefaultKey(), which represents the intrinsic row number of a table)
 abstract AbstractTable{Index,Key}
 @inline index{Index,Key}(::AbstractTable{Index,Key}) = Index
 @inline eltypes{Index,Key}(::AbstractTable{Index,Key}) = eltypes(Index)
-@inline names{Index,Key}(::AbstractTable{Index,Key}) = names(Index)
+@inline Base.names{Index,Key}(::AbstractTable{Index,Key}) = names(Index)
 @inline key{Index,Key}(::AbstractTable{Index,Key}) = Key
 @inline Base.keytype{Index,Key}(::AbstractTable{Index,Key}) = eltype(Key)
 @inline keyname{Index,Key}(::AbstractTable{Index,Key}) = name(Key)
