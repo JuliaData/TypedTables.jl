@@ -60,21 +60,9 @@ end
 @inline eltypes{Fields}(::Type{FieldIndex{Fields}}) = eltypes(FieldIndex{Fields}())
 @generated function eltypes{Fields}(::FieldIndex{Fields})
     types = ntuple(i->eltype(Fields[i]),length(Fields))
-    # Insert hack here... previous hack seems to crash julia (*) so reverting to strings
-    #    * mental note: never overwrite a type paramemter list with a new svec...
-    # TODO convert this to an expression manipulation instead of a string manipulation...
-    str = "Tuple{"
-    for i = 1:length(types)
-        str *= "$(types[i])"
-        if i < length(types) || i == 1
-            str *= ","
-        end
-    end
-    str *= "}"
-
     quote
       $(Expr(:meta,:inline))
-      $(parse(str))
+      Tuple{$(types...)}
     end
 end
 

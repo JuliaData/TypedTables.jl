@@ -95,7 +95,7 @@ macro cell(expr)
         if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
             error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
         end
-        field = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(esc(expr.args[1].args[2]))}())
+        field = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
     else
         error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
     end
