@@ -58,6 +58,7 @@ function check_table(a,b)
 end
 
 @generated Table{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,data_in::StorageTypes,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$StorageTypes}(data_in,check_sizes))
+
 # Conversion between Dense and normal Tables??
 # Some more convient versions. (a) One that takes pairs of fields and storage.
 #                              (b) A macro @table(x=[1,2,3],y=["a","b","c"]) -> Table(Field{:x,eltype([1,2,3)}()=>[1,2,3], Field{:y,eltype{["a","b","c"]}()=>["a","b","c"])
@@ -233,7 +234,7 @@ macro table(exprs...)
             if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
                 error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
             end
-            field[i] = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
+            field[i] = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(esc(expr.args[1].args[2]))}())
         else
             error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
         end
