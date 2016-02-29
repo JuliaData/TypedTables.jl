@@ -3,6 +3,7 @@
 # ======================================
 abstract AbstractField
 
+
 "The default key is a special field referring to the intrinsic row-number of a (keyless) table"
 immutable DefaultKey <: AbstractField
 end
@@ -11,7 +12,6 @@ Base.show(io::IO,::DefaultKey) = print(io,"Row::$Int")
 @inline Base.eltype(::DefaultKey) = Int
 @inline name(::Type{DefaultKey}) = :Row
 @inline name(::DefaultKey) = :Row
-
 
 """
 A Field{Name,T}() is a singleton defining a name (as a symbol) and a data type.

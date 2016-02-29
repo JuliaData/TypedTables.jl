@@ -18,6 +18,9 @@ end
 @generated Row{F<:Field,DataTypes<:Tuple}(::F,data_in::DataTypes) = :(Row{$(FieldIndex{(F(),)}()),$DataTypes}(data_in) )
 @generated Row{F<:Field,T}(::F,data_in::T) = :(Row{$(FieldIndex{(F(),)}()),Tuple{$T}}((data_in,)) )
 @generated Row{Fields<:Tuple,DataTypes<:Tuple}(::Fields,data_in::DataTypes) = :(Row{$(FieldIndex(instantiate_tuple(Fields))),$DataTypes}(data_in) )
+
+#@generated Row{CellTypes<:CellTuple}(cells_in::CellTypes) = :(Row{$(Index()),$DataTypes}(data_in))
+
 @generated Row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,data_in::DataTypes) = :(Row{$(Index()),$DataTypes}(data_in))
 Row{Index<:FieldIndex}(::Index, data_in...) = error("Must instantiate Row with a tuple of type $(eltypes(Index))")
 @generated Base.call{Index<:FieldIndex,DataTypes<:Tuple}(::Index,x::DataTypes) = :(Row{$(Index()),$DataTypes}(x))
@@ -40,6 +43,7 @@ end
 @inline eltypes{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = DataTypes
 @inline index{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = Index
 @generated Base.length{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = :($(length(Index)))
+Base.endof(row::Row) = length(row)
 @generated ncol{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = :($(length(Index)))
 nrow{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = 1
 
@@ -58,11 +62,16 @@ function Base.show{Index,DataTypes}(io::IO,row::Row{Index,DataTypes})
 end
 
 # Can index with integers or fields
-# TODO: Make it so that a single field returns a scalar value, an integer a cell, a FieldIndex or other collection returns a smaller Row.
+# A single field returns a scalar value, an integer a cell, a FieldIndex or other collection returns a smaller Row.
 @inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i::Field) = row.data[Index[i]] #::DataTypes.parameters[i] # Is this considered "type safe"??
-@inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i) = row.data[i] #::DataTypes.parameters[i] # Is this considered "type safe"??
+@generated function Base.getindex{R<:Row,I<:FieldIndex}(row::R,idx::I)
+    tmp = ntuple(i->:(row.data[$(index(R)[I()[i]])]), length(I))
+    tmp2 = Expr(:tuple,tmp...)
+    return :(idx($tmp2))
+end
 
-@inline Base.getindex{Index,DataTypes,F<:Union{Field,FieldIndex}}(row::Row{Index,DataTypes},::F) = row.data[Index[F()]] #::DataTypes.parameters[i] # Is this considered "type safe"??
+#@inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i) = Index[i](row.data[i])
+@inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},::Colon) = row
 
 # copies
 Base.copy{Index,DataTypes}(row::Row{Index,DataTypes}) = Row{Index,DataTypes}(copy(row.data))
@@ -77,6 +86,30 @@ Base.deepcopy{Index,DataTypes}(row::Row{Index,DataTypes}) = Row{Index,DataTypes}
 
 # TODO hcat - any variation of cells or rows, but not data (no field name)
 
+# Concatenate cells and rows into rows
+# Generated functions appear to be needed for speed...
+Base.hcat{F,ElType}(cell::Cell{F,ElType}) = Row(F,cell.data)
+Base.hcat{Index,ElTypes}(row::Row{Index,ElTypes}) = Row{Index,ElTypes}(row.data)
+
+@generated Base.hcat{F1,ElType1,F2,ElType2}(cell1::Cell{F1,ElType1},cell2::Cell{F2,ElType2}) = :( Row{$(FieldIndex{(F1,F2)}()),$(Tuple{ElType1,ElType2})}((cell1.data,cell2.data)) )
+@generated function Base.hcat{F1,ElType1,Index2,ElTypes2}(cell1::Cell{F1,ElType1},row2::Row{Index2,ElTypes2})
+    Index = F1 + Index2
+    ElTypes = eltypes(Index)
+    :(Row{$Index,$ElTypes}((cell1.data, row2.data...)) )
+end
+@generated function Base.hcat{Index1,ElTypes1,F2,ElType2}(row1::Row{Index1,ElTypes1},cell2::Cell{F2,ElType2})
+    Index = Index1 + F2
+    ElTypes = eltypes(Index)
+    :(Row{$Index,$ElTypes}((row1.data..., cell2.data)) )
+end
+@generated function Base.hcat{Index1,ElTypes1,Index2,ElTypes2}(row1::Row{Index1,ElTypes1},row2::Row{Index2,ElTypes2})
+    Index = Index1 + Index2
+    ElTypes = eltypes(Index)
+    :(Row{$Index,$ElTypes}((row1.data..., row2.data...)) )
+end
+
+@inline Base.hcat(c1::Union{Cell,Row},c2::Union{Cell,Row},cs::Union{Cell,Row}...) = hcat(hcat(c1,c2),cs...) # Splatting is expensive but it works.
+
 
 macro row(exprs...)
     N = length(exprs)
@@ -85,17 +118,17 @@ macro row(exprs...)
     for i = 1:N
         expr = exprs[i]
         if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
-            error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+            error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
         end
         if isa(expr.args[1],Symbol)
             field[i] = expr.args[1]
         elseif isa(expr.args[1],Expr)
             if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
-                error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+                error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
             end
             field[i] = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
         else
-            error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+            error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
         end
         value[i] = expr.args[2]
     end

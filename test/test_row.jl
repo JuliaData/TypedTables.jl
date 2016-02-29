@@ -21,6 +21,7 @@ end
     @test index(typeof(@row(A::Int64=1, B::Float64=2.0))) == @index(A::Int64,B::Float64)
     @test length(@row(A::Int64=1, B::Float64=2.0)) == 2
     @test length(typeof(@row(A::Int64=1, B::Float64=2.0))) == 2
+    @test endof(@row(A::Int64=1, B::Float64=2.0)) == 2
     @test ncol(@row(A::Int64=1, B::Float64=2.0)) == 2
     @test ncol(typeof(@row(A::Int64=1, B::Float64=2.0))) == 2
     @test nrow(@row(A::Int64=1, B::Float64=2.0)) == 1
@@ -33,11 +34,26 @@ end
 end
 
 @testset "Accessing and iterating" begin
+    @test copy(@row(A::Int64=1,B::Float64=2.0)) == @row(A::Int64=1,B::Float64=2.0)
+    @test deepcopy(@row(A::Int64=1,B::Float64=2.0)) == @row(A::Int64=1,B::Float64=2.0)
 
+    @test (@row(A::Int64=1,B::Float64=2.0))[@field(A::Int64)] == 1
+    #@test (@row(A::Int64=1,B::Float64=2.0))[1] == @cell(A::Int64=1)
+    @test (@row(A::Int64=1,B::Float64=2.0))[@index(B::Float64,A::Int64)] == @row(B::Float64=2.0,A::Int64=1)
+    #@test (@row(A::Int64=1,B::Float64=2.0))[2:-1:1] == @row(B::Float64=2.0,A::Int64=1)
+    @test (@row(A::Int64=1,B::Float64=2.0))[:] == (@row(A::Int64=1,B::Float64=2.0))
 end
 
-@testset "Composing" begin
+@testset "Composing and Concatenating" begin
+    @test hcat(@cell(A::Int64=1)) == Row{@index(A::Int64),Tuple{Int64}}((1,))
+    @test hcat(@row(A::Int64=1)) == Row{@index(A::Int64),Tuple{Int64}}((1,))
 
+    @test hcat(@cell(A::Int64=1),@cell(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+    @test hcat(@cell(A::Int64=1),@row(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+    @test hcat(@row(A::Int64=1),@cell(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+    @test hcat(@row(A::Int64=1),@row(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+
+    @test hcat(@cell(A::Int64=1),@cell(B::Float64=2.0),@cell(C::Bool=true)) == Row{@index(A::Int64,B::Float64,C::Bool),Tuple{Int64,Float64,Bool}}((1,2.0,true))
 end
 
 end

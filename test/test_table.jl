@@ -1,4 +1,4 @@
-@testset "Row" begin
+@testset "Table" begin
 
 @testset "Constructors and macros" begin
 
