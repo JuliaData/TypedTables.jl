@@ -18,11 +18,11 @@ abstract AbstractTable{Index,Key}
 """
 A table stores the data as a vector of row-tuples.
 """
-immutable Table{Index, StorageTypes <: Tuple} <: AbstractTable{Index,DefaultKey()}
+immutable Table{Index, ElTypes <: Tuple, StorageTypes <: Tuple} <: AbstractTable{Index,DefaultKey()}
     data::StorageTypes
 
     function Table(data_in, check_sizes::Type{Val{true}} = Val{true})
-        check_table(Index,StorageTypes)
+        check_table(Index,ElTypes,StorageTypes)
         ls = map(length,data_in)
         for i in 2:length(data_in)
             if ls[i] != ls[1]
@@ -38,14 +38,20 @@ immutable Table{Index, StorageTypes <: Tuple} <: AbstractTable{Index,DefaultKey(
     end
 end
 
-@generated function check_table{Index <: FieldIndex,StorageTypes <: Tuple}(::Index,::Type{StorageTypes})
+@generated function check_table{Index <: FieldIndex, ElTypes <: Tuple, StorageTypes <: Tuple}(::Index,::Type{ElTypes},::Type{StorageTypes})
     try
         types = (eltypes(Index).parameters...)
+        given_eltypes = (ElTypes.parameters...)
         storage_eltypes = ntuple(i->eltype(StorageTypes.parameters[i]), length(StorageTypes.parameters))
-        if types == storage_eltypes
-            return nothing
+        if types == given_eltypes
+            if types == storage_eltypes
+                return nothing
+            else
+                str = "Storage types $StorageTypes do not match Index $Index"
+                return :(error($str))
+            end
         else
-            str = "Storage types $StorageTypes do not match Index $Index"
+            str = "Element types $ElTypes do not match Index $Index"
             return :(error($str))
         end
     catch
@@ -57,7 +63,10 @@ function check_table(a,b)
     error("Error with table parameters")
 end
 
-@generated Table{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,data_in::StorageTypes,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$StorageTypes}(data_in,check_sizes))
+@generated Table{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,data_in::StorageTypes,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$StorageTypes}(data_in,check_sizes))
+
+=={F,ElTypes,StorageType}(table1::Table{F,ElTypes,StorageType},table2::Table{F,ElTypes,StorageType}) = (table1.data == table2.data)
+
 
 # Conversion between Dense and normal Tables??
 # Some more convient versions. (a) One that takes pairs of fields and storage.
@@ -65,54 +74,54 @@ end
 
 
 # Data from the index
-Base.names{Index,DataTypes}(table::Table{Index,DataTypes}) = names(Index)
-eltypes{Index,DataTypes}(table::Table{Index,DataTypes}) = eltypes(Index)
-@generated rename{Index,DataTypes}(table::Table{Index,DataTypes}, new_names::FieldIndex) = :(Table($(rename(Index,new_names())),table.data, Val{false}))
-@generated rename{Index,DataTypes,OldFields,NewFields}(table::Table{Index,DataTypes}, old_names::OldFields, ::NewFields) = :(Table($(rename(Index,OldFields(),NewFields())),table.data, Val{false}))
+Base.names{Index}(table::Table{Index}) = names(Index)
+eltypes{Index}(table::Table{Index}) = eltypes(Index)
+@generated rename{Index,ElTypes,DataTypes}(table::Table{Index,ElTypes,DataTypes}, new_names::FieldIndex) = :(Table($(rename(Index,new_names())),table.data, Val{false}))
+@generated rename{Index,ElTypes,DataTypes,OldFields,NewFields}(table::Table{Index,ElTypes,DataTypes}, old_names::OldFields, ::NewFields) = :(Table($(rename(Index,OldFields(),NewFields())),table.data, Val{false}))
 
 # Vector-like introspection
-Base.length{Index,StorageTypes}(table::Table{Index,StorageTypes}) = length(table.data[1])
-@generated ncol{Index,StorageTypes}(table::Table{Index,StorageTypes}) = :($(length(Index)))
-nrow{Index,StorageTypes}(table::Table{Index,StorageTypes}) = length(table.data[1])
-Base.size{Index,StorageTypes}(table::Table{Index,StorageTypes}) = (length(Index),length(table.data[1]))
-Base.size{Index,StorageTypes}(table::Table{Index,StorageTypes},i::Int) = i == 1 ? length(Index) : (i == 2 ? length(table.data[1]) : error("Tables are two-dimensional"))
-@generated Base.eltype{Index,StorageTypes}(table::Table{Index,StorageTypes}) = :($(eltypes(Index)))
-Base.isempty{Index,StorageTypes}(table::Table{Index,StorageTypes}) = isempty(table.data[1])
-Base.endof{Index,StorageTypes}(table::Table{Index,StorageTypes}) = endof(table.data[1])
+Base.length{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = length(table.data[1])
+@generated ncol{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = :($(length(Index)))
+nrow{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = length(table.data[1])
+Base.size{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = (length(Index),length(table.data[1]))
+Base.size{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},i::Int) = i == 1 ? length(Index) : (i == 2 ? length(table.data[1]) : error("Tables are two-dimensional"))
+@generated Base.eltype{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = :($(eltypes(Index)))
+Base.isempty{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = isempty(table.data[1])
+Base.endof{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = endof(table.data[1])
 
 # Iterators
-Base.start{Index,StorageTypes}(table::Table{Index,StorageTypes}) = 1
-Base.next{Index,StorageTypes}(table::Table{Index,StorageTypes},i) = (table[i],i+1)
-Base.done{Index,StorageTypes}(table::Table{Index,StorageTypes},i) = (i-1 == length(table))
+Base.start{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = 1
+Base.next{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},i) = (table[i],i+1)
+Base.done{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},i) = (i-1 == length(table))
 
 # get/set index
-Base.getindex{Index,StorageTypes}(table::Table{Index,StorageTypes},idx::Int) = Row(Index,ntuple(i->getindex(table.data[i],idx),length(Index)))
-Base.getindex{Index,StorageTypes}(table::Table{Index,StorageTypes},idx) = Table(Index,ntuple(i->getindex(table.data[i],idx),length(Index)))
+Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx::Int) = Row(Index,ntuple(i->getindex(table.data[i],idx),length(Index)))
+Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx) = Table(Index,ntuple(i->getindex(table.data[i],idx),length(Index)))
 
-Base.setindex!{Index,StorageTypes}(table::Table{Index,StorageTypes},val::Row{Index},idx::Int) = (for i = 1:length(Index); setindex!(table.data[i],val.data[i],idx); end; val)
-Base.setindex!{Index,StorageTypes}(table::Table{Index,StorageTypes},val::Table{Index,StorageTypes},idx) = (for i = 1:length(Index); setindex!(table.data[i],val.data[i],idx); end; val)
+Base.setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Row{Index},idx::Int) = (for i = 1:length(Index); setindex!(table.data[i],val.data[i],idx); end; val)
+Base.setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Table{Index,StorageTypes},idx) = (for i = 1:length(Index); setindex!(table.data[i],val.data[i],idx); end; val)
 
-Base.unsafe_getindex{Index,StorageTypes}(table::Table{Index,StorageTypes},idx::Int) = Row(Index,ntuple(i->unsafe_getindex(table.data[i],idx),length(Index)))
-Base.unsafe_getindex{Index,StorageTypes}(table::Table{Index,StorageTypes},idx) = Table(Index,ntuple(i->Base.unsafe_getindex(table.data[i],idx),length(Index)))
-Base.unsafe_setindex!{Index,StorageTypes}(table::Table{Index,StorageTypes},val::Row{Index},idx::Int) = for i = 1:length(Index); Base.unsafe_setindex!(table.data[i],val.data[i],idx); end
-Base.unsafe_setindex!{Index,StorageTypes}(table::Table{Index,StorageTypes},val::Table{Index,StorageTypes},idx) = for i = 1:length(Index); Base.unsafe_setindex!(table.data[i],val.data[i],idx); end
+Base.unsafe_getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx::Int) = Row(Index,ntuple(i->unsafe_getindex(table.data[i],idx),length(Index)))
+Base.unsafe_getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx) = Table(Index,ntuple(i->Base.unsafe_getindex(table.data[i],idx),length(Index)))
+Base.unsafe_setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Row{Index},idx::Int) = for i = 1:length(Index); Base.unsafe_setindex!(table.data[i],val.data[i],idx); end
+Base.unsafe_setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Table{Index,StorageTypes},idx) = for i = 1:length(Index); Base.unsafe_setindex!(table.data[i],val.data[i],idx); end
 
 
 # Push, append, pop
-function Base.push!{Index}(table::Table{Index},row::Row{Index})
+function Base.push!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},row::Row{Index,ElTypes})
     for i = 1:length(Index)
         push!(table.data[i],row[i])
     end
     table
 end
-@inline Base.push!{Index,StorageTypes,DataTypes<:Tuple}(table::Table{Index,StorageTypes},data_in::DataTypes) = push!(table, Row{Index,DataTypes}(data_in))
-@inline Base.push!{Index,StorageTypes}(table::Table{Index,StorageTypes},data_in...) = push!(table,((data_in...))) # TODO check if slow?
-function Base.append!{Index,StorageTypes}(table::Table{Index,StorageTypes},table_in::Table{Index,StorageTypes})
+@inline Base.push!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in::ElTypes) = push!(table, Row{Index,ElTypes}(data_in))
+@inline Base.push!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in...) = push!(table,((data_in...))) # TODO check if slow?
+function Base.append!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},table_in::Table{Index,ElTypes,StorageTypes})
     for i in 1:length(Index)
         append!(table.data[i],table_in.data[i])
     end
 end
-function Base.append!{Index,StorageTypes}(table::Table{Index,StorageTypes},data_in::StorageTypes)
+function Base.append!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in::StorageTypes)
     ls = map(length,data_in)
     for i in 2:length(Index)
         if ls[i] != ls[1]
@@ -124,33 +133,33 @@ function Base.append!{Index,StorageTypes}(table::Table{Index,StorageTypes},data_
         append!(table.data[i],data_in[i])
     end
 end
-function Base.pop!{Index,StorageTypes}(table::Table{Index,StorageTypes})
+function Base.pop!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes})
     return Row{Index,eltypes(Index)}(ntuple(i->pop!(table.data[i]),length(Index)))
 end
-function Base.shift!{Index,StorageTypes}(table::Table{Index,StorageTypes})
+function Base.shift!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes})
     return Row{Index,eltypes(Index)}(ntuple(i->shift!(table.data[i]),length(Index)))
 end
-function Base.empty!{Index,StorageTypes}(table::Table{Index,StorageTypes})
+function Base.empty!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes})
     for i = 1:length(Index)
         empty!(table.data[i])
     end
 end
 
 # copies
-Base.copy{Index,StorageTypes}(table::Table{Index,StorageTypes}) = Table{Index,StorageTypes}(copy(table.data))
-Base.deepcopy{Index,StorageTypes}(table::Table{Index,StorageTypes}) = Table{Index,StorageTypes}(deepcopy(table.data))
+Base.copy{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = Table{Index,ElTypes,StorageTypes}(copy(table.data))
+Base.deepcopy{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = Table{Index,ElTypes,StorageTypes}(deepcopy(table.data))
 
 # Some output
-function Base.summary{Index,StorageTypes}(io::IO,table::Table{Index,StorageTypes})
+function Base.summary{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes,StorageTypes})
     println(io,"$(ncol(table))-column, $(nrow(table))-row Table{$Index,$StorageTypes}")
 end
 
 _displaysize(io) = haskey(io, :displaysize) ? io[:displaysize] : _displaysize(io.io)
 
-function Base.show{Index,StorageTypes}(io::IO,table::Table{Index,StorageTypes})
+function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes,StorageTypes})
     summary(io,table)
     s = Base.tty_size()
-    l = div(s[1],2)-3
+    l = max(5,div(s[1],5))
 
     if length(table) > 2*l
         for i = 1:l
@@ -178,7 +187,7 @@ function Base.show{Index,StorageTypes}(io::IO,table::Table{Index,StorageTypes})
     end
 end
 
-function Base.showall{Index,StorageTypes}(io::IO,table::Table{Index,StorageTypes})
+function Base.showall{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes,StorageTypes})
     summary(io,table)
     for i = 1:length(table)
         if i == endof(table)
@@ -193,11 +202,11 @@ head(t::Table, n = 5) = length(t) >= n ? t[1:n] : t
 tail(t::Table, n = 5) = length(t) >= n ? t[end-n+1:end] : t
 
 # Can create a subtable easily by selecting columns
-Base.getindex{Index,StorageTypes,F<:Field}(table::Table{Index,StorageTypes},::F) = table.data[Index[F()]]
-Base.getindex{Index,StorageTypes,F<:DefaultKey}(table::Table{Index,StorageTypes},::F) = 1:length(table.data[1])
-Base.getindex{Index,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,StorageTypes},::NewIndex) = table.data[Index[NewIndex]] # Probably
+Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},::F) = table.data[Index[F()]]
+Base.getindex{Index,ElTypes,StorageTypes,F<:DefaultKey}(table::Table{Index,ElTypes,StorageTypes},::F) = 1:length(table.data[1])
+Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},::NewIndex) = table.data[Index[NewIndex]] # Probably
 
-@generated function Base.getindex{Index,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,StorageTypes},::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
+@generated function Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
     if issubset(NewIndex(),Index+DefaultKey())
         str = "("
         for i = 1:length(NewIndex())
@@ -250,16 +259,16 @@ end
 
 
 "This is a fake 'storage container' for the field DefaultKey() in a Table"
-immutable TableKey{Index,StorageTypes}
-    parent::Ref{Table{Index,StorageTypes}}
+immutable TableKey{Index,ElTypes,StorageTypes}
+    parent::Ref{Table{Index,ElTypes,StorageTypes}}
 end
-Base.getindex{Index,StorageTypes,T}(k::TableKey{Index,StorageTypes},i::T) = getindex(1:length(k.parent.x),i)
-Base.length{Index,StorageTypes}(k::TableKey{Index,StorageTypes}) = length(k.parent.x)
+Base.getindex{Index,ElTypes,StorageTypes,T}(k::TableKey{Index,ElTypes,StorageTypes},i::T) = getindex(1:length(k.parent.x),i)
+Base.length{Index,ElTypes,StorageTypes}(k::TableKey{Index,ElTypes,StorageTypes}) = length(k.parent.x)
 Base.eltype(k::TableKey) = Int
-Base.eltype{Index,StorageTypes}(k::Type{TableKey{Index,StorageTypes}}) = Int
-Base.first{Index,StorageTypes}(::TableKey{Index,StorageTypes},i::Int) = 1
-Base.next{Index,StorageTypes}(::TableKey{Index,StorageTypes},i::Int) = (i, i+1)
-Base.done{Index,StorageTypes}(k::TableKey{Index,StorageTypes},i::Int) = (i-1) == length(k.parent.x)
+Base.eltype{Index,ElTypes,StorageTypes}(k::Type{TableKey{Index,ElTypes,StorageTypes}}) = Int
+Base.first{Index,ElTypes,StorageTypes}(::TableKey{Index,ElTypes,StorageTypes},i::Int) = 1
+Base.next{Index,ElTypes,StorageTypes}(::TableKey{Index,ElTypes,StorageTypes},i::Int) = (i, i+1)
+Base.done{Index,ElTypes,StorageTypes}(k::TableKey{Index,ElTypes,StorageTypes},i::Int) = (i-1) == length(k.parent.x)
 Base.show(io::IO,k::TableKey) = show(io::IO,1:length(k.parent.x))
 Base.copy(k::TableKey) = 1:length(k)
 

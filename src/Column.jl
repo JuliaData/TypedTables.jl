@@ -35,6 +35,7 @@ end
 
 =={F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{F,ElType,StorageType}) = (col1.data == col2.data)
 
+
 @inline name{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = name(F)
 @inline name{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = name(F)
 @inline Base.eltype{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = eltype(StorageType)
