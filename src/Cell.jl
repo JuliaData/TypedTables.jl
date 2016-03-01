@@ -68,7 +68,7 @@ end
 Base.getindex(c::Cell,i::Int) = i == 1 ? c :  # This matches the behaviour of other scalars in Julia
 
 # TODO - Figure out this Julia dispatch problem (rename(cell,f_new) doesn't work without the column version defined first!!)
-@inline rename{F1,F2,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F2) = rename(x,F1,F2())
+@inline rename{F1,F2,ElType,StorageType}(x::Cell{F1,ElType,StorageType},::F2) = rename(x,F1,F2())
 @inline rename{F1,F2,ElType}(x::Cell{F1,ElType},::F2) = rename(x,F1,F2())
 @generated function rename{F1,F1_type,F2,ElType}(x::Cell{F1,ElType},::F1_type,::F2)
     if F1_type() == F1
