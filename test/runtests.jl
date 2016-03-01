@@ -1,4 +1,5 @@
 using Tables
+using NullableArrays
 
 if VERSION >= v"0.5-"
     using Base.Test

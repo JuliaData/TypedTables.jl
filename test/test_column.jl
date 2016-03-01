@@ -14,6 +14,11 @@
     @test Column(c1,c2,c3) == Column{a,Int64,Vector{Int64}}(v1)
     @test Column(a,1,2,3) == Column{a,Int64,Vector{Int64}}(v1)
 
+    # Wait for respone from NullablesArray.jl issue #98 (https://github.com/JuliaStats/NullableArrays.jl/issues/98)
+    #@test (an = @field(A::Nullable{Int64}); Column(an) == Column{an,Nullable{Int64},NullableVector{Int64}}(NullableVector{Int64}()) )
+    #@test (an = @field(A::Nullable{Int64}); c1 = Cell(an,Nullable(1));  Column(c1) == Column{an,Nullable{Int64},NullableVector{Int64}}(NullableVector{Int64}([1])) )
+    #@test (an = @field(A::Nullable{Int64}); Column(an,Nullable(1)) == Column{an,Nullable{Int64},NullableVector{Int64}}(NullableVector{Int64}([1])) )
+
     @test @column(A::Int64 = [1,2,3]) == Column{a,Int64,Vector{Int64}}(v1)
     @test (@column A::Int64 = [1,2,3]) == Column{a,Int64,Vector{Int64}}(v1)
 

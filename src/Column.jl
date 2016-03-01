@@ -9,11 +9,14 @@ immutable Column{F, ElType, StorageType}
         new(x)
     end
 end
-@generated Column{F<:Field,StorageType}(::F,x::StorageType) = :(Column{$(F()),$(eltype(F())),$StorageType}(x))
-@generated Column{Name,T}(::Field{Name,T}) = :(Column{$(Field{Name,T}()),T,Vector{T}}(Vector{T}()))
-@generated Column{Name,T}(::Field{Name,T},x::T...) = :(Column{$(Field{Name,T}()),T,Vector{T}}([x...]))
+@generated Column{F<:Field,StorageType}(::F,x::StorageType) = :(Column{$(F()),$(eltype(F())),$StorageType}(x) )
+@generated Column{Name,T}(::Field{Name,T}) = :(Column{$(Field{Name,T}()),T,$(makestoragetype(T))}($(makestoragetype(T))()) )
+@generated Column{Name,T}(::Field{Name,T},x::T...) = :(Column{$(Field{Name,T}()),T,$(makestoragetype(T))}($(makestoragetype(T))([x...])) )
 
-@generated Column{F,ElType}(x::Cell{F,ElType}...) = :(Column{$(F),ElType,Vector{ElType}}([x[i].data for i=1:length(x)]))
+@generated Column{F,ElType}(x::Cell{F,ElType}...) = :(Column{$(F),$ElType,$(makestoragetype(ElType))}($(makestoragetype(ElType))($ElType[x[i].data for i=1:length(x)])) )
+
+makestoragetype{T}(::Type{Nullable{T}}) = NullableVector{T}
+makestoragetype{T}(::Type{T}) = Vector{T}
 
 
 @generated function check_Column{F,ElType,StorageType}(::F,::Type{ElType},::Type{StorageType})
@@ -29,6 +32,9 @@ end
 end
 
 function Base.show{F,ElType,StorageType}(io::IO,x::Column{F,ElType,StorageType})
+    if isempty(x)
+        print(io, "Empty ")
+    end
     println(io, "Column $F")
     Base.showarray(x.data,header=false)
 end

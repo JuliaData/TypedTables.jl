@@ -1,16 +1,19 @@
 module Tables
 
+using NullableArrays
+
 export Field, DefaultKey, FieldIndex, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
-export rename, name, eltypes, field, index, key, keyname, ncol, nrow, join
+export rename, name, eltypes, field, index, key, keyname, ncol, nrow, join, head, tail
 
 export  @field, @index, @cell, @row, @column, @table
 
 import Base.(==)
 
+# TODO Figure out namespace issues for head and tail
+# TODO Missing methods: vcat and hcat for tables, unshift!,
 # TODO Indexing by number of a Table/Row could give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
 # TODO fix TableKey so it always references the length of the current table, not its parent
-# TODO macro for constructing tables, etc
 # TODO possibly implement subtable (with no ability to push! or change rows, though can setindex!)
 # TODO join for row, join for table, somehow make sense of the key mess
 # TODO sub for generating a sub-table (i.e. simply a table with different StorageTypes)
