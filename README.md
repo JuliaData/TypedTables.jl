@@ -114,7 +114,7 @@ in DataFrames.jl.
 - [ ] `hcat` and `vcat` for `Table`
 - [ ] `join` and the multiple types of joins
 - [ ] Convenience functions for data manipulations, like `unique!`
-- [ ] Condition searches
+- [ ] Conditional searches
 - [ ] More support for views
-- [ ] (possibly) Some way of interacting with SQL-formatted queries and other JuliaStats formalisms.
-- [ ] Remove dependence on generated functions via trait-based metaprogramming (possibly quite hard).
+- [ ] Some way of interacting with SQL-formatted queries and other JuliaStats formalisms (maybe)
+- [ ] Remove dependence on generated functions via trait-based metaprogramming (possibly quite hard)
