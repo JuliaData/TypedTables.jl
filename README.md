@@ -111,7 +111,6 @@ in DataFrames.jl.
 ## Roadmap
 
 - [x] Unit tests
-- [ ] `hcat` and `vcat` for `Table`
 - [ ] `join` and the multiple types of joins
 - [ ] Convenience functions for data manipulations, like `unique!`
 - [ ] Conditional searches

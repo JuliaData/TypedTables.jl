@@ -3,10 +3,9 @@ language: julia
 os:
   - linux
   - osx
-#  - windows
 julia:
   - release
-#  - nightly
+  - nightly
 notifications:
   email: false
 # uncomment the following lines to override the default test script

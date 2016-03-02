@@ -63,9 +63,10 @@ function check_table(a,b)
     error("Error with table parameters")
 end
 
-@generated Table{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,data_in::StorageTypes,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$StorageTypes}(data_in,check_sizes))
-@generated Table{Index<:FieldIndex}(::Index,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$(makestoragetypes(eltypes(Index)))}($(instantiate_tuple(makestoragetypes(eltypes(Index)))),check_sizes))
-@generated Table{Index<:FieldIndex}(::Index,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$(makestoragetypes(eltypes(Index)))}($(instantiate_tuple(makestoragetypes(eltypes(Index)))),check_sizes))
+@generated Table{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,data_in::StorageTypes,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$StorageTypes}(data_in,check_sizes) )
+@generated Table{Index<:FieldIndex}(::Index,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$(makestoragetypes(eltypes(Index)))}($(instantiate_tuple(makestoragetypes(eltypes(Index)))),check_sizes) )
+@generated Table{Index,ElTypes}(row::Row{Index,ElTypes},check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{Index,ElTypes,$(makestoragetypes(ElTypes))}(ntuple(i->[row.data[i]],$(length(Index))),check_sizes) )
+@generated Table{F,ElType,StorageType}(col::Column{F,ElType,StorageType},check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(FieldIndex(F)),Tuple{ElType},Tuple{StorageType}}((col.data,),check_sizes) )
 
 
 @generated function makestoragetypes{T<:Tuple}(::Type{T})
@@ -249,6 +250,54 @@ Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Inde
         return :(error($str))
     end
 end
+
+# Concatenate rows and tables into tables
+Base.vcat{Index,ElTypes}(row::Row{Index,ElTypes}) = Table(row)
+Base.vcat{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = table
+
+@generated Base.vcat{Index,ElTypes}(row1::Row{Index,ElTypes},row2::Row{Index,ElTypes}) = :( Table{Index,ElTypes,$(makestoragetypes(ElTypes))}(ntuple(i->vcat(row1.data[i],row2.data[i]),$(length(Index)))) )
+Base.vcat{Index,ElTypes,StorageTypes}(row1::Row{Index,ElTypes},table2::Table{Index,ElTypes,StorageTypes}) = Table{Index,ElTypes,StorageTypes}(ntuple(i->vcat(row1.data[i],table2.data[i]),length(Index)))
+Base.vcat{Index,ElTypes,StorageTypes}(table1::Table{Index,ElTypes,StorageTypes},row2::Row{Index,ElTypes}) = Table{Index,ElTypes,StorageTypes}(ntuple(i->vcat(table1.data[i],row2.data[i]),length(Index)))
+Base.vcat{Index,ElTypes,StorageTypes}(table1::Table{Index,ElTypes,StorageTypes},table2::Table{Index,ElTypes,StorageTypes}) = Table{Index,ElTypes,StorageTypes}(ntuple(i->vcat(table1.data[i],table2.data[i]),length(Index)))
+
+Base.vcat{Index,ElTypes}(row1::Row{Index,ElTypes},row2::Row{Index,ElTypes},rows::Row{Index,ElTypes}...) = vcat(vcat(row1,row2),rows...)
+Base.vcat{Index,ElTypes,StorageTypes}(c1::Union{Row{Index,ElTypes},Table{Index,ElTypes,StorageTypes}},c2::Union{Row{Index,ElTypes},Table{Index,ElTypes,StorageTypes}},cs::Union{Row{Index,ElTypes},Table{Index,ElTypes,StorageTypes}}...) = vcat(vcat(c1,c2),cs...)
+
+# Concatenate columns and tables into tables
+# Generated functions appear to be needed for speed...
+Base.hcat{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = Table(col)
+Base.hcat{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = table
+
+@generated Base.hcat{F1,ElType1,Storage1,F2,ElType2,Storage2}(col1::Column{F1,ElType1,Storage1},col2::Column{F2,ElType2,Storage2}) = :( Table{$(FieldIndex{(F1,F2)}()),$(Tuple{ElType1,ElType2}),$(Tuple{Storage1,Storage2})}((col1.data,col2.data)) )
+@generated function Base.hcat{F1,ElType1,Storage1,Index2,ElTypes2,StorageTypes2}(col1::Column{F1,ElType1,Storage1},table2::Table{Index2,ElTypes2,StorageTypes2})
+    Index = F1 + Index2
+    ElTypes = eltypes(Index)
+    StorageTypes = Tuple{Storage1 ,StorageTypes2.parameters...}
+
+    :(Table{$Index,$ElTypes,$StorageTypes}((col1.data, table2.data...)) )
+end
+@generated function Base.hcat{Index1,ElTypes1,StorageTypes1,F2,ElType2,Storage2}(table1::Table{Index1,ElTypes1,StorageTypes1},col2::Column{F2,ElType2,Storage2})
+    Index = Index1 + F2
+    ElTypes = eltypes(Index)
+    StorageTypes = Tuple{StorageTypes1.parameters..., Storage2}
+
+    :(Table{$Index,$ElTypes,$StorageTypes}((table1.data..., col2.data)) )
+end
+@generated function Base.hcat{Index1,ElTypes1,StorageTypes1,Index2,ElTypes2,StorageTypes2}(table1::Table{Index1,ElTypes1,StorageTypes1},table2::Table{Index2,ElTypes2,StorageTypes2})
+    Index = Index1 + Index2
+    ElTypes = eltypes(Index)
+    StorageTypes = Tuple{StorageTypes1.parameters..., StorageTypes2.parameters...}
+
+    :(Table{$Index,$ElTypes,$StorageTypes}((table1.data..., table2.data...)) )
+end
+
+# Strangely I get dispatch problems for Column->Table but not Cell->Row. Solution is to make sure this is at least as spececific in its templating as those above...
+@inline Base.hcat{F1,ElType1,Storage1,F2,ElType2,Storage2}(in1::Column{F1,ElType1,Storage1},in2::Column{F2,ElType2,Storage2},ins::Union{Column,Table}...) = hcat(hcat(in1,in2),ins...)
+@inline Base.hcat{F1,ElType1,Storage1,Index2,ElTypes2,StorageTypes2}(in1::Column{F1,ElType1,Storage1},in2::Table{Index2,ElTypes2,StorageTypes2},ins::Union{Column,Table}...) = hcat(hcat(in1,in2),ins...)
+@inline Base.hcat{Index1,ElTypes1,StorageTypes1,F2,ElType2,Storage2}(in1::Table{Index1,ElTypes1,StorageTypes1},in2::Column{F2,ElType2,Storage2},ins::Union{Column,Table}...) = hcat(hcat(in1,in2),ins...)
+@inline Base.hcat{Index1,ElTypes1,StorageTypes1,Index2,ElTypes2,StorageTypes2}(in1::Table{Index1,ElTypes1,StorageTypes1},in2::Table{Index2,ElTypes2,StorageTypes2},ins::Union{Column,Table}...) = hcat(hcat(in1,in2),ins...)
+
+
 
 macro table(exprs...)
     N = length(exprs)
