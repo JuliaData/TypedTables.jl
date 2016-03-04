@@ -31,4 +31,7 @@ include("FieldIndex.jl")
 include("Row.jl")
 include("Table.jl")
 
+include("join.jl")
+
+
 end # module
