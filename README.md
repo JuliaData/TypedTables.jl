@@ -53,7 +53,7 @@ keep our fields in scope as objects, for convenience:
 
     A = @field(A::Int64)
     B = @field(B::Float64)
-    t = @table(A=[1,2,3], B=[2.0,4.0,6.0]) # Note: use identifier here for the fields
+    t = @table(A=[1,2,3], B=[2.0,4.0,6.0]) # Note: uses identifier here for the fields - will error without the above 2 lines
     ...
     t[A]
 
@@ -80,7 +80,7 @@ Both `Table`s and `Row`s have multiple `Field`s, which
 are stored in another singleton container called a `FieldIndex`, which can be
 constructed by the `@index` macro:
 
-    idx = @index(A::Int64,B::Float64)
+    idx = @index(A::Int64, B::Float64)
 
 An empty table could be created with just it's index, e.g. `t = Table(idx)`. By
 default, this will use `Vector`s for most data types to store the columns,
@@ -94,26 +94,85 @@ case of iteration, the various containers must share the same iteration states).
 Feel free to skip this section, since the details are not necessarily important
 for usage.
 
-TODO
+This package makes extensive use of Julia's type system to annotate a collection
+with field names and types. Currently, the most basic unit is the `Field`, which
+is an *instance* of the singleton type `Field{:name, Type}()`, and will appear
+to the user at the REPL in a Julia-like form `name::Type`.
 
-## Relational algebra and `join`
+Collections of `Field`s are also a unique type, stored as another singleton type
+`FieldIndex{(Field1,...)}()`. They appear on the REPL like a tuple a fields.
+
+`Column`s and `Cell`s are themselves annotated by a `Field`, for instance
+`@cell(A::Int=1)` generates `Cell{Field{:A,Int},Int}(1)`. Note the additional
+element type given in the type parameters (this may change in the future).
+Similarly, `@column(A::Int=[1,2,3])` will generate `Column{Field{:A,Int},Int,Vector{Int}}(1)`.
+This has a third parameter defining the storage type - `Column`s can also accept
+any storage container other than `Vector`, and will intelligently default to
+`NullableVector` when it is constructed from a field with `Nullable` elements.
+
+On the other hand, `Row`s and `Table`s are annotated by a `FieldIndex`. The element
+type of a `Row` is a `Tuple{}` of the elements of the individual fields. For `Table`,
+different storage containers can be used for different fields. Care must be taken
+that each storage container supports the methods of access (e.g. iteration via
+`start`/`next`/`done`, or direct access via `getindex`) that you will use to
+access the `Table`, since they will be broadcast across the columns.
+
+## Relational algebra
 
 The relational algebra consists of a closed set of operations on `Table`s that
 return a `Table`.
 
-TODO
+### Selecting columns (*projection*)
 
-## Functions
+Indexing a table with a `FieldIndex` will result in a smaller table. This is
+implemented by copying the *reference* to the associated storage containers, so it
+constitutes a lightweight view. Care must be taken not to e.g. not change the
+number of rows in a subtable, if you want to continue to use the parent table
+(of course, `copy` and `deepcopy` are defined to help with this situation).
 
-A range of functions to manipulate data in `Table`s, including those present
-in DataFrames.jl.
+### Selecting rows (*selection*)
+
+Currently, one should create their own function to iterate over rows and
+selecting the ones you wish to keep.
+
+Convenience functions may be considered in the future. Depending on the
+situation, users may want to create an entirely new table, or simply a
+`Vector{Bool}` index of the relevant rows as a sort-of view.
+
+### Concatenation
+
+`Cell`s, `Row`s, `Column`s and `Table`s can all be concatenated with the
+appropriate `hcat` or `vcat` command.
+
+### Renaming
+
+Field names may be modified with the `rename` function:
+
+    rename(table, old_field, new_field) # rename a single field
+    rename(table, old_index, new_index) # rename one or more fields
+    rename(table, new_index)            # rename all fields (in order)
+
+However, the new field(s) must have the same type as the previous.
+
+### Joins
+
+Two tables can be joined with the syntax
+
+    join(table, table2, [jointype])
+
+The default (and currently only) type of join supported is the natural inner
+join, parameterized by the singleton `InnerJoin()`. In the future, more types
+of joins will be implemented and a convenient framework for users to implement
+their own join tests, etc will be included.
+
 
 ## Roadmap
 
 - [x] Unit tests
-- [ ] `join` and the multiple types of joins
+- [x] `join` for natural, inner joins
+- [ ] other types of joins
 - [ ] Convenience functions for data manipulations, like `unique!`
-- [ ] Conditional searches
-- [ ] More support for views
-- [ ] Some way of interacting with SQL-formatted queries and other JuliaStats formalisms (maybe)
-- [ ] Remove dependence on generated functions via trait-based metaprogramming (possibly quite hard)
+- [ ] Conditional searches (selection)
+- [ ] More support for views and `sub`
+- [ ] Some way of interacting with SQL-formatted queries and other JuliaStats formalisms (maybe?)
+- [ ] Remove dependence on generated functions via trait-based metaprogramming (probably requires Julia 0.5 `@pure` functions)

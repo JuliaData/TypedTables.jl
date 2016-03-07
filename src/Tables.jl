@@ -10,6 +10,8 @@ export  @field, @index, @cell, @row, @column, @table
 
 import Base.(==)
 
+# TODO overload == for rows, tables and indices where they are simply reordered
+# TODO similarly to ==, need to push! a reorederd row onto a table. Currently seems to cause an infinite loop. (Think about vcat, too? Or a nice way of matching orderings?)
 # TODO Figure out namespace issues for head and tail
 # TODO Missing methods: vcat and hcat for tables, unshift!,
 # TODO Indexing by number of a Table/Row could give a Column/Cell (a bit confusing for table... maybe like table[:,1] vs table[1,:])
