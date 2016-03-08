@@ -39,8 +39,11 @@ end
 @testset "Accessing and iterating" begin
     @test first(idx) == a
     @test idx[1] == a
+    @test idx[Val{1}] == a
     @test idx[:] == idx
     @test idx[1:2] == idx
+    @test idx[Val{1:2}] == idx
+    @test idx[Val{(1,2)}] == idx
 
     @test idx[a] == 1
     @test idx[idx] == (1,2)

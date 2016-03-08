@@ -126,6 +126,16 @@ end
 @generated Base.done{Fields,I}(::FieldIndex{Fields},::Type{Val{I}}) = :($(I-1 == length(Fields)))
 
 # Getting indices (immutable, so no setindex)
+@generated function Base.getindex{Fields,I}(f::FieldIndex{Fields},v::Type{Val{I}})
+    if isa(I, Int)
+        return :(Fields[I])
+    elseif isa(I, Tuple) # Sadly, we can't normally index a tuple with a tuple in Julia...
+        return :($(FieldIndex{ntuple(i->Fields[I[i]],length(I))}()))
+    else
+        return :($(FieldIndex{Fields[I]}()))
+    end
+end
+
 @inline Base.getindex{Fields}(::FieldIndex{Fields},i::Int) = Fields[i]
 @generated Base.getindex{Fields}(::FieldIndex{Fields},i) = :(FieldIndex{Fields[i]}())
 @inline Base.getindex{Fields}(idx::FieldIndex{Fields},::Colon) = idx
