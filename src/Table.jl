@@ -227,7 +227,6 @@ tail(t::Table, n = 5) = length(t) >= n ? t[end-n+1:end] : t
 # Can create a subtable easily by selecting columns
 Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},::F) = table.data[Index[F()]]
 Base.getindex{Index,ElTypes,StorageTypes,F<:DefaultKey}(table::Table{Index,ElTypes,StorageTypes},::F) = 1:length(table.data[1])
-Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},::NewIndex) = table.data[Index[NewIndex]] # Probably
 
 @generated function Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
     if issubset(NewIndex(),Index+DefaultKey())
@@ -273,6 +272,107 @@ end
         return :(error($str))
     end
 end
+
+# Simultaneously indexing by single row and column
+Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},idx::Int,::F) = table.data[Index[F()]][idx]
+Base.getindex{Index,ElTypes,StorageTypes,F<:DefaultKey}(table::Table{Index,ElTypes,StorageTypes},idx::Int,::F) = idx
+
+@generated function Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},idx::Int,::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
+    if issubset(NewIndex(),Index+DefaultKey())
+        str = "("
+        for i = 1:length(NewIndex())
+            if NewIndex()[i] == DefaultKey()
+                str *= "idx"
+            else
+                str *= "table.data[$(Index[NewIndex()[i]])][idx]"
+            end
+            if i < length(NewIndex()) || i == 1
+                str *= ","
+            end
+        end
+        str *= ")"
+
+        return :(Row(NewIndex(),$(parse(str))))
+    else
+        str = "Cannot index $NewIndex from table with indices $Index"
+        return :(error($str))
+    end
+end
+
+@generated function Base.getindex{Index,DataTypes,StorageTypes,I}(table::Table{Index,DataTypes,StorageTypes},idx::Int,::Type{Val{I}})
+    if isa(I, Int) # TODO: Figure out if this one can be made faster... seems to be some overhead in creating the new Column (similarly for Table below)
+        return :( $(Expr(:meta,:inline)); $(Cell{Index[I],DataTypes.parameters[I]})(table.data[$I][idx]) )
+    elseif isa(I, Symbol)
+        return :( table.data[$(Index[Val{I}])][idx] )
+    elseif isa(I, Tuple)
+        l_I = length(I)
+        if isa(I, NTuple{l_I, Int})
+            expr = Expr(:tuple, ntuple(i-> :(table.data[$(I[i])][idx]), l_I)...)
+            return :( Row($(Index[Val{I}]), $expr) )
+        elseif isa(I, NTuple{l_I, Symbol})
+            expr = Expr(:tuple, ntuple(i -> :(table.data[$(Index[Val{I[i]}])][idx]), l_I)...)
+            return :( Row($(Index[Val{Index[Val{I}]}]), $expr) )
+        else
+            str = "Can't index Table with fields $Fields with a Val{$I}"
+            return :(error($str))
+        end
+    else # e.g. UnitRange{Int} and other methods of indexing a Tuple
+        str = "Can't index Table with fields $Fields with a Val{$I}"
+        return :(error($str))
+    end
+end
+
+# Simultaneously indexing by multiple rows and column
+Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},idx,::F) = table.data[Index[F()]][idx]
+Base.getindex{Index,ElTypes,StorageTypes,F<:DefaultKey}(table::Table{Index,ElTypes,StorageTypes},idx,::F) = (1:length(table.data[1]))[idx]
+
+@generated function Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},idx,::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
+    if issubset(NewIndex(),Index+DefaultKey())
+        str = "("
+        for i = 1:length(NewIndex())
+            if NewIndex()[i] == DefaultKey()
+                str *= "TableKey{Index,StorageTypes}(Ref(table))"
+            else
+                str *= "table.data[$(Index[NewIndex()[i]])][idx]"
+            end
+            if i < length(NewIndex()) || i == 1
+                str *= ","
+            end
+        end
+        str *= ")"
+
+        return :(Table(NewIndex(),$(parse(str))))
+    else
+        str = "Cannot index $NewIndex from table with indices $Index"
+        return :(error($str))
+    end
+end
+
+@generated function Base.getindex{Index,DataTypes,StorageTypes,I}(table::Table{Index,DataTypes,StorageTypes},idx,::Type{Val{I}})
+    if isa(I, Int) # TODO: Figure out if this one can be made faster... seems to be some overhead in creating the new Column (similarly for Table below)
+        return :( $(Expr(:meta,:inline)); $(Column{Index[I],DataTypes.parameters[I],StorageTypes.parameters[I]})(table.data[$I][idx]) )
+    elseif isa(I, Symbol)
+        return :( table.data[$(Index[Val{I}])][idx] )
+    elseif isa(I, Tuple)
+        l_I = length(I)
+        if isa(I, NTuple{l_I, Int})
+            expr = Expr(:tuple, ntuple(i-> :(table.data[$(I[i])][idx]), l_I)...)
+            return :( Table($(Index[Val{I}]), $expr, Val{false}) )
+        elseif isa(I, NTuple{l_I, Symbol})
+            expr = Expr(:tuple, ntuple(i -> :(table.data[$(Index[Val{I[i]}])][idx]), l_I)...)
+            return :( Table($(Index[Val{Index[Val{I}]}]), $expr, Val{false}) )
+        else
+            str = "Can't index Table with fields $Fields with a Val{$I}"
+            return :(error($str))
+        end
+    else # e.g. UnitRange{Int} and other methods of indexing a Tuple
+        str = "Can't index Table with fields $Fields with a Val{$I}"
+        return :(error($str))
+    end
+end
+
+Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx,::Colon) = table[idx]
+
 
 
 # Concatenate rows and tables into tables

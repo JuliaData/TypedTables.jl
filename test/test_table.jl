@@ -69,6 +69,28 @@ end
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[Val{:A}] == [1,2,3] )
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[Val{(1,)}] == @table(A::Int64=[1,2,3]) )
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[Val{(:A,)}] == @table(A::Int64=[1,2,3]) )
+
+    # Simultaneous indexing row and column
+    # Single Row
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[1,@field(A::Int64)] == 1 )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[1,@index(A::Int64)] == @row(A::Int64=1) )
+
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[1,Val{1}] == @cell(A::Int64=1) )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[1,Val{:A}] == 1 )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[1,Val{(1,)}] == @row(A::Int64=1) )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[1,Val{(:A,)}] == @row(A::Int64=1) )
+
+    # Multiple rows
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[:,@field(A::Int64)] == [1,2,3] )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[:,@index(A::Int64)] == @table(A::Int64=[1,2,3]) )
+
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[:,Val{1}] == @column(A::Int64=[1,2,3]) )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[:,Val{:A}] == [1,2,3] )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[:,Val{(1,)}] == @table(A::Int64=[1,2,3]) )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[:,Val{(:A,)}] == @table(A::Int64=[1,2,3]) )
+
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[1,:] == @row(A::Int64=1,B::Float64=2.0) )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[:,:] == @table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]) )
 end
 
 @testset "Concatenation" begin

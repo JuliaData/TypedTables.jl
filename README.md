@@ -130,14 +130,27 @@ constitutes a lightweight view. Care must be taken not to e.g. not change the
 number of rows in a subtable, if you want to continue to use the parent table
 (of course, `copy` and `deepcopy` are defined to help with this situation).
 
+One can also index with a `Field` or just a column name with `Val{:name}` to obtain
+the *raw data* from a single column. Indexing with `Val{1}`, etc will result in a
+type-annotated `Column` containing the data, rather than the raw storage array.
+
+The `Val`-based indexing can be extended by indexing with a tuple of values
+(either all `Int`, like `Val{(1,2,3)}`, or `Symbol`, like `Val{(:A,:B,:C)}`) to return a `Table`, similar to the `FieldIndex`
+method.
+
+There is also one special column of every `Table`, referenced with the Field
+`DefaultKey()`, and having field name `:Row`. Indexing with this will also
+return the row-number of the record. 
+
 ### Selecting rows (*selection*)
 
-Currently, one should create their own function to iterate over rows and
-selecting the ones you wish to keep.
+Basic iteration over and indexing of rows is implemented by default, similar to
+Julia `Array`s. Currently, one should create their own function to select the
+rows you wish to keep according to some criteria or tests.
 
 Convenience functions may be considered in the future. Depending on the
 situation, users may want to create an entirely new table, or simply a
-`Vector{Bool}` index of the relevant rows as a sort-of view.
+`Vector{Bool}` index of the relevant rows as a "view" of the subset.
 
 ### Concatenation
 
