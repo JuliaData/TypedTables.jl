@@ -38,8 +38,11 @@ end
     @test deepcopy(@row(A::Int64=1,B::Float64=2.0)) == @row(A::Int64=1,B::Float64=2.0)
 
     @test (@row(A::Int64=1,B::Float64=2.0))[@field(A::Int64)] == 1
-    #@test (@row(A::Int64=1,B::Float64=2.0))[1] == @cell(A::Int64=1)
+    @test (@row(A::Int64=1,B::Float64=2.0))[Val{1}] == @cell(A::Int64=1)
+    @test (@row(A::Int64=1,B::Float64=2.0))[Val{:A}] == 1
     @test (@row(A::Int64=1,B::Float64=2.0))[@index(B::Float64,A::Int64)] == @row(B::Float64=2.0,A::Int64=1)
+    @test (@row(A::Int64=1,B::Float64=2.0))[Val{(1,2)}] == @row(A::Int64=1,B::Float64=2.0)
+    @test (@row(A::Int64=1,B::Float64=2.0))[Val{(:A,:B)}] == @row(A::Int64=1,B::Float64=2.0)
     #@test (@row(A::Int64=1,B::Float64=2.0))[2:-1:1] == @row(B::Float64=2.0,A::Int64=1)
     @test (@row(A::Int64=1,B::Float64=2.0))[:] == (@row(A::Int64=1,B::Float64=2.0))
 end

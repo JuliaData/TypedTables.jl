@@ -251,6 +251,30 @@ Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Inde
     end
 end
 
+@generated function Base.getindex{Index,DataTypes,StorageTypes,I}(table::Table{Index,DataTypes,StorageTypes},::Type{Val{I}})
+    if isa(I, Int) # TODO: Figure out if this one can be made faster... seems to be some overhead in creating the new Column (similarly for Table below)
+        return :( $(Expr(:meta,:inline)); $(Column{Index[I],DataTypes.parameters[I],StorageTypes.parameters[I]})(table.data[$I]) )
+    elseif isa(I, Symbol)
+        return :( table.data[$(Index[Val{I}])] )
+    elseif isa(I, Tuple)
+        l_I = length(I)
+        if isa(I, NTuple{l_I, Int})
+            expr = Expr(:tuple, ntuple(i-> :(table.data[$(I[i])]), l_I)...)
+            return :( Table($(Index[Val{I}]), $expr, Val{false}) )
+        elseif isa(I, NTuple{l_I, Symbol})
+            expr = Expr(:tuple, ntuple(i -> :(table.data[$(Index[Val{I[i]}])]), l_I)...)
+            return :( Table($(Index[Val{Index[Val{I}]}]), $expr, Val{false}) )
+        else
+            str = "Can't index Table with fields $Fields with a Val{$I}"
+            return :(error($str))
+        end
+    else # e.g. UnitRange{Int} and other methods of indexing a Tuple
+        str = "Can't index Table with fields $Fields with a Val{$I}"
+        return :(error($str))
+    end
+end
+
+
 # Concatenate rows and tables into tables
 Base.vcat{Index,ElTypes}(row::Row{Index,ElTypes}) = Table(row)
 Base.vcat{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = table

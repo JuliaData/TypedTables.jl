@@ -70,6 +70,31 @@ end
     return :(idx($tmp2))
 end
 
+# Getting indices (immutable, so no setindex)
+@generated function Base.getindex{Index,DataTypes,I}(row::Row{Index,DataTypes},::Type{Val{I}})
+    if isa(I, Int)
+        return :( $(Cell{Index[I],DataTypes.parameters[I]})(row.data[$I]) )
+    elseif isa(I, Symbol)
+        return :( row.data[$(Index[Val{I}])] )
+    elseif isa(I, Tuple)
+        l_I = length(I)
+        if isa(I, NTuple{l_I, Int})
+            expr = Expr(:tuple, ntuple(i-> :(row.data[$(I[i])]), l_I)...)
+            return :( Row($(Index[Val{I}]), $expr) )
+        elseif isa(I, NTuple{l_I, Symbol})
+            expr = Expr(:tuple, ntuple(i -> :(row.data[$(Index[Val{I[i]}])]), l_I)...)
+            return :( Row($(Index[Val{Index[Val{I}]}]), $expr) )
+        else
+            str = "Can't index Row with fields $Fields with a Val{$I}"
+            return :(error($str))
+        end
+    else # e.g. UnitRange{Int} and other methods of indexing a Tuple
+        str = "Can't index Row with fields $Fields with a Val{$I}"
+        return :(error($str))
+    end
+end
+
+
 #@inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i) = Index[i](row.data[i])
 @inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},::Colon) = row
 

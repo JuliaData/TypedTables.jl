@@ -65,6 +65,10 @@ end
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[@field(A::Int64)] == [1,2,3] )
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[@index(A::Int64)] == @table(A::Int64=[1,2,3]) )
 
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[Val{1}] == @column(A::Int64=[1,2,3]) )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[Val{:A}] == [1,2,3] )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[Val{(1,)}] == @table(A::Int64=[1,2,3]) )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); t[Val{(:A,)}] == @table(A::Int64=[1,2,3]) )
 end
 
 @testset "Concatenation" begin

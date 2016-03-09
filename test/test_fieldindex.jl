@@ -40,10 +40,12 @@ end
     @test first(idx) == a
     @test idx[1] == a
     @test idx[Val{1}] == a
+    @test idx[Val{:A}] == 1
     @test idx[:] == idx
     @test idx[1:2] == idx
     @test idx[Val{1:2}] == idx
     @test idx[Val{(1,2)}] == idx
+    @test idx[Val{(:A,:B)}] == (1,2)
 
     @test idx[a] == 1
     @test idx[idx] == (1,2)

@@ -129,9 +129,41 @@ end
 @generated function Base.getindex{Fields,I}(f::FieldIndex{Fields},v::Type{Val{I}})
     if isa(I, Int)
         return :(Fields[I])
-    elseif isa(I, Tuple) # Sadly, we can't normally index a tuple with a tuple in Julia...
-        return :($(FieldIndex{ntuple(i->Fields[I[i]],length(I))}()))
-    else
+    elseif isa(I, Symbol)
+        for i = 1:length(Fields)
+            if name(Fields[i]) == I
+                return :($i)
+            end
+        end
+        str = "Field with name $I in FieldIndex{$Fields}"
+        return :(throw(KeyError($str)))
+    elseif isa(I, Tuple)
+        l_I = length(I)
+        if isa(I, NTuple{l_I, Int})
+            # Sadly, we can't normally index a tuple with a tuple in Julia...
+            return :($(FieldIndex{ntuple(i->Fields[I[i]],length(I))}()))
+        elseif isa(I, NTuple{l_I, Symbol})
+            tmp = zeros(Int, l_I)
+            for iI = 1:l_I
+                done = false
+                for iF = 1:length(Fields)
+                    if I[iI] == name(Fields[iF])
+                        done = true
+                        tmp[iI] = iF
+                        break
+                    end
+                end
+                if !done
+                    str = "Field with name $(I[iI]) in FieldIndex{$Fields}"
+                    return :(throw(KeyError($str)))
+                end
+            end
+            return :($((tmp...)))
+        else
+            str = "Can't index FieldIndex{$Fields} with a Val{$I}"
+            return :(error($str))
+        end
+    else # e.g. UnitRange{Int} and other methods of indexing a Tuple
         return :($(FieldIndex{Fields[I]}()))
     end
 end
