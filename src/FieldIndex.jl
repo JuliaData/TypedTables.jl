@@ -141,10 +141,14 @@ end
         l_I = length(I)
         if isa(I, NTuple{l_I, Int})
             # Sadly, we can't normally index a tuple with a tuple in Julia...
-            return :($(FieldIndex{ntuple(i->Fields[I[i]],length(I))}()))
+            return :($(FieldIndex{ntuple(i -> I[i] == 0 ? DefaultKey() : Fields[I[i]],length(I))}()))
         elseif isa(I, NTuple{l_I, Symbol})
             tmp = zeros(Int, l_I)
             for iI = 1:l_I
+                if I[iI] == :Row
+                    tmp[iI] = 0
+                    continue
+                end
                 done = false
                 for iF = 1:length(Fields)
                     if I[iI] == name(Fields[iF])
@@ -168,11 +172,21 @@ end
     end
 end
 
-@inline Base.getindex{Fields}(::FieldIndex{Fields},i::Int) = Fields[i]
-@generated Base.getindex{Fields}(::FieldIndex{Fields},i) = :(FieldIndex{Fields[i]}())
+@generated Base.getindex{Fields}(::FieldIndex{Fields},i::Int) = i == 0 ? :( DefaultKey() ) : :( Fields[i] )
+@generated function Base.getindex{Fields}(::FieldIndex{Fields},i)
+    tmp = Vector{Any}(length(i))
+    for ii = 1:length(i)
+        if i[ii] == 0
+            tmp[ii] = DefaultKey()
+        else
+            tmp[ii] = Fields[i[ii]]
+        end
+    end
+    return :( FieldIndex{$((tmp...))}() )
+end
 @inline Base.getindex{Fields}(idx::FieldIndex{Fields},::Colon) = idx
 
-@generated function Base.getindex{F<:Field,Fields}(::FieldIndex{Fields},::F)
+@generated function Base.getindex{F<:AbstractField,Fields}(::FieldIndex{Fields},::F)
     j = 0
     for i = 1:length(Fields)
         if F() == Fields[i]
@@ -180,8 +194,12 @@ end
         end
     end
     if j == 0
-        str = "Field $(F()) is not in $Fields"
-        return :(error($str))
+        if F == DefaultKey()
+            return 0
+        else
+            str = "Field $(F()) is not in $Fields"
+            return :(error($str))
+        end
     else
         return quote
             $(Expr(:meta,:inline))
@@ -189,6 +207,7 @@ end
         end
     end
 end
+
 
 @generated function Base.getindex{Fields,Fields2}(a::FieldIndex{Fields},b::FieldIndex{Fields2})
     local x

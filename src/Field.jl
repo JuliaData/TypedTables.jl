@@ -7,7 +7,7 @@ abstract AbstractField
 "The default key is a special field referring to the intrinsic row-number of a (keyless) table"
 immutable DefaultKey <: AbstractField
 end
-Base.show(io::IO,::DefaultKey) = print(io,"Row::$Int")
+Base.show(io::IO,::DefaultKey) = print(io,"$(name(DefaultKey))::$Int")
 @inline Base.eltype(::Type{DefaultKey}) = Int
 @inline Base.eltype(::DefaultKey) = Int
 @inline name(::Type{DefaultKey}) = :Row
@@ -24,8 +24,8 @@ immutable Field{Name,T} <: AbstractField
 end
 
 @generated function check_field{Name,T}(::Type{Val{Name}},::Type{T})
-    if Name == :Row
-        return :(error("Field name 'Row' is reserved"))
+    if Name == name(DefaultKey)
+        return :(error("Field name 'Row' is reserved. Use DefaultKey() field instead."))
     else
         return nothing
     end
