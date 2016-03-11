@@ -29,7 +29,14 @@ Convenience macros are defined to for constructing different table objects,
 since their type-parameter list can become cumbersome. For example, we can
 define a table as:
 
-    t = @table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
+    julia> Tables.@table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
+    ┌───┬─────┐
+    │ A │ B   │
+    ├───┼─────┤
+    │ 1 │ 2.0 │
+    │ 2 │ 4.0 │
+    │ 3 │ 6.0 │
+    └───┴─────┘
 
 This object stores a tuple of the two vectors as the `data` field, so that
 `t.data == ([1,2,3],[2.0,4.0,6.0])`. One could access the data directly, or
@@ -140,7 +147,7 @@ method.
 
 There is also one special column of every `Table`, referenced with the Field
 `DefaultKey()`, and having field name `:Row`. Indexing with this will also
-return the row-number of the record. 
+return the row-number of the record.
 
 ### Selecting rows (*selection*)
 
@@ -178,11 +185,28 @@ join, parameterized by the singleton `InnerJoin()`. In the future, more types
 of joins will be implemented and a convenient framework for users to implement
 their own join tests, etc will be included.
 
+## Output
+
+Some effort has been put into making the output pretty and easy to use.
+Currently, it will intelligently truncate the output vertically (printing only
+the head and tail of the table) and minimize space horizontally when possible
+(compare row "C" to "C_long" below).
+
+    julia> Tables.@table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0], C::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()], C_long::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()], D::ASCIIString = ["A","ABCD","ABCDEFGHIJKLM"])
+    ┌───┬─────┬───┬────────┬────────────┐
+    │ A │ B   │ C │ C_long │ D          │
+    ├───┼─────┼───┼────────┼────────────┤
+    │ 1 │ 2.0 │ T │ true   │ "A"        │
+    │ 2 │ 4.0 │ F │ false  │ "ABCD"     │
+    │ 3 │ 6.0 │ - │ NULL   │ "ABCDEFG…" │
+    └───┴─────┴───┴────────┴────────────┘
+
 
 ## Roadmap
 
 - [x] Unit tests
 - [x] `join` for natural, inner joins
+- [x] Pretty output (work remains on horizontal fill and aligning numbers)
 - [ ] other types of joins
 - [ ] Convenience functions for data manipulations, like `unique!`
 - [ ] Conditional searches (selection)

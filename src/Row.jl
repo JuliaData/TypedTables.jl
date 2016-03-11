@@ -53,7 +53,7 @@ rename{Index,DataTypes}(row::Row{Index,DataTypes}, old_names::Union{FieldIndex,F
 function Base.show{Index,DataTypes}(io::IO,row::Row{Index,DataTypes})
     print(io,"(")
     for i = 1:length(Index)
-        print(io,"$(name(Index[i])):$(row.data[i])")
+        print(io,"$(name(Index[i]))=$(compactstring(row.data[i]))")
         if i < length(Index)
             print(io,", ")
         end
