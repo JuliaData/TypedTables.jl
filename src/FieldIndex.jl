@@ -172,9 +172,9 @@ end
     end
 end
 
-@generated Base.getindex{Fields}(::FieldIndex{Fields},i::Int) = i == 0 ? :( DefaultKey() ) : :( Fields[i] )
-@generated function Base.getindex{Fields}(::FieldIndex{Fields},i)
-    tmp = Vector{Any}(length(i))
+@inline Base.getindex{Fields}(::FieldIndex{Fields},i::Int) = i == 0 ? DefaultKey() : Fields[i] # TODO Not type stable... to be used in meta-programming only...
+function Base.getindex{Fields}(::FieldIndex{Fields},i) # TODO Not type stable... to be used in meta-programming only...
+    tmp = Vector{Any}(length(i))#
     for ii = 1:length(i)
         if i[ii] == 0
             tmp[ii] = DefaultKey()
@@ -182,7 +182,7 @@ end
             tmp[ii] = Fields[i[ii]]
         end
     end
-    return :( FieldIndex{$((tmp...))}() )
+    return FieldIndex{(tmp...)}()
 end
 @inline Base.getindex{Fields}(idx::FieldIndex{Fields},::Colon) = idx
 
