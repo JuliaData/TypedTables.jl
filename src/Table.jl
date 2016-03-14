@@ -81,7 +81,7 @@ end
         error(str)
     end
 end
-Base.call{Index<:FieldIndex}(::Index,x...) = error("Must instantiate Row with a tuple of type $(eltypes(Index)) or a Table with a tuple of appropriate storage containers")
+Base.call{Fields}(::FieldIndex{Fields},x...) = error("Must instantiate Row with a tuple of type $(eltypes(Index)) or a Table with a tuple of appropriate storage containers")
 
 @generated function makestoragetypes{T<:Tuple}(::Type{T})
     eltypes = T.parameters
