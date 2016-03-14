@@ -15,6 +15,14 @@ end
 
 @generated Column{F,ElType}(x::Cell{F,ElType}...) = :(Column{$(F),$ElType,$(makestoragetype(ElType))}($(makestoragetype(ElType))($ElType[x[i].data for i=1:length(x)])) )
 
+@generated function Base.call{Name,T1,T2}(::Field{Name,T1},x::T2)
+    if eltype(T2) == T1 # We have another method for creating a cell if T1==T2
+        return :(Column{$(Field{Name,T1}()),$T1,$T2}(x))
+    else
+        str = "Can't instantiate a Cell or Column of $(Field{Name,T1}()) with a $T2"
+    end
+end
+
 makestoragetype{T}(::Type{Nullable{T}}) = NullableVector{T}
 makestoragetype{T}(::Type{T}) = Vector{T}
 

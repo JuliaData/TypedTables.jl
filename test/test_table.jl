@@ -4,6 +4,7 @@
     @test Table(@index(A::Int64,B::Float64), ([1,2,3],[2.0,4.0,6.0])) == Table{@index(A::Int64,B::Float64), Tuple{Int64,Float64}, Tuple{Vector{Int64},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]))
     @test Table(@index(A::Int64,B::Float64)) == Table{@index(A::Int64,B::Float64), Tuple{Int64,Float64}, Tuple{Vector{Int64},Vector{Float64}}}((Int64[],Float64[]))
 
+    @test @index(A::Int64,B::Float64)(([1,2,3],[2.0,4.0,6.0])) == Table{@index(A::Int64,B::Float64), Tuple{Int64,Float64}, Tuple{Vector{Int64},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]))
 
     @test @table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0])  == Table{@index(A::Int64,B::Float64), Tuple{Int64,Float64}, Tuple{Vector{Int64},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]))
     @test (@table A::Int64=[1,2,3] B::Float64=[2.0,4.0,6.0]) == Table{@index(A::Int64,B::Float64), Tuple{Int64,Float64}, Tuple{Vector{Int64},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]))

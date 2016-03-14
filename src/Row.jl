@@ -23,8 +23,7 @@ end
 
 @generated Row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,data_in::DataTypes) = :(Row{$(Index()),$DataTypes}(data_in))
 Row{Index<:FieldIndex}(::Index, data_in...) = error("Must instantiate Row with a tuple of type $(eltypes(Index))")
-@generated Base.call{F,DataTypes<:Tuple}(::FieldIndex{F},x::DataTypes) = :(Row{$(FieldIndex{F}()),$DataTypes}(x))
-Base.call{F}(::FieldIndex{F},x...) = error("Must instantiate Row with a tuple of type $(eltypes(FieldIndex{F}()))")
+# @generated Base.call{Index<:FieldIndex,DataTypes<:Tuple}(::Index,x::DataTypes) = :(Row{$(Index()),$DataTypes}(x)) # Replaced by call in Table.jl
 
 @generated function check_row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,::Type{DataTypes})
     if eltypes(Index()) != DataTypes

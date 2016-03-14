@@ -68,6 +68,20 @@ end
 @generated Table{Index,ElTypes}(row::Row{Index,ElTypes},check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{Index,ElTypes,$(makestoragetypes(ElTypes))}(ntuple(i->[row.data[i]],$(length(Index))),check_sizes) )
 @generated Table{F,ElType,StorageType}(col::Column{F,ElType,StorageType},check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(FieldIndex(F)),Tuple{ElType},Tuple{StorageType}}((col.data,),check_sizes) )
 
+@generated function Base.call{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,x::StorageTypes)
+    if StorageTypes == eltypes(Index)
+        return :(Row{$(Index()),$StorageTypes}(x))
+    end
+
+    try
+        check_table(Index(),eltypes(Index),StorageTypes)
+        return :(Table{$(Index()),$(eltypes(Index)),$StorageTypes}(x))
+    catch
+        str = "Can't instantiate a Row or Table having index $(Index()) with data of types $StorageTypes."
+        error(str)
+    end
+end
+Base.call{Index<:FieldIndex}(::Index,x...) = error("Must instantiate Row with a tuple of type $(eltypes(Index)) or a Table with a tuple of appropriate storage containers")
 
 @generated function makestoragetypes{T<:Tuple}(::Type{T})
     eltypes = T.parameters

@@ -201,7 +201,6 @@ the head and tail of the table) and minimize space horizontally when possible
     │ 3 │ 6.0 │ - │ NULL   │ "ABCDEFG…" │
     └───┴─────┴───┴────────┴────────────┘
 
-
 ## Roadmap
 
 - [x] Unit tests
