@@ -29,14 +29,16 @@ Convenience macros are defined to for constructing different table objects,
 since their type-parameter list can become cumbersome. For example, we can
 define a table as:
 
-    julia> Tables.@table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
+```
+julia> Tables.@table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
     ┌───┬─────┐
-    │ A │ B   │
+Row │ A │ B   │
     ├───┼─────┤
-    │ 1 │ 2.0 │
-    │ 2 │ 4.0 │
-    │ 3 │ 6.0 │
+  1 │ 1 │ 2.0 │
+  2 │ 2 │ 4.0 │
+  3 │ 3 │ 6.0 │
     └───┴─────┘
+```
 
 This object stores a tuple of the two vectors as the `data` field, so that
 `t.data == ([1,2,3],[2.0,4.0,6.0])`. One could access the data directly, or
@@ -192,14 +194,20 @@ Currently, it will intelligently truncate the output vertically (printing only
 the head and tail of the table) and minimize space horizontally when possible
 (compare row "C" to "C_long" below).
 
-    julia> Tables.@table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0], C::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()], C_long::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()], D::ASCIIString = ["A","ABCD","ABCDEFGHIJKLM"])
+```
+julia> Tables.@table(A::Int64=[1,2,3],
+    B::Float64=[2.0,4.0,6.0],
+    C::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()],
+    C_long::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()],
+    D::ASCIIString = ["A","ABCD","ABCDEFGHIJKLM"])
     ┌───┬─────┬───┬────────┬────────────┐
-    │ A │ B   │ C │ C_long │ D          │
+Row │ A │ B   │ C │ C_long │ D          │
     ├───┼─────┼───┼────────┼────────────┤
-    │ 1 │ 2.0 │ T │ true   │ "A"        │
-    │ 2 │ 4.0 │ F │ false  │ "ABCD"     │
-    │ 3 │ 6.0 │ - │ NULL   │ "ABCDEFG…" │
+  1 │ 1 │ 2.0 │ T │ true   │ "A"        │
+  2 │ 2 │ 4.0 │ F │ false  │ "ABCD"     │
+  3 │ 3 │ 6.0 │ - │ NULL   │ "ABCDEFG…" │
     └───┴─────┴───┴────────┴────────────┘
+```
 
 ## Roadmap
 

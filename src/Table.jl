@@ -190,13 +190,13 @@ end
 #  │ ││
 #  └─┴┘
 
-function compactstring(x, l = 10)
+function compactstring(x, l = 16)
     str = "$x"
     if length(str) > l
         if l >= 10
             l1 = div(l,2)
             l2 = l - l1 - 1
-            return str[1:l1] * "…" * str[end-l2+1]
+            return str[1:l1] * "…" * str[end-l2+1:end]
         else
             return str[1:l]
         end
@@ -205,7 +205,9 @@ function compactstring(x, l = 10)
     end
 end
 
-function compactstring(x::Nullable, l = 10)
+#compactstring(x::Integer, l) = "$x"
+
+function compactstring(x::Nullable, l = 16)
     if isnull(x)
         if l == 1
             return "-"
@@ -219,7 +221,7 @@ function compactstring(x::Nullable, l = 10)
     end
 end
 
-function compactstring(x::Bool, l = 10)
+function compactstring(x::Bool, l = 16)
     if l < 5
         x ? (return "T") : (return "F")
         #x ? (return "✓") : (return "✗")
@@ -228,7 +230,7 @@ function compactstring(x::Bool, l = 10)
     end
 end
 
-function compactstring(x::Union{Float64,Float32},l)
+function compactstring(x::Union{Float64,Float32},l=16)
     local str
     if l <= 5
         str = @sprintf("%0.3g",x)
@@ -240,21 +242,35 @@ function compactstring(x::Union{Float64,Float32},l)
         str = @sprintf("%0.6g",x)
     elseif l == 9
         str = @sprintf("%0.7g",x)
-    else
+    elseif l == 10
         str = @sprintf("%0.8g",x)
+    elseif l == 1
+        str = @sprintf("%0.9g",x)
+    elseif l == 12
+        str = @sprintf("%0.10g",x)
+    elseif l == 13
+        str = @sprintf("%0.11g",x)
+    elseif l == 14
+        str = @sprintf("%0.12g",x)
+    elseif l == 15
+        str = @sprintf("%0.13g",x)
+    elseif l == 16
+        str = @sprintf("%0.14g",x)
+    else
+        str = @sprintf("%0.15g",x)
     end
     if str[end] == ' '
         str = str[1:end-1]
     end
     if search(str,'.') == 0 # No decimal point but its a float...
-        if search(str,'e') == 0 # just in case!
+        if search(str,'e') == 0 && search(str,"Inf") == 0:-1 && search(str,"NaN") == 0:-1 # just in case!
             str = str * ".0"
         end
     end
     return str
 end
 
-function compactstring(x::AbstractString,l)
+function compactstring(x::AbstractString,l=16)
     if length(x) > l-2
         return "\"$(x[1:l-3])…\""
     else
@@ -262,7 +278,27 @@ function compactstring(x::AbstractString,l)
     end
 end
 
+align_strings(T,x) = x
 
+function align_strings{T <: Integer, S <: AbstractString}(::Union{Type{T},Type{Nullable{T}}}, x::Vector{S})
+    ls = map(length,x)
+    l = maximum(ls)
+    for i = 1:length(x)
+        x[i] = (" " ^ (l-ls[i])) * x[i]
+    end
+end
+
+function align_strings{T <: AbstractFloat, S <: AbstractString}(::Union{Type{T},Type{Nullable{T}}}, x::Vector{S})
+    decimalpoint = [search(x[i],'.') for i = 1:length(x)]
+    #if minimum(decimalpoint) == 0
+    #    return x # Missing the decimal point somewhere... give up in confusion
+    #end
+    m = maximum(decimalpoint)
+
+    for i = 1:length(x)
+        x[i] = (" " ^ (m-decimalpoint[i])) * x[i]
+    end
+end
 
 #function showalligned{T <: Integer}(io::IO, str::AbstractString, type::Type{T}, width, pad::AbstractString = " ")
 #    print(io, pad ^ (width - length(str)))
@@ -298,13 +334,18 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
 
     # First we format all of our output and determine its size
 
+    # Rows (on side)
+    row_header_str = string(name(DefaultKey))
+    row_width = length(row_header_str)
+    row_str = Vector{UTF8String}()
+
     # header....
     ncols = ncol(table)
     col_names = names(table)
     header_str = [UTF8String(string(col_names[i])) for i = 1:ncols]
     widths = [length(header_str[i]) for i = 1:ncols]
 
-    width_suggestions = fill(10,ncols)
+    width_suggestions = fill(20,ncols) # Default to reasonably big. except for some types
     for c = 1:ncols
         if eltype(table.data[c]) <: Union{Bool,Nullable{Bool},Float64,Float32} && widths[c] < width_suggestions[c]
             width_suggestions[c] = widths[c]
@@ -315,41 +356,41 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
     data_str = [Vector{UTF8String}() for i = 1:ncols]
     if length(table) > 2*maxl
         for i = 1:maxl
+            push!(row_str,string(i))
             for c = 1:ncols
                 tmp = compactstring(table.data[c][i],width_suggestions[c])
                 push!(data_str[c],tmp)
-                if widths[c] < length(tmp)
-                    widths[c] = length(tmp)
-                end
             end
         end
-        for c = 1:ncol(table)
-            push!(data_str[c],"⋮")
-        end
-        for i = endof(table)-maxl:endof(table)
+
+        for i = endof(table)-maxl+1:endof(table)
+            push!(row_str,string(i))
             for c = 1:ncols
                 tmp = compactstring(table.data[c][i],width_suggestions[c])
                 push!(data_str[c],tmp)
-                if widths[c] < length(tmp)
-                    widths[c] = length(tmp)
-                end
             end
         end
     else
         for i = 1:length(table)
+            push!(row_str,string(i))
             for c = 1:ncols
                 tmp = compactstring(table.data[c][i],width_suggestions[c])
                 push!(data_str[c],tmp)
-                if widths[c] < length(tmp)
-                    widths[c] = length(tmp)
-                end
             end
         end
+    end
+    row_width = max(row_width,maximum(map(length,row_str)))
+
+    # Next we fix up some of the strings
+    for c = 1:ncols
+        align_strings(eltype(table.data[c]), data_str[c])
+        widths[c] = max(length(header_str[c]),maximum(map(length,data_str[c])))
     end
 
     # Now we show the table using computed widths for decorations
 
     # Top line
+    print(io,pad^(row_width+1))
     for c = 1:ncols
         if c == 1
             print(io,tl)
@@ -363,6 +404,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
     end
 
     # Field names
+    print(io,row_header_str * (pad ^ (row_width - length(row_header_str) + 1)))
     for c = 1:ncols
         if c == 1
             print(io,l)
@@ -379,6 +421,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
     end
 
     # Header seperator
+    print(io,pad^(row_width+1))
     for c = 1:ncols
         if c == 1
             print(io,hl)
@@ -394,6 +437,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
     # Data
     if length(table) > 2*maxl
         for i = 1:maxl
+            print(io, pad ^ (row_width - length(row_str[i])) * row_str[i] * pad)
             for c = 1:ncols
                 if c == 1
                     print(io,l)
@@ -410,20 +454,23 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
             end
         end
 
+        print(io,pad^(row_width+1))
         for c = 1:ncols
             if c == 1
                 print(io,l)
             else
                 print(io,sep)
             end
+            print(io, pad ^ div(widths[c]-1,2))
             print(io, vdots)
-            print(io, pad ^ (widths[c]-1))
+            print(io, pad ^ (widths[c]-1-div(widths[c]-1,2)))
             if c == ncols
                 println(io,r)
             end
         end
 
-        for i = endof(table)-maxl:endof(table)
+        for i = maxl+1:2*maxl
+            print(io, pad ^ (row_width - length(row_str[i])) * row_str[i] * pad)
             for c = 1:ncols
                 if c == 1
                     print(io,l)
@@ -441,6 +488,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
         end
     else
         for i = 1:length(table)
+            print(io, pad ^ (row_width - length(row_str[i])) * row_str[i] * pad)
             for c = 1:ncols
                 if c == 1
                     print(io,l)
@@ -459,6 +507,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
     end
 
     # Bottom line
+    print(io,pad^(row_width+1))
     for c = 1:ncols
         if c == 1
             print(io,bl)
@@ -470,36 +519,151 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
             println(io,br)
         end
     end
-
-    #=
-    summary(io,table)
-
-    if length(table) > 2*l
-        for i = 1:l
-            println(io,i," ",table[i])
-        end
-        for i = 0:ncol(table)
-            print("⋮  ")
-        end
-       println()
-        for i = endof(table)-l:endof(table)
-            if i == endof(table)
-                print(io,i," ",table[i])
-            else
-                println(io,i," ",table[i])
-            end
-        end
-    else
-        for i = 1:length(table)
-            if i == endof(table)
-                print(io,i," ",table[i])
-            else
-                println(io,i," ",table[i])
-            end
-        end
-    end =#
 end
 
+function Base.showall{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes,StorageTypes})
+    s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
+    maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
+
+    # Lengths of left, right and seperators should be consistent...
+    tl = "┌─"
+    t = "─" # length 1
+    tr = "─┐"
+    tsep = "─┬─"
+    hl = "├─"
+    h = "─" # length 1
+    hsep = "─┼─"
+    hr = "─┤"
+    l = "│ "
+    sep = " │ "
+    r = " │"
+    bl = "└─"
+    b = "─" # length 1
+    br = "─┘"
+    bsep = "─┴─"
+    pad = " " # length 1
+    vdots = "⋮"# length 1
+    hdots = "…" # length 1
+
+    # First we format all of our output and determine its size
+
+    # Rows (on side)
+    row_header_str = string(name(DefaultKey))
+    row_width = length(row_header_str)
+    row_str = Vector{UTF8String}()
+
+    # header....
+    ncols = ncol(table)
+    col_names = names(table)
+    header_str = [UTF8String(string(col_names[i])) for i = 1:ncols]
+    widths = [length(header_str[i]) for i = 1:ncols]
+
+    width_suggestions = fill(32,ncols)
+    for c = 1:ncols
+        if eltype(table.data[c]) <: Union{Bool,Nullable{Bool},Float64,Float32} && widths[c] < width_suggestions[c]
+            width_suggestions[c] = widths[c]
+        end
+    end
+
+    # data...
+    data_str = [Vector{UTF8String}() for i = 1:ncols]
+    for i = 1:length(table)
+        push!(row_str,string(i))
+        for c = 1:ncols
+            tmp = compactstring(table.data[c][i],width_suggestions[c])
+            push!(data_str[c],tmp)
+        end
+    end
+    row_width = max(row_width,maximum(map(length,row_str)))
+
+    # Next we fix up some of the strings
+    for c = 1:ncols
+        align_strings(eltype(table.data[c]), data_str[c])
+        widths[c] = max(length(header_str[c]),maximum(map(length,data_str[c])))
+    end
+
+    # Now we show the table using computed widths for decorations
+
+    # Top line
+    print(io,pad^(row_width+1))
+    for c = 1:ncols
+        if c == 1
+            print(io,tl)
+        else
+            print(io,tsep)
+        end
+        print(io, t ^ widths[c])
+        if c == ncols
+            println(io,tr)
+        end
+    end
+
+    # Field names
+    print(io,row_header_str * (pad ^ (row_width - length(row_header_str) + 1)))
+    for c = 1:ncols
+        if c == 1
+            print(io,l)
+        else
+            print(io,sep)
+        end
+        print(io, header_str[c])
+        if length(header_str[c]) < widths[c]
+            print(io, pad ^ (widths[c] - length(header_str[c])))
+        end
+        if c == ncols
+            println(io,r)
+        end
+    end
+
+    # Header seperator
+    print(io,pad^(row_width+1))
+    for c = 1:ncols
+        if c == 1
+            print(io,hl)
+        else
+            print(io,hsep)
+        end
+        print(io, h ^ widths[c])
+        if c == ncols
+            println(io,hr)
+        end
+    end
+
+    # Data
+    for i = 1:length(table)
+        print(io, pad ^ (row_width - length(row_str[i])) * row_str[i] * pad)
+        for c = 1:ncols
+            if c == 1
+                print(io,l)
+            else
+                print(io,sep)
+            end
+            print(io, data_str[c][i])
+            if length(data_str[c][i]) < widths[c]
+                print(io, pad ^ (widths[c] - length(data_str[c][i])))
+            end
+            if c == ncols
+                println(io,r)
+            end
+        end
+    end
+
+    # Bottom line
+    print(io,pad^(row_width+1))
+    for c = 1:ncols
+        if c == 1
+            print(io,bl)
+        else
+            print(io,bsep)
+        end
+        print(io, b ^ widths[c])
+        if c == ncols
+            println(io,br)
+        end
+    end
+end
+
+#=
 function Base.showall{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes,StorageTypes})
     summary(io,table)
     for i = 1:length(table)
@@ -510,6 +674,7 @@ function Base.showall{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTy
         end
     end
 end
+=#
 
 head(t::Table, n = 5) = length(t) >= n ? t[1:n] : t
 tail(t::Table, n = 5) = length(t) >= n ? t[end-n+1:end] : t
