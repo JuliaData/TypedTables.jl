@@ -68,7 +68,7 @@ end
 @generated Table{Index,ElTypes}(row::Row{Index,ElTypes},check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{Index,ElTypes,$(makestoragetypes(ElTypes))}(ntuple(i->[row.data[i]],$(length(Index))),check_sizes) )
 @generated Table{F,ElType,StorageType}(col::Column{F,ElType,StorageType},check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(FieldIndex(F)),Tuple{ElType},Tuple{StorageType}}((col.data,),check_sizes) )
 
-@generated function Base.call{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,x::StorageTypes)
+@generated function Base.call{Fields,StorageTypes<:Tuple}(Index::FieldIndex{Fields},x::StorageTypes)
     if StorageTypes == eltypes(Index)
         return :(Row{$(Index()),$StorageTypes}(x))
     end
