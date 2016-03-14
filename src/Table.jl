@@ -387,6 +387,27 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
         widths[c] = max(length(header_str[c]),maximum(map(length,data_str[c])))
     end
 
+    # Now we see if it is too wide...
+    max_width = s[2]
+    too_wide = row_width + sum(widths) + 2 + 3*length(widths) > max_width
+    was_too_wide = too_wide
+    while too_wide
+        if length(widths) == 1
+            break # Show at least one column of data, even if it is ugly
+        end
+        pop!(widths)
+        pop!(header_str)
+        pop!(data_str)
+        too_wide = row_width + sum(widths) + 6 + 3*length(widths) > max_width
+        ncols = ncols - 1
+    end
+    if was_too_wide
+        push!(widths, 1)
+        push!(header_str,hdots)
+        push!(data_str,fill(hdots, length(data_str[1])))
+        ncols = ncols + 1
+    end
+
     # Now we show the table using computed widths for decorations
 
     # Top line
