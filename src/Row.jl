@@ -97,18 +97,11 @@ end
 #@inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},i) = Index[i](row.data[i])
 @inline Base.getindex{Index,DataTypes}(row::Row{Index,DataTypes},::Colon) = row
 
+# TODO setindex broadcasts to `[] =` (assume its like a zero-dimensional sub-array) or use SubRow class
+
 # copies
 Base.copy{Index,DataTypes}(row::Row{Index,DataTypes}) = Row{Index,DataTypes}(copy(row.data))
 Base.deepcopy{Index,DataTypes}(row::Row{Index,DataTypes}) = Row{Index,DataTypes}(deepcopy(row.data))
-
-# For rows we can make it type-safe
-#@inline Base.getindex{Col<:Union{Column,Columns},Cols,DataTypes}(row::Row{Cols,DataTypes},col::Col) = row[Cols[col]]
-#@generated function Base.getindex{Col <: Column,Cols,DataTypes}(row::Row{Cols,DataTypes},col::Col)
-#    idx = Cols[Col()]
-#    return :(Expr(:meta,:inline), row.data[$idx]) # Under investigation, I'm not certain inline is a great idea...
-#end
-
-# TODO hcat - any variation of cells or rows, but not data (no field name)
 
 # Concatenate cells and rows into rows
 # Generated functions appear to be needed for speed...

@@ -264,7 +264,7 @@ function compactstring(x::Union{Float64,Float32},l=16)
     end
     if search(str,'.') == 0 # No decimal point but its a float...
         if search(str,'e') == 0 && search(str,"Inf") == 0:-1 && search(str,"NaN") == 0:-1 # just in case!
-            str = str * ".0"
+            str = str * "."
         end
     end
     return str
@@ -299,12 +299,6 @@ function align_strings{T <: AbstractFloat, S <: AbstractString}(::Union{Type{T},
         x[i] = (" " ^ (m-decimalpoint[i])) * x[i]
     end
 end
-
-#function showalligned{T <: Integer}(io::IO, str::AbstractString, type::Type{T}, width, pad::AbstractString = " ")
-#    print(io, pad ^ (width - length(str)))
-#    print(io, str)
-#end
-
 
 _displaysize(io) = haskey(io, :displaysize) ? io[:displaysize] : _displaysize(io.io)
 
@@ -861,6 +855,7 @@ end
 
 Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx,::Colon) = table[idx]
 
+# TODO - sub() returns table/row with sub as data elements.
 
 
 # Concatenate rows and tables into tables
