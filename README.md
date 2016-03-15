@@ -190,33 +190,36 @@ their own join tests, etc will be included.
 ## Output
 
 Some effort has been put into making the output pretty and easy to use.
-Currently, it will intelligently truncate the output vertically (printing only
-the head and tail of the table) and minimize space horizontally when possible
-(compare row "C" to "C_long" below).
+Currently, it will intelligently truncate the output both vertically (printing
+only the head and tail of the table) and horizontally (by truncating columns),
+and also to minimize the horizontal size of a column when possible (compare row
+"C" to "C_long" below).
 
 ```
-julia> Tables.@table(A::Int64=[1,2,3],
-    B::Float64=[2.0,4.0,6.0],
-    C::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()],
-    C_long::Nullable{Bool}=Nullable{Bool}[true,false,Nullable{Bool}()],
-    D::ASCIIString = ["A","ABCD","ABCDEFGHIJKLM"])
-    ┌───┬─────┬───┬────────┬────────────┐
-Row │ A │ B   │ C │ C_long │ D          │
-    ├───┼─────┼───┼────────┼────────────┤
-  1 │ 1 │ 2.0 │ T │ true   │ "A"        │
-  2 │ 2 │ 4.0 │ F │ false  │ "ABCD"     │
-  3 │ 3 │ 6.0 │ - │ NULL   │ "ABCDEFG…" │
-    └───┴─────┴───┴────────┴────────────┘
+julia> Tables.@table(A::Int64 = [1,2,3],
+    B::Float64 = [2.0,4.0,6.0],
+    C::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
+    C_long::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
+    D::ASCIIString = ["A","ABCD","ABCDEFGHIJKLMNOPQRSTUVWXYZ"])
+    ┌───┬─────┬───┬────────┬──────────────────────┐
+Row │ A │ B   │ C │ C_long │ D                    │
+    ├───┼─────┼───┼────────┼──────────────────────┤
+  1 │ 1 │ 2.0 │ T │  true  │ "A"                  │
+  2 │ 2 │ 4.0 │ F │ false  │ "ABCD"               │
+  3 │ 3 │ 6.0 │ - │  NULL  │ "ABCDEFGHIJKLMNOPQ…" │
+    └───┴─────┴───┴────────┴──────────────────────┘
 ```
 
 ## Roadmap
 
 - [x] Unit tests
 - [x] `join` for natural, inner joins
-- [x] Pretty output (work remains on horizontal fill and aligning numbers)
-- [ ] other types of joins
-- [ ] Convenience functions for data manipulations, like `unique!`
-- [ ] Conditional searches (selection)
+- [x] Pretty output
+- [ ] I/O from files and `DataFrame`s
 - [ ] More support for views and `sub`
+- [ ] Other types of joins and support for relations and selection
+- [ ] Convenience functions for data manipulations, like `unique!`
+- [ ] `DenseTable` for row-based storage
+- [ ] `KeyTable` and `DenseKeyTable` for tables that are indexed by a key value
 - [ ] Some way of interacting with SQL-formatted queries and other JuliaStats formalisms (maybe?)
 - [ ] Remove dependence on generated functions via trait-based metaprogramming (probably requires Julia 0.5 `@pure` functions)
