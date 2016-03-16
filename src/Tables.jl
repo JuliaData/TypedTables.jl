@@ -1,4 +1,4 @@
-module Tables
+module TypedTables
 
 using NullableArrays
 
