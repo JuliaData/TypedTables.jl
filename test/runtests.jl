@@ -1,4 +1,4 @@
-using Tables
+using TypedTables
 using NullableArrays
 
 if VERSION >= v"0.5-"
