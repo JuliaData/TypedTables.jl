@@ -94,8 +94,20 @@ end
 
 
 
-=={F,ElTypes,StorageType}(table1::Table{F,ElTypes,StorageType},table2::Table{F,ElTypes,StorageType}) = (table1.data == table2.data)
-
+=={Index,ElTypes,StorageType}(table1::Table{Index,ElTypes,StorageType},table2::Table{Index,ElTypes,StorageType}) = (table1.data == table2.data)
+function =={Index1,ElTypes1,StorageType1,Index2,ElTypes2,StorageType2}(table1::Table{Index1,ElTypes1,StorageType1},table2::Table{Index2,ElTypes2,StorageType2})
+    if samefields(Index1,Index2)
+        idx = Index2[Index1]
+        for i = 1:length(Index1)
+            if table1.data[i] != table2.data[idx[i]]
+                return false
+            end
+        end
+        return true
+    else
+        return false
+    end
+end
 
 # Conversion between Dense and normal Tables??
 # Some more convient versions. (a) One that takes pairs of fields and storage.
@@ -122,8 +134,8 @@ index{Index}(table::Table{Index}) = Index
 samefields{Index1,Index2}(::Table{Index1},::Table{Index2}) = samefields(Index1,Index2)
 samefields{Index1,Index2}(::Row{Index1},::Table{Index2}) = samefields(Index1,Index2)
 samefields{Index1,Index2}(::Table{Index1},::Row{Index2}) = samefields(Index1,Index2)
-samefields{Index1<:FieldIndex,Index2}(::Index1,::Table{Index2}) = samefields(Index1,Index2)
-samefields{Index1,Index2<:FieldIndex}(::Table{Index1},::Index2) = samefields(Index1,Index2)
+samefields{Index1<:FieldIndex,Index2}(::Index1,::Table{Index2}) = samefields(Index1(),Index2)
+samefields{Index1,Index2<:FieldIndex}(::Table{Index1},::Index2) = samefields(Index1,Index2())
 
 # Iterators
 Base.start{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = 1

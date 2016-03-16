@@ -47,8 +47,23 @@ Base.endof(row::Row) = length(row)
 nrow{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = 1
 
 samefields{Index1,Index2}(::Row{Index1},::Row{Index2}) = samefields(Index1,Index2)
-samefields{Index1<:FieldIndex,Index2}(::Index1,::Row{Index2}) = samefields(Index1,Index2)
-samefields{Index1,Index2<:FieldIndex}(::Row{Index1},::Index2) = samefields(Index1,Index2)
+samefields{Index1<:FieldIndex,Index2}(::Index1,::Row{Index2}) = samefields(Index1(),Index2)
+samefields{Index1,Index2<:FieldIndex}(::Row{Index1},::Index2) = samefields(Index1,Index2())
+
+=={Index,ElTypes}(row1::Row{Index,ElTypes},row2::Row{Index,ElTypes}) = (row1.data == row2.data)
+function =={Index1,ElTypes1,Index2,ElTypes2}(row1::Row{Index1,ElTypes1},row2::Row{Index2,ElTypes2})
+    if samefields(Index1,Index2)
+        idx = Index2[Index1]
+        for i = 1:length(Index1)
+            if row1.data[i] != row2.data[idx[i]]
+                return false
+            end
+        end
+        return true
+    else
+        return false
+    end
+end
 
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, new_names::FieldIndex) = Row(rename(Index,new_names),row.data)
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, old_names::Union{FieldIndex,Field}, new_names::Union{FieldIndex,Field}) = Row(rename(Index,old_names,new_names),row.data)

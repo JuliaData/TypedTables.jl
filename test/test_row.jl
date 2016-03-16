@@ -31,6 +31,14 @@ end
 
     @test names(rename(@index(A::Int64,B::Float64),@field(A::Int64),@field(A_new::Int64))) == (:A_new,:B)
     @test names(rename(@index(A::Int64,B::Float64),@index(A::Int64),@index(A_new::Int64))) == (:A_new,:B)
+
+    @test samefields(@row(A::Int64=1, B::Float64=2.0), @row(B::Float64=2.0, A::Int64=1)) == true
+    @test samefields(@index(A::Int64, B::Float64), @row(B::Float64=2.0, A::Int64=1)) == true
+    @test samefields(@row(A::Int64=1, B::Float64=2.0), @index(B::Float64, A_new::Int64)) == false
+
+    @test @row(A::Int64=1, B::Float64=2.0) == @row(A::Int64=1, B::Float64=2.0)
+    @test @row(A::Int64=1, B::Float64=2.0) == @row(B::Float64=2.0, A::Int64=1)
+    @test @row(A::Int64=1, B::Float64=2.0) != @row(B::Float64=2.0, A::Int64=3)
 end
 
 @testset "Accessing and iterating" begin

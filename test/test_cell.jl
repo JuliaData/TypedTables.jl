@@ -26,6 +26,9 @@ c3 = @cell(A::Int64 = 3)
     println()
     @test length(c1) == 1
     @test length(typeof(c1)) == 1
+    @test samefield(c1,c2) == true
+    @test samefield(a,c1) == true
+    @test samefield(c1,b) == false
 
     @test rename(c1, a_new) == @cell(a_new = 1)
 end

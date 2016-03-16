@@ -59,6 +59,13 @@ end
     @test size(col1,1) == 3
     @test isempty(col1) == false
     @test endof(col1) == 3
+
+    @test samefield(col1,col1) == true
+    @test samefield(a,col1) == true
+    @test samefield(col1,b) == false
+    @test samefield(c1,col1) == true
+    @test samefield(col1,c2) == true
+
 end
 
 @testset "Accessing and iterating" begin

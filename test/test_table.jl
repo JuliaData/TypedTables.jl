@@ -32,6 +32,17 @@ end
     @test isempty(@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0])) == false
     @test endof(@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0])) == 3
 
+    @test samefields(@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]), @table(B::Float64=[2.0,4.0,6.0],A::Int64=[1,2,3])) == true
+    @test samefields(@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]), @table(B::Float64=[2.0,4.0,6.0],A_new::Int64=[1,2,3])) == false
+    @test samefields(@row(A::Int64=1,B::Float64=2.0), @table(B::Float64=[2.0,4.0,6.0],A::Int64=[1,2,3])) == true
+    @test samefields(@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]), @row(B::Float64=2.0,A_new::Int64=1)) == false
+    @test samefields(@index(A_new::Int64,B::Float64), @table(B::Float64=[2.0,4.0,6.0],A::Int64=[1,2,3])) == false
+    @test samefields(@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]), @index(B::Float64,A::Int64)) == true
+
+    @test @table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]) == @table(B::Float64=[2.0,4.0,6.0],A::Int64=[1,2,3])
+    @test @table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]) != @table(B::Float64=[2.0,4.0,6.0],A_new::Int64=[1,2,3])
+    @test @table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]) != @table(B::Float64=[2.0,4.0,6.0],A::Int64=[1,2,4])
+
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); copy(t) == t )
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); deepcopy(t) == t )
 end

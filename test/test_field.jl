@@ -16,6 +16,8 @@ end
     @test eltype(Field{:A,Int64}) == Int64
     @test (show(a);println();true)
     @test length(a) == 1
+    @test samefield(a,a) == true
+    @test samefield(a,b) == false
 end
 
 @testset "DefaultKey" begin

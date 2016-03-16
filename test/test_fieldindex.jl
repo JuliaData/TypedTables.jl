@@ -34,6 +34,10 @@ idx = FieldIndex{(a,b)}()
 
     @test names(rename(idx,a,a_new)) == (:A_new,:B)
     @test names(rename(idx,FieldIndex(a),FieldIndex(a_new))) == (:A_new,:B)
+
+    @test samefields(idx,idx) == true
+    @test samefields(a+b,b+a) == true
+    @test samefields(a+b,b+c) == false
 end
 
 @testset "Accessing and iterating" begin
