@@ -162,13 +162,14 @@ function Base.push!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,Stora
     end
     table
 end
+@inline Base.push!{Index,ElTypes,StorageTypes,Index2,ElTypes2}(table::Table{Index,ElTypes,StorageTypes},row::Row{Index2,ElTypes2}) = push!(table,row[Index])
 @inline Base.push!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in::ElTypes) = push!(table, Row{Index,ElTypes}(data_in))
-@inline Base.push!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in...) = push!(table,((data_in...))) # TODO check if slow?
 function Base.append!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},table_in::Table{Index,ElTypes,StorageTypes})
     for i in 1:length(Index)
         append!(table.data[i],table_in.data[i])
     end
 end
+@inline Base.append!{Index,ElTypes,StorageTypes,Index2,ElTypes2,StorageTypes2}(table::Table{Index,ElTypes,StorageTypes},table_in::Table{Index2,ElTypes2,StorageTypes2}) = append!(table,table_in[Index])
 function Base.append!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in::StorageTypes)
     ls = map(length,data_in)
     for i in 2:length(Index)
@@ -181,6 +182,32 @@ function Base.append!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,Sto
         append!(table.data[i],data_in[i])
     end
 end
+function Base.prepend!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},table_in::Table{Index,ElTypes,StorageTypes})
+    for i in 1:length(Index)
+        prepend!(table.data[i],table_in.data[i])
+    end
+end
+@inline Base.prepend!{Index,ElTypes,StorageTypes,Index2,ElTypes2,StorageTypes2}(table::Table{Index,ElTypes,StorageTypes},table_in::Table{Index2,ElTypes2,StorageTypes2}) = prepend!(table,table_in[Index])
+function Base.prepend!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in::StorageTypes)
+    ls = map(length,data_in)
+    for i in 2:length(Index)
+        if ls[i] != ls[1]
+            error("Column inputs must be same length.")
+        end
+    end
+
+    for i in 1:length(data_in)
+        prepend!(table.data[i],data_in[i])
+    end
+end
+function Base.unshift!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},row::Row{Index,ElTypes})
+    for i = 1:length(Index)
+        unshift!(table.data[i],row.data[i])
+    end
+    table
+end
+@inline Base.unshift!{Index,ElTypes,StorageTypes,Index2,ElTypes2}(table::Table{Index,ElTypes,StorageTypes},row::Row{Index2,ElTypes2}) = unshift!(table,row[Index])
+@inline Base.unshift!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},data_in::ElTypes) = unshift!(table, Row{Index,ElTypes}(data_in))
 function Base.pop!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes})
     return Row{Index,eltypes(Index)}(ntuple(i->pop!(table.data[i]),length(Index)))
 end
@@ -365,58 +392,61 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
 
     # data...
     data_str = [Vector{UTF8String}() for i = 1:ncols]
-    if length(table) > 2*maxl
-        for i = 1:maxl
-            push!(row_str,string(i))
-            for c = 1:ncols
-                tmp = compactstring(table.data[c][i],width_suggestions[c])
-                push!(data_str[c],tmp)
+    if length(table) > 0
+        if length(table) > 2*maxl
+            for i = 1:maxl
+                push!(row_str,string(i))
+                for c = 1:ncols
+                    tmp = compactstring(table.data[c][i],width_suggestions[c])
+                    push!(data_str[c],tmp)
+                end
+            end
+
+            for i = endof(table)-maxl+1:endof(table)
+                push!(row_str,string(i))
+                for c = 1:ncols
+                    tmp = compactstring(table.data[c][i],width_suggestions[c])
+                    push!(data_str[c],tmp)
+                end
+            end
+        else
+            for i = 1:length(table)
+                push!(row_str,string(i))
+                for c = 1:ncols
+                    tmp = compactstring(table.data[c][i],width_suggestions[c])
+                    push!(data_str[c],tmp)
+                end
             end
         end
+        row_width = max(row_width,maximum(map(length,row_str)))
 
-        for i = endof(table)-maxl+1:endof(table)
-            push!(row_str,string(i))
-            for c = 1:ncols
-                tmp = compactstring(table.data[c][i],width_suggestions[c])
-                push!(data_str[c],tmp)
+        # Next we fix up some of the strings
+        for c = 1:ncols
+            align_strings(eltype(table.data[c]), data_str[c])
+            widths[c] = max(length(header_str[c]),maximum(map(length,data_str[c])))
+        end
+
+        # Now we see if it is too wide...
+        max_width = s[2]
+        too_wide = row_width + sum(widths) + 2 + 3*length(widths) > max_width
+        was_too_wide = too_wide
+        while too_wide
+            if length(widths) == 1
+                break # Show at least one column of data, even if it is ugly
             end
+            pop!(widths)
+            pop!(header_str)
+            pop!(data_str)
+            too_wide = row_width + sum(widths) + 6 + 3*length(widths) > max_width
+            ncols = ncols - 1
         end
-    else
-        for i = 1:length(table)
-            push!(row_str,string(i))
-            for c = 1:ncols
-                tmp = compactstring(table.data[c][i],width_suggestions[c])
-                push!(data_str[c],tmp)
-            end
+        if was_too_wide
+            push!(widths, 1)
+            push!(header_str,hdots)
+            push!(data_str,fill(hdots, length(data_str[1])))
+            ncols = ncols + 1
         end
-    end
-    row_width = max(row_width,maximum(map(length,row_str)))
 
-    # Next we fix up some of the strings
-    for c = 1:ncols
-        align_strings(eltype(table.data[c]), data_str[c])
-        widths[c] = max(length(header_str[c]),maximum(map(length,data_str[c])))
-    end
-
-    # Now we see if it is too wide...
-    max_width = s[2]
-    too_wide = row_width + sum(widths) + 2 + 3*length(widths) > max_width
-    was_too_wide = too_wide
-    while too_wide
-        if length(widths) == 1
-            break # Show at least one column of data, even if it is ugly
-        end
-        pop!(widths)
-        pop!(header_str)
-        pop!(data_str)
-        too_wide = row_width + sum(widths) + 6 + 3*length(widths) > max_width
-        ncols = ncols - 1
-    end
-    if was_too_wide
-        push!(widths, 1)
-        push!(header_str,hdots)
-        push!(data_str,fill(hdots, length(data_str[1])))
-        ncols = ncols + 1
     end
 
     # Now we show the table using computed widths for decorations
@@ -548,7 +578,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
         end
         print(io, b ^ widths[c])
         if c == ncols
-            println(io,br)
+            print(io,br)
         end
     end
 end
@@ -690,7 +720,7 @@ function Base.showall{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTy
         end
         print(io, b ^ widths[c])
         if c == ncols
-            println(io,br)
+            print(io,br)
         end
     end
 end
