@@ -53,6 +53,11 @@ Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F))=$(compactst
 @inline field{F,ElType}(::Cell{F,ElType}) = F
 @inline field{F,ElType}(::Type{Cell{F,ElType}}) = F
 
+@inline samefield{F1,F2}(x::Cell{F1},y::Cell{F2}) = samefield(F1,F2)
+@inline samefield{F1<:Field,F2}(x::F1,y::Cell{F2}) = samefield(F1,F2)
+@inline samefield{F1,F2<:Field}(x::Cell{F1},y::F2) = samefield(F1,F2)
+
+
 Base.start(c::Cell) = false # Same iterators as Julia scalars
 Base.next(c::Cell,i::Bool) = (c,true)
 Base.done(c::Cell,i::Bool) = i

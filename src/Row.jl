@@ -46,11 +46,15 @@ Base.endof(row::Row) = length(row)
 @generated ncol{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = :($(length(Index)))
 nrow{Index,DataTypes}(row::Union{Row{Index,DataTypes},Type{Row{Index,DataTypes}}}) = 1
 
+samefields{Index1,Index2}(::Row{Index1},::Row{Index2}) = samefields(Index1,Index2)
+samefields{Index1<:FieldIndex,Index2}(::Index1,::Row{Index2}) = samefields(Index1,Index2)
+samefields{Index1,Index2<:FieldIndex}(::Row{Index1},::Index2) = samefields(Index1,Index2)
+
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, new_names::FieldIndex) = Row(rename(Index,new_names),row.data)
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, old_names::Union{FieldIndex,Field}, new_names::Union{FieldIndex,Field}) = Row(rename(Index,old_names,new_names),row.data)
 
 function Base.show{Index,DataTypes}(io::IO,row::Row{Index,DataTypes})
-    print(io,"(")
+    print(io,"Row(")
     for i = 1:length(Index)
         print(io,"$(name(Index[i]))=$(compactstring(row.data[i]))")
         if i < length(Index)

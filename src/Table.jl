@@ -119,6 +119,11 @@ Base.isempty{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes
 Base.endof{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = endof(table.data[1])
 index{Index}(table::Table{Index}) = Index
 
+samefields{Index1,Index2}(::Table{Index1},::Table{Index2}) = samefields(Index1,Index2)
+samefields{Index1,Index2}(::Row{Index1},::Table{Index2}) = samefields(Index1,Index2)
+samefields{Index1,Index2}(::Table{Index1},::Row{Index2}) = samefields(Index1,Index2)
+samefields{Index1<:FieldIndex,Index2}(::Index1,::Table{Index2}) = samefields(Index1,Index2)
+samefields{Index1,Index2<:FieldIndex}(::Table{Index1},::Index2) = samefields(Index1,Index2)
 
 # Iterators
 Base.start{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = 1

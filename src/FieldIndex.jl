@@ -12,8 +12,6 @@ immutable FieldIndex{Fields}
     end
 end
 
-
-
 @generated FieldIndex{F<:AbstractField}(field::F) = :(FieldIndex{($(F()),)}())
 function FieldIndex(fields::AbstractField...)
     error("Use a tuple of Field instances to instantiate FieldIndex")
@@ -49,6 +47,27 @@ end
 
 @inline instantiate_tuple{T <: Tuple}(::Type{T}) = ntuple(i->T.parameters[i](),length(T.parameters))
 @inline isunique{T<:Tuple}(t::T) = length(t) == length(unique(t))
+
+@generated function samefields{Fields1,Fields2}(::FieldIndex{Fields1},::FieldIndex{Fields2})
+    l = length(Fields1)
+    if l == length(Fields2)
+        for i = 1:l
+            found = false
+            for j = 1:l
+                if Fields1[i] == Fields2[j]
+                    found = true
+                    break
+                end
+            end
+            if found == false
+                return false
+            end
+        end
+    else
+        return false
+    end
+    return true
+end
 
 # Length, sizes, offsets, etc
 @generated ncol{Fields}(::Union{FieldIndex{Fields},Type{FieldIndex{Fields}}}) = :($(length(Fields)))

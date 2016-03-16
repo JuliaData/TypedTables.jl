@@ -32,6 +32,9 @@ end
 end
 check_field(Name,T) = error("Field name $Name must be a Symbol and type $T must be a DataType")
 
+"Check if the `Field`, `Cell` or `Column` have the same field name and type"
+@inline samefield(a::Field,b::Field) = (a == b)
+
 "Extract the type parameter of a Field"
 @inline Base.eltype{Name,T}(::Type{Field{Name,T}}) = T
 @inline Base.eltype{Name,T}(::Field{Name,T}) = T
