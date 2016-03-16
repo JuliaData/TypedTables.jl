@@ -316,10 +316,10 @@ macro index(exprs...)
         if x.head != :(::) || length(x.args) != 2
             error("Expecting expression of form @field(:name :: Type)")
         end
-        field[i] = :(Tables.Field{$(Expr(:quote,x.args[1])),$(esc(x.args[2]))}())
+        field[i] = :(TypedTables.Field{$(Expr(:quote,x.args[1])),$(esc(x.args[2]))}())
     end
 
     fields = Expr(:tuple,field...)
 
-    return :(Tables.FieldIndex{$fields}())
+    return :(TypedTables.FieldIndex{$fields}())
 end

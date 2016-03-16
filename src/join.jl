@@ -98,8 +98,8 @@ the join test may be something other than equality. Built-in joins include:
   `InnerJoin()` - equality tested with `==` [default]
   ...
 
-Users may define their own jointype as a subtype of `Tables.AbstractJoin` and the
-corresponding method for either (a) `Tables.testjoin()` and `Tables.dojoin()` for
+Users may define their own jointype as a subtype of `TypedTables.AbstractJoin` and the
+corresponding method for either (a) `TypedTables.testjoin()` and `TypedTables.dojoin()` for
 individual data elements, or (b) `join()` on `Row`s for more complex behaviour (e.g.
 multi-cell tests).
 """

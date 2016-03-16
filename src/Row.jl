@@ -143,7 +143,7 @@ macro row(exprs...)
             if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
                 error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
             end
-            field[i] = :(Tables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
+            field[i] = :(TypedTables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
         else
             error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
         end
@@ -153,5 +153,5 @@ macro row(exprs...)
     fields = Expr(:tuple,field...)
     values = Expr(:tuple,value...)
 
-    return :(Tables.Row(Tables.FieldIndex{$(esc(fields))}(),$(esc(values))))
+    return :(TypedTables.Row(TypedTables.FieldIndex{$(esc(fields))}(),$(esc(values))))
 end

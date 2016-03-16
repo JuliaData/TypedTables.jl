@@ -57,8 +57,8 @@ end
     @test (t=@table(A::Int64=[1,2],B::Float64=[2.0,4.0]); push!(t,@row(A::Int64=3,B::Float64=6.0)); t == @table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]) )
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); pop!(t) == @row(A::Int64=3,B::Float64=6.0) && t == @table(A::Int64=[1,2],B::Float64=[2.0,4.0]) )
     @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); append!(t,t); t == @table(A::Int64=[1,2,3,1,2,3],B::Float64=[2.0,4.0,6.0,2.0,4.0,6.0]) )
-    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); Tables.head(t) == t )
-    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); Tables.tail(t) == t )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); TypedTables.head(t) == t )
+    @test (t=@table(A::Int64=[1,2,3],B::Float64=[2.0,4.0,6.0]); TypedTables.tail(t) == t )
 end
 
 

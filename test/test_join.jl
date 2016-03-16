@@ -1,8 +1,8 @@
 @testset "Join" begin
 
-@test Tables.testjoin(1, 1) == true
-@test Tables.testjoin(1, 2) == false
-@test Tables.dojoin(1, 1) == 1
+@test TypedTables.testjoin(1, 1) == true
+@test TypedTables.testjoin(1, 2) == false
+@test TypedTables.dojoin(1, 1) == 1
 
 @test join(@row(A::Int64=1, B::Float64=2.0), @row(A::Int64=1, B::Float64=2.0)) === Nullable{Row{@index(A::Int64, B::Float64), Tuple{Int64, Float64}}}(@row(A::Int64=1, B::Float64=2.0))
 @test isnull(join(@row(A::Int64=1, B::Float64=2.0), @row(A::Int64=2, B::Float64=4.0)))

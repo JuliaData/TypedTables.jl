@@ -55,5 +55,5 @@ macro field(x)
     if x.head != :(::) || length(x.args) != 2
         error("Expecting expression of form @field(:name :: Type)")
     end
-    return :(Tables.Field{$(Expr(:quote,x.args[1])),$(esc(x.args[2]))}())
+    return :(TypedTables.Field{$(Expr(:quote,x.args[1])),$(esc(x.args[2]))}())
 end
