@@ -32,6 +32,7 @@ include("FieldIndex.jl")
 include("Row.jl")
 include("Table.jl")
 
+include("algorithms.jl")
 include("join.jl")
 
 

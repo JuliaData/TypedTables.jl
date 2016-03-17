@@ -92,7 +92,7 @@ Base.call{Fields}(::FieldIndex{Fields},x...) = error("Must instantiate Row with 
     return :(Tuple{$(storagetypes...)} )
 end
 
-
+Base.convert{Index,DataTypes<:Tuple,StorageTypes<:Tuple}(::Type{StorageTypes},x::Table{Index,DataTypes,StorageTypes}) = x.data 
 
 =={Index,ElTypes,StorageType}(table1::Table{Index,ElTypes,StorageType},table2::Table{Index,ElTypes,StorageType}) = (table1.data == table2.data)
 function =={Index1,ElTypes1,StorageType1,Index2,ElTypes2,StorageType2}(table1::Table{Index1,ElTypes1,StorageType1},table2::Table{Index2,ElTypes2,StorageType2})

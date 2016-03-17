@@ -25,6 +25,8 @@ end
 Row{Index<:FieldIndex}(::Index, data_in...) = error("Must instantiate Row with a tuple of type $(eltypes(Index))")
 # @generated Base.call{Index<:FieldIndex,DataTypes<:Tuple}(::Index,x::DataTypes) = :(Row{$(Index()),$DataTypes}(x)) # Replaced by call in Table.jl
 
+Base.convert{Index,DataTypes<:Tuple}(::Type{DataTypes},x::Row{Index,DataTypes}) = x.data 
+
 @generated function check_row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,::Type{DataTypes})
     if eltypes(Index()) != DataTypes
         return :(error("Data types $DataTypes do not match field index $(eltypes(Index()))"))

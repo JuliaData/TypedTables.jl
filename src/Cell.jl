@@ -24,6 +24,9 @@ end
 #@generated Base.convert{F,T<:DataType}(::Type{T},x::Cell{F,T}) = :(x.data)
 #@generated Base.convert{F,T}(::Type{Ref{T}},x::Cell{F,T}) = :(x.data)
 
+Base.convert{F,T}(::Type{Ref{T}},x::Cell{F,Ref{T}}) = x.data # Stops a silly ambiguity warning
+Base.convert{F,T}(::Type{T},x::Cell{F,T}) = x.data
+
 @generated function Base.convert{F1,F2,T1,T2}(::Type{Cell{F2,T2}},x::Cell{F1,T1})
     if name(F1) != name(F2)
         return :(error("Names do not match"))

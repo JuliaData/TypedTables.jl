@@ -27,6 +27,9 @@ makestoragetype{T}(::Type{Nullable{T}}) = NullableVector{T}
 makestoragetype{T}(::Type{T}) = Vector{T}
 
 
+Base.convert{F,ElType,StorageType}(::Type{Ref{StorageType}},x::Column{F,ElType,Ref{StorageType}}) = x.data # Not even possible, but it stops a silly ambiguity warning
+Base.convert{F,ElType,StorageType}(::Type{StorageType},x::Column{F,ElType,StorageType}) = x.data
+
 @generated function check_Column{F,ElType,StorageType}(::F,::Type{ElType},::Type{StorageType})
     if !isa(F(),Field)
         return :(error("Field $F should be an instance of field"))
@@ -128,10 +131,20 @@ Base.shift!{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = shift!(co
 
 Base.empty!{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = empty!(col.data)
 
-
 # insert!, splice!, deleteat!
 # resize! ?
-# unique! (union, etc??)
+# unique/unique! (union, etc??)
+
+Base.sort{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...) = Column{F, ElType, StorageType}(sort(col.data; kwargs...))
+Base.sort!{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...) = sort!(col.data; kwargs...)
+
+#function Base.unique{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...)
+#    tmp = sort(col)
+#
+#        Column{F, ElType, StorageType}(unique(col.data; kwargs...))
+#
+#end
+Base.sort!{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...) = sort!(col.data; kwargs...)
 
 
 # Some non-mutating functions
