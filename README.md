@@ -215,6 +215,7 @@ Row │ A │ B   │ C │ C_long │ D                    │
 - [x] Unit tests
 - [x] `join` for natural, inner joins
 - [x] Pretty output
+- [x] Set operations on tables (union, intersect, setdiff, unique!, etc)
 - [ ] I/O from files and `DataFrame`s
 - [ ] More support for views and `sub`
 - [ ] Other types of joins and support for relations and selection
