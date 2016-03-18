@@ -17,6 +17,7 @@ include("test_fieldindex.jl")
 include("test_row.jl")
 include("test_table.jl")
 include("test_join.jl")
+include("test_setalgorithms.jl")
 
 
 end

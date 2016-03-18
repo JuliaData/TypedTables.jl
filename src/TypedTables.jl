@@ -4,7 +4,9 @@ using NullableArrays
 
 export Field, DefaultKey, FieldIndex, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
-export rename, name, eltypes, field, index, key, keyname, ncol, nrow, join, head, tail, samefield, samefields
+export rename, name, eltypes, field, index, key, keyname, ncol, nrow, head, tail, samefield, samefields
+
+export join, unique!
 
 export  @field, @index, @cell, @row, @column, @table
 
