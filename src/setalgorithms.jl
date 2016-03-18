@@ -20,13 +20,27 @@ end
 """
 Return the indices of the first unique elements in a `Column` or a `Table`.
 """
-function uniqueind(x::Union{Column,Table})
+function uniqueind(x::Column)
     out = Vector{Int}()
     seen = Set{eltype(x)}()
     i = 1
     for y in x
         if !in(y, seen)
             push!(seen, y)
+            push!(out, i)
+        end
+        i += 1
+    end
+    out
+end
+
+function uniqueind(x::Table)
+    out = Vector{Int}()
+    seen = Set{eltype(x)}()
+    i = 1
+    for y in x
+        if !in(y.data, seen)
+            push!(seen, y.data)
             push!(out, i)
         end
         i += 1

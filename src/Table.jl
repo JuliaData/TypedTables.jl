@@ -92,7 +92,7 @@ Base.call{Fields}(::FieldIndex{Fields},x...) = error("Must instantiate Row with 
     return :(Tuple{$(storagetypes...)} )
 end
 
-Base.convert{Index,DataTypes<:Tuple,StorageTypes<:Tuple}(::Type{StorageTypes},x::Table{Index,DataTypes,StorageTypes}) = x.data 
+Base.convert{Index,DataTypes<:Tuple,StorageTypes<:Tuple}(::Type{StorageTypes},x::Table{Index,DataTypes,StorageTypes}) = x.data
 
 =={Index,ElTypes,StorageType}(table1::Table{Index,ElTypes,StorageType},table2::Table{Index,ElTypes,StorageType}) = (table1.data == table2.data)
 function =={Index1,ElTypes1,StorageType1,Index2,ElTypes2,StorageType2}(table1::Table{Index1,ElTypes1,StorageType1},table2::Table{Index2,ElTypes2,StorageType2})
@@ -392,6 +392,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
 
     # data...
     data_str = [Vector{UTF8String}() for i = 1:ncols]
+    n_skipped_cols = 0
     if length(table) > 0
         if length(table) > 2*maxl
             for i = 1:maxl
@@ -434,6 +435,7 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
             if length(widths) == 1
                 break # Show at least one column of data, even if it is ugly
             end
+            n_skipped_cols += 1
             pop!(widths)
             pop!(header_str)
             pop!(data_str)
@@ -579,6 +581,15 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
         print(io, b ^ widths[c])
         if c == ncols
             print(io,br)
+        end
+    end
+    if n_skipped_cols > 0
+        print(io, "\n" * pad^(row_width) * "+ $n_skipped_cols unshown columns: ")
+        for i = length(Index)+1-n_skipped_cols:length(Index)
+            print(io,"$(Index[i])")
+            if i < length(Index)
+                print(io, ", ")
+            end
         end
     end
 end
