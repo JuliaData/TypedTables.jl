@@ -10,7 +10,7 @@ table1 = hcat(col_a1, col_b1)
 table2 = hcat(col_a2, col_b2)
 
 @test Set(unique(col_a1).data) == Set([1,2,4])
-@test (unique!(col_a2); Set(col_a2.data) == Set([2,3,4]))
+@test (tmp = copy(col_a2); unique!(tmp); Set(tmp.data) == Set([2,3,4]))
 
 @test length(unique(table1)) == 5
 @test (tmp = copy(table1); unique!(tmp); tmp == unique(table1))
