@@ -12,6 +12,17 @@ export  @field, @index, @cell, @row, @column, @table
 
 import Base.(==)
 
+# TODO dplyr funcitons (should we use same names or julia interfaces or both??)
+#      - filter (slice is indexing)
+#      - arrange (sorting)
+#      - select/rename (combination of rename with indexing)
+#      - district (currently unique and is already O(N log N))
+#      - mutate (perhaps compute or computecol or something, given mutate has a meaning in julia)
+#      - summarize
+#      - sample_n and sample_frac (could use rand() interface I think)
+#      - left_join, right_join, full_join (aka outer_join), semi_join, anti_join
+# TODO Load from an object with a dataframe interface
+# TODO Input and output to CSV, DLM
 # TODO similarly to ==, push!, etc think about vcat, too, for matching orderings? At the moment there is a difference between how vcat and a potential `append()` function would behave...
 # TODO Figure out namespace issues for head and tail (maybe both are in Base for Julia 0.5?)
 # TODO sub for generating a sub-table (i.e. simply a table with different StorageTypes)
@@ -36,6 +47,7 @@ include("Table.jl")
 
 include("setalgorithms.jl")
 include("join.jl")
+include("IO.jl")
 
 
 end # module
