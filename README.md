@@ -2,7 +2,7 @@
 
 A generic yet type-safe system for implementing data tables (sometimes called data frames, from R) in Julia.
 
-[![Build Status](https://travis-ci.org/FugroRoames/Tables.jl.svg?branch=master)](https://travis-ci.org/FugroRoames/Tables.jl)
+[![Build Status](https://travis-ci.org/FugroRoames/TypedTables.jl.svg?branch=master)](https://travis-ci.org/FugroRoames/TypedTables.jl)
 
 ## Overview
 
