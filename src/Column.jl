@@ -57,6 +57,8 @@ end
 @inline name{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = name(F)
 @inline Base.eltype{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = eltype(StorageType)
 @inline Base.eltype{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = eltype(StorageType)
+@inline storagetype{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = StorageType
+@inline storagetype{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) =StorageType
 @inline field{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = F
 @inline field{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = F
 
@@ -165,6 +167,8 @@ Base.vcat{F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{
 Base.vcat{F,ElType}(c1::Cell{F,ElType},c2::Cell{F,ElType},cs::Cell{F,ElType}...) = vcat(vcat(c1,c2),cs...)
 Base.vcat{F,ElType,StorageType}(c1::Union{Cell{F,ElType},Column{F,ElType,StorageType}},c2::Union{Cell{F,ElType},Column{F,ElType,StorageType}},cs::Union{Cell{F,ElType},Column{F,ElType,StorageType}}...) = vcat(vcat(c1,c2),cs...)
 
+# Otherwise, fields don't match...
+Base.vcat(x::Union{Cell,Column}...) = error("Fields $(ntuple(i->field(x[i]),length(x))) don't match")
 
 # Currently @column and @cell do the same thing, by calling field
 macro column(expr)

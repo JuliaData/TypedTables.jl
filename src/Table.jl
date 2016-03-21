@@ -116,7 +116,12 @@ end
 
 # Data from the index
 Base.names{Index}(table::Table{Index}) = names(Index)
+Base.names{Index,ElTypes,StorageTypes}(table::Type{Table{Index,ElTypes,StorageTypes}}) = names(Index)
 eltypes{Index}(table::Table{Index}) = eltypes(Index)
+eltypes{Index,ElTypes,StorageTypes}(table::Type{Table{Index,ElTypes,StorageTypes}}) = eltypes(Index)
+storagetypes{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = StorageTypes
+storagetypes{Index,ElTypes,StorageTypes}(table::Type{Table{Index,ElTypes,StorageTypes}}) = StorageTypes
+
 @generated rename{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes}, new_names::NewIndex) = :( Table{$(rename(Index,NewIndex())),$ElTypes,$StorageTypes}(table.data, Val{false}) )
 @generated rename{Index,ElTypes,DataTypes,OldFields,NewFields}(table::Table{Index,ElTypes,DataTypes}, old_names::OldFields, ::NewFields) = :(Table($(rename(Index,OldFields(),NewFields())),table.data, Val{false}))
 
@@ -917,16 +922,25 @@ Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageType
 
 
 # Concatenate rows and tables into tables
-Base.vcat{Index,ElTypes}(row::Row{Index,ElTypes}) = Table(row)
-Base.vcat{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = table
+@inline Base.vcat(row::Row) = Table(row)
+@inline Base.vcat(table::Table) = table
 
-@generated Base.vcat{Index,ElTypes}(row1::Row{Index,ElTypes},row2::Row{Index,ElTypes}) = :( Table{Index,ElTypes,$(makestoragetypes(ElTypes))}(ntuple(i->vcat(row1.data[i],row2.data[i]),$(length(Index)))) )
-Base.vcat{Index,ElTypes,StorageTypes}(row1::Row{Index,ElTypes},table2::Table{Index,ElTypes,StorageTypes}) = Table{Index,ElTypes,StorageTypes}(ntuple(i->vcat(row1.data[i],table2.data[i]),length(Index)))
-Base.vcat{Index,ElTypes,StorageTypes}(table1::Table{Index,ElTypes,StorageTypes},row2::Row{Index,ElTypes}) = Table{Index,ElTypes,StorageTypes}(ntuple(i->vcat(table1.data[i],row2.data[i]),length(Index)))
-Base.vcat{Index,ElTypes,StorageTypes}(table1::Table{Index,ElTypes,StorageTypes},table2::Table{Index,ElTypes,StorageTypes}) = Table{Index,ElTypes,StorageTypes}(ntuple(i->vcat(table1.data[i],table2.data[i]),length(Index)))
+@generated Base.vcat{Index}(row1::Row{Index},row2::Union{Row{Index},Table{Index}}) = :( Table{Index,$(eltypes(Index)),$(makestoragetypes(eltypes(Index)))}(ntuple(i->vcat(row1.data[i],row2.data[i]),$(length(Index)))) )
+@generated Base.vcat{Index}(table1::Table{Index},table2::Union{Row{Index},Table{Index}}) = :( Table{Index,$(eltypes(table1)),$(storagetypes(table1))}(ntuple(i->vcat(table1.data[i],table2.data[i]),length(Index))) )
 
-Base.vcat{Index,ElTypes}(row1::Row{Index,ElTypes},row2::Row{Index,ElTypes},rows::Row{Index,ElTypes}...) = vcat(vcat(row1,row2),rows...)
-Base.vcat{Index,ElTypes,StorageTypes}(c1::Union{Row{Index,ElTypes},Table{Index,ElTypes,StorageTypes}},c2::Union{Row{Index,ElTypes},Table{Index,ElTypes,StorageTypes}},cs::Union{Row{Index,ElTypes},Table{Index,ElTypes,StorageTypes}}...) = vcat(vcat(c1,c2),cs...)
+# Otherwise, fields don't match...
+function Base.vcat{Index1,Index2}(x1::Union{Row{Index1},Table{Index1}}, x2::Union{Row{Index2},Table{Index2}})
+    if samefields(Index1, Index2)
+        vcat(x1, x2[Index1])
+    else
+        error("Indices $Index1 and $Index2 don't match")
+    end
+end
+
+# More than two inputs
+Base.vcat(c1::Union{Row,Table},c2::Union{Row,Table},c3::Union{Row,Table}) = vcat(vcat(c1,c2),c3)
+Base.vcat(c1::Union{Row,Table},c2::Union{Row,Table},c3::Union{Row,Table},cs...) = vcat(vcat(c1,c2),c3,cs...)
+
 
 # Concatenate columns and tables into tables
 # Generated functions appear to be needed for speed...

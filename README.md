@@ -187,9 +187,16 @@ join, parameterized by the singleton `InnerJoin()`. In the future, more types
 of joins will be implemented and a convenient framework for users to implement
 their own join tests, etc will be included.
 
-## Output
+### Set operations
 
-Some effort has been put into making the output pretty and easy to use.
+Operations for dealing with tables as sets are defined, including `unique` (and
+it's mutating version `unique!`), `union`, `intersect` and `setdiff`.
+
+## Input/Output
+
+### At the REPL
+
+Some effort has been put into making the output appealing and easy to read.
 Currently, it will intelligently truncate the output both vertically (printing
 only the head and tail of the table) and horizontally (by truncating columns),
 and also to minimize the horizontal size of a column when possible (compare row
@@ -210,17 +217,28 @@ Row │ A │ B   │ C │ C_long │ D                    │
     └───┴─────┴───┴────────┴──────────────────────┘
 ```
 
+### File I/O
+
+The functions `readtable` and `writetable` are defined to read and write
+delimited text files (such as CSV). Currently `readtable` relies on Julia's
+inbuilt `readdlm` function, while `writetable` is a specialized version that
+accepts a variety of keyword arguments for creating the desired output.
+
+Furthermore, `readtable` is overloaded to accept column-dictionary-like opjects,
+including `DataFrame`s.
+
 ## Roadmap
 
 - [x] Unit tests
 - [x] `join` for natural, inner joins
 - [x] Pretty output
-- [x] Set operations on tables (union, intersect, setdiff, unique!, etc)
-- [ ] I/O from files and `DataFrame`s
-- [ ] More support for views and `sub`
-- [ ] Other types of joins and support for relations and selection
-- [ ] Convenience functions for data manipulations, like `unique!`
+- [x] Set operations on tables (`union`, `intersect`, `setdiff`, `unique`/`unique!`, etc)
+- [x] I/O from files and `DataFrame`s (`readtable` and `writetable`)
+- [ ] Other types of joins
+- [ ] selections, projections, sort/arrange, and calculated rows (probably *a la* dplyr)
+- [ ] More support for views, `slice` and `sub`
 - [ ] `DenseTable` for row-based storage
 - [ ] `KeyTable` and `DenseKeyTable` for tables that are indexed by a key value
+- [ ] Sorted tables and/or sorting information included with a table
 - [ ] Some way of interacting with SQL-formatted queries and other JuliaStats formalisms (maybe?)
 - [ ] Remove dependence on generated functions via trait-based metaprogramming (probably requires Julia 0.5 `@pure` functions)
