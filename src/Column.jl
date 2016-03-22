@@ -68,8 +68,9 @@ end
 @inline samefield{F1<:Field,F2}(x::F1,y::Column{F2}) = samefield(F1(),F2)
 @inline samefield{F1,F2<:Field}(x::Column{F1},y::F2) = samefield(F1,F2())
 
-@inline rename{F1,F2,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F2) = rename(x,F1,F2())
-@generated function rename{F1,F1_type,F2,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F1_type,::F2)
+@inline rename{F1,F2<:Field,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F2) = rename(x,F1,F2())
+@inline rename{F1,NewName,ElType,StorageType}(x::Column{F1,ElType,StorageType},::Type{Val{NewName}}) = rename(x,F1,Val{NewName})
+@generated function rename{F1,F1_type,F2<:Field,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F1_type,::F2)
     if F1_type() == F1
         return :(Column{$(F2()),ElType,StorageType}(x.data))
     else
@@ -77,6 +78,15 @@ end
         return :(error($str))
     end
 end
+@generated function rename{F1,F1_type,NewName,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F1_type,::Type{Val{NewName}})
+    if F1_type() == F1 || F1_type == Type{Val{name(F1)}}
+        return :(Column{$(Field{NewName,ElType}()),$ElType}(x.data))
+    else
+        str = "Cannot rename: can't find field $F1_type"
+        return :(error($str))
+    end
+end
+
 
 # Vector-like introspection
 Base.length{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = length(col.data)

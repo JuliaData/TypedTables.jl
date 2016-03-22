@@ -75,14 +75,23 @@ Base.endof(c::Cell) = 1
 end
 Base.getindex(c::Cell,i::Int) = ((i == 1) ? c : throw(BoundsError())) # throw(BoundsError()) # This matches the behaviour of other scalars in Julia
 
-# TODO - Figure out this Julia dispatch problem (rename(cell,f_new) doesn't work without the column version defined first!!)
-@inline rename{F1,F2,ElType}(x::Cell{F1,ElType},::F2) = rename(x,F1,F2())
-@inline rename{F1,F2,ElType}(x::Cell{F1,ElType},::F2) = rename(x,F1,F2())
-@generated function rename{F1,F1_type,F2,ElType}(x::Cell{F1,ElType},::F1_type,::F2)
-    if F1_type() == F1
+#@inline rename{OldName,ElType,NewName}(x::Cell{F,ElType},::F2) = rename(x,F1,F2())
+
+@inline rename{F1,F2<:Field,ElType}(x::Cell{F1,ElType},::F2) = rename(x,F1,F2())
+@inline rename{F1,NewName,ElType}(x::Cell{F1,ElType},::Type{Val{NewName}}) = rename(x,F1,Val{NewName})
+@generated function rename{F1,F1_type,F2<:Field,ElType}(x::Cell{F1,ElType},::F1_type,::F2)
+    if F1_type() == F1 || F1_type == Type{Val{name(F1)}}
         return :(Cell{$(F2()),ElType}(x.data))
     else
         str = "Cannot rename: can't find field $F1"
+        return :(error($str))
+    end
+end
+@generated function rename{F1,F1_type,NewName,ElType}(x::Cell{F1,ElType},::F1_type,::Type{Val{NewName}})
+    if F1_type() == F1 || F1_type == Type{Val{name(F1)}}
+        return :(Cell{$(Field{NewName,ElType}()),$ElType}(x.data))
+    else
+        str = "Cannot rename: can't find field $F1_type"
         return :(error($str))
     end
 end

@@ -45,6 +45,8 @@ check_field(Name,T) = error("Field name $Name must be a Symbol and type $T must 
 
 Base.show{Name,T}(io::IO,::Field{Name,T}) = print(io,"$Name::$T")
 
+rename{OldName,T,NewName}(::Field{OldName,T},::Union{Type{Val{NewName}},Field{NewName,T}}) = Field{NewName,T}()
+
 # Create a cell or column from a field
 #@generated function Base.call{Name,T1,T2}(::Field{Name,T1},x::T2)
 #    if T1 == T2 # T2 is a scalar, clearly... but we have excluded automatic conversion...
