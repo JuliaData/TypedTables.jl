@@ -13,7 +13,8 @@ end
 
 """
 Read a table from a file in DLM (delimited) or CSV (comma-sereperated values,
-default) text-based formats, using Julia's inbuilt readdlm.
+default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
+instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
 function readtable(index::FieldIndex, file::Union{AbstractString,IOStream}; kwargs...)
     table = Table(index)
@@ -29,9 +30,14 @@ end
 
 """
 Append data to a table from a file in DLM (delimited) or CSV (comma-sereperated
-values, default) text-based formats, using Julia's inbuilt readdlm.
+values, default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
+instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
-function readtable!{index}(table::Table{index}, file::IOStream; delim::Char = ',', eol::Char = '\n', header::Bool = false, kwargs...)
+function readtable!{index}(table::Table{index}, file::IOStream; delim::Char = ',', eol::Char = '\n', header::Bool = false, multiplespaces = false, kwargs...)
+    if multiplespaces == true
+        delim = Base.DataFmt.invalid_dlm(Char)
+    end
+
     # Read data from file...
     local headerdata, data
     if header == true
