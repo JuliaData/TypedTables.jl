@@ -1,6 +1,7 @@
 # Tables
 
-A generic yet type-safe system for implementing data tables (sometimes called data frames, from R) in Julia.
+A generic yet type-safe system for implementing data tables (sometimes called
+data frames, from R) in Julia.
 
 [![Build Status](https://travis-ci.org/FugroRoames/TypedTables.jl.svg?branch=master)](https://travis-ci.org/FugroRoames/TypedTables.jl)
 
@@ -18,10 +19,10 @@ to the interface presented by DataFrames.jl as well as existing Julia standards,
 like indexing and iteration has been maintained.
 
 The main caveat of this approach is that it involves an extra layer of
-complication for the package maintainers and compiler. While convenience of the end-user
-has been taken into consideration, there is no getting around that the approach
-relies heavily on generated functions and does involve additional compile-time
-overhead.
+complication for the package maintainers and compiler. While convenience of the
+end-user has been taken into consideration, there is no getting around that the
+approach relies heavily on generated functions and does involve additional
+compile-time overhead.
 
 ## Quick usage
 
@@ -114,42 +115,65 @@ Collections of `Field`s are also a unique type, stored as another singleton type
 `Column`s and `Cell`s are themselves annotated by a `Field`, for instance
 `@cell(A::Int=1)` generates `Cell{Field{:A,Int},Int}(1)`. Note the additional
 element type given in the type parameters (this may change in the future).
-Similarly, `@column(A::Int=[1,2,3])` will generate `Column{Field{:A,Int},Int,Vector{Int}}(1)`.
-This has a third parameter defining the storage type - `Column`s can also accept
-any storage container other than `Vector`, and will intelligently default to
-`NullableVector` when it is constructed from a field with `Nullable` elements.
+Similarly, `@column(A::Int=[1,2,3])` will generate
+`Column{Field{:A,Int},Int,Vector{Int}}(1)`. This has a third parameter defining
+the storage type - `Column`s can also accept any storage container other than
+`Vector`, and will intelligently default to `NullableVector` when it is
+constructed from a field with `Nullable` elements.
 
-On the other hand, `Row`s and `Table`s are annotated by a `FieldIndex`. The element
-type of a `Row` is a `Tuple{}` of the elements of the individual fields. For `Table`,
-different storage containers can be used for different fields. Care must be taken
-that each storage container supports the methods of access (e.g. iteration via
-`start`/`next`/`done`, or direct access via `getindex`) that you will use to
-access the `Table`, since they will be broadcast across the columns.
+On the other hand, `Row`s and `Table`s are annotated by a `FieldIndex`. The
+element type of a `Row` is a `Tuple{}` of the elements of the individual fields.
+For `Table`, different storage containers can be used for different fields. Care
+must be taken that each storage container supports the methods of access (e.g.
+iteration via `start`/`next`/`done`, or direct access via `getindex`) that you
+will use to access the `Table`, since they will be broadcast across the columns.
 
 ## Relational algebra
 
 The relational algebra consists of a closed set of operations on `Table`s that
 return a `Table`.
 
-### Selecting columns (*projection*)
+### Selecting columns (a.k.a. relational projection or dplyr's `select`)
+
+#### Indexing columns
 
 Indexing a table with a `FieldIndex` will result in a smaller table. This is
-implemented by copying the *reference* to the associated storage containers, so it
-constitutes a lightweight view. Care must be taken not to e.g. not change the
+implemented by copying the *reference* to the associated storage containers, so
+it constitutes a lightweight view. Care must be taken not to e.g. not change the
 number of rows in a subtable, if you want to continue to use the parent table
 (of course, `copy` and `deepcopy` are defined to help with this situation).
 
-One can also index with a `Field` or just a column name with `Val{:name}` to obtain
-the *raw data* from a single column. Indexing with `Val{1}`, etc will result in a
-type-annotated `Column` containing the data, rather than the raw storage array.
+One can also index with a `Field` or just a column name with `Val{:name}` to
+obtain the *raw data* from a single column. Indexing with `Val{1}`, etc will
+result in a type-annotated `Column` containing the data, rather than the raw
+storage array.
 
 The `Val`-based indexing can be extended by indexing with a tuple of values
-(either all `Int`, like `Val{(1,2,3)}`, or `Symbol`, like `Val{(:A,:B,:C)}`) to return a `Table`, similar to the `FieldIndex`
-method.
+(either all `Int`, like `Val{(1,2,3)}`, or `Symbol`, like `Val{(:A,:B,:C)}`) to
+return a `Table`, similar to the `FieldIndex` method.
 
 There is also one special column of every `Table`, referenced with the Field
 `DefaultKey()`, and having field name `:Row`. Indexing with this will also
 return the row-number of the record.
+
+#### The `@select` macro
+
+A powerful `@select` macro has been included that can project, rename and
+compute new columns - incorporating the popular R-package `dplyr`s grammer for
+`select` as well as `mutate`.
+
+The macro is typified by the following example:
+``` julia
+@select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))
+```
+Here, we take the column labelled `col1` from the table, unmodified, plus the
+column `col2` taking the new name `newcol` and finally and new column called
+`newcol` of type `newtype` (compulsory syntax unless `newcol` is a field) that
+is calculated from the values of `col1` via the function `f(col1)`. This new
+column is calculated via a comprehension (so generates an `Array{newtype,1}`),
+and almost arbitrary code can be included on the right-hand-side and evaluated
+quickly. On the left-hand-side, more than one column name can be specified in a
+tuple format, e.g. `newcol::newtype = (col1,col2) -> f(col1) + g(col2)`.
 
 ### Selecting rows (*selection*)
 
@@ -234,8 +258,9 @@ including `DataFrame`s.
 - [x] Pretty output
 - [x] Set operations on tables (`union`, `intersect`, `setdiff`, `unique`/`unique!`, etc)
 - [x] I/O from files and `DataFrame`s (`readtable` and `writetable`)
+- [x] `@select` for dplyr-like `select` and `mutate`
+- [ ] row-seletions/filter and sort/arrange (probably *a la* dplyr)
 - [ ] Other types of joins
-- [ ] selections, projections, sort/arrange, and calculated rows (probably *a la* dplyr)
 - [ ] More support for views, `slice` and `sub`
 - [ ] `DenseTable` for row-based storage
 - [ ] `KeyTable` and `DenseKeyTable` for tables that are indexed by a key value

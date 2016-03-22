@@ -1,4 +1,4 @@
-The Tables.jl package is licensed under the MIT "Expat" License:
+The TypedTables.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2016: Andy Ferris.
 >
