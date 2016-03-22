@@ -22,9 +22,9 @@ function readtable(index::FieldIndex, file::Union{AbstractString,IOStream}; kwar
 end
 
 function readtable!{index}(table::Table{index}, filename::AbstractString; kwargs...)
-    fio = open(filename)
-    readtable(table, fio; kwargs...)
-    close(fio)
+    open(filename) do fio
+        readtable!(table, fio; kwargs...)
+    end
 end
 
 """

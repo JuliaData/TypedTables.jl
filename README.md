@@ -30,7 +30,7 @@ since their type-parameter list can become cumbersome. For example, we can
 define a table as:
 
 ```
-julia> Tables.@table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
+julia> t = @table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
     ┌───┬─────┐
 Row │ A │ B   │
     ├───┼─────┤
@@ -203,7 +203,7 @@ and also to minimize the horizontal size of a column when possible (compare row
 "C" to "C_long" below).
 
 ```
-julia> Tables.@table(A::Int64 = [1,2,3],
+julia> @table(A::Int64 = [1,2,3],
     B::Float64 = [2.0,4.0,6.0],
     C::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
     C_long::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
