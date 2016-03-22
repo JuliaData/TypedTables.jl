@@ -55,7 +55,6 @@ macro select(x...)
                         push!(fields, expr_right.args[1])
                     elseif isa(expr_right.args[1], Expr) && expr_right.args[1].head == :tuple
                         for i = 1:length(expr_right.args[1].args)
-                            isa(expr_right.args[1].args[i], Symbol) || return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
                             push!(fields, expr_right.args[1].args[i])
                         end
                     else
