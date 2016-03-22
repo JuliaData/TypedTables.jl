@@ -10,7 +10,8 @@ export join, unique!
 
 export readtable, readtable!, writetable
 
-export  @field, @index, @cell, @row, @column, @table
+export @field, @index, @cell, @row, @column, @table
+export @select
 
 import Base.(==)
 
@@ -45,6 +46,7 @@ include("FieldIndex.jl")
 include("Row.jl")
 include("Table.jl")
 
+include("datamacros.jl")
 include("setalgorithms.jl")
 include("join.jl")
 include("IO.jl")

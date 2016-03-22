@@ -127,6 +127,8 @@ storagetypes{Index,ElTypes,StorageTypes}(table::Type{Table{Index,ElTypes,Storage
 
 # Vector-like introspection
 Base.length{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = length(table.data[1])
+Base.length{Index}(table::Table{Index,Tuple{},Tuple{}}) = 0
+
 @generated ncol{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = :($(length(Index)))
 nrow{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = length(table.data[1])
 Base.size{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes}) = (length(table.data[1]),length(Index))
@@ -352,6 +354,11 @@ end
 _displaysize(io) = haskey(io, :displaysize) ? io[:displaysize] : _displaysize(io.io)
 
 function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes,StorageTypes})
+    if ncol(table) == 0
+        print(io,"Empty Table")
+        return
+    end
+
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
 
@@ -600,6 +607,11 @@ function Base.show{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes
 end
 
 function Base.showall{Index,ElTypes,StorageTypes}(io::IO,table::Table{Index,ElTypes,StorageTypes})
+    if ncol(table) == 0
+        print(io,"Empty Table")
+        return
+    end
+
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
 
@@ -985,17 +997,18 @@ macro table(exprs...)
     for i = 1:N
         expr = exprs[i]
         if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
-            error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+            error("A Expecting expression like @table(name::Type = value) or @table(field = value)")
         end
         if isa(expr.args[1],Symbol)
             field[i] = expr.args[1]
         elseif isa(expr.args[1],Expr)
             if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
-                error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+                field[i] = expr.args[1]
+            else
+                field[i] = :(TypedTables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
             end
-            field[i] = :(TypedTables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
         else
-            error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+            error("C Expecting expression like @table(name::Type = value) or @table(field = value)")
         end
         value[i] = expr.args[2]
     end

@@ -242,6 +242,17 @@ end
     end
 end
 
+@generated function extractfield{Fields,Name}(index::FieldIndex{Fields},::Type{Val{Name}})
+    n = names(index)
+    for i = 1:length(Fields)
+        if n[i] == Name
+            return :( $(Fields[i]) )
+        end
+    end
+    str = "Can't find field called $Name in $(index())"
+    return :(error($str))
+end
+
 Base.show{Fields}(io::IO,::FieldIndex{Fields}) = show(io,Fields)
 
 # unions, intersections, differences, etc.
