@@ -177,16 +177,27 @@ tuple format, e.g. `newcol::newtype = (col1,col2) -> f(col1) + g(col2)`.
 
 ### Filtering rows (a.k.a. relational selection or dplyr's `filter`)
 
+#### Indexing rows
+
 Basic iteration over and indexing of rows is implemented by default, similar to
 Julia `Array`s. One may create their own function to select the
 rows you wish to keep according to some criteria or tests, for instance passing
 to Julia's inbuilt `filter` a function that takes a `Row` and returns a `Bool`.
 
-For convenience, a macro `@filter` is provided that 
+#### The `@filter` macro family
 
-Convenience functions may be considered in the future. Depending on the
-situation, users may want to create an entirely new table, or simply a
-`Vector{Bool}` index of the relevant rows as a "view" of the subset.
+For convenience, a macro `@filter` is provided that can apply a series of
+predicates to the data in the table to eliminate rows. Syntax follows the form:
+
+    @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2)
+
+Similar to `@select`, the left of the `->` symbol defines the columns that are
+used in the function to the right. All conditions must be met and are tested via
+short-circuit evaluation (equivalent to a single condition joined by `&&`).
+
+Depending on the situation, users may want to create an entirely new table using
+`@filter`, the mutating version `@filter!`, or simply generate a `Vector{Bool}`
+index of the relevant rows as a "view" of the subset using `@filter_mask`.
 
 ### Concatenation
 

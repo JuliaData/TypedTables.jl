@@ -136,7 +136,106 @@ macro filter(x...)
     end
 end
 
+macro filter!(x...)
+    if length(x) == 0 # Is this an error or an empty table?
+        return :(error("@filter expects a table"))
+    elseif length(x) == 1
+        return :($(esc(x[1])))
+    end
+    table = x[1]
+    exprs = Vector{Any}(length(x)-1)
+    for i = 1:length(x)-1
+        expr = x[i+1]
+        if !isa(expr,Expr) || !(expr.head == :(->))
+            return :( error("Expected syntax like @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2 )"))
+        end
 
+        # Make list of symbols and replacements
+        fields = Vector{Symbol}()
+        if isa(expr.args[1], Symbol)
+            push!(fields, expr.args[1])
+        elseif isa(expr.args[1], Expr) && expr.args[1].head == :tuple
+            for j = 1:length(expr.args[1].args)
+                if !isa(expr.args[1].args[j], Symbol)
+                    return :( error("Expected syntax like @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2 )"))
+                end
+                push!(fields, expr.args[1].args[j])
+            end
+        else
+            return :( error("Expected syntax like @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2 )"))
+        end
+
+        # Given field names build the replacements
+        replacements = [:($(esc(table))[idx, Val{$(Expr(:quote,fields[i]))}]) for i = 1:length(fields)]
+
+        # Now make replacements in the boolean function
+        func = expr.args[2]
+        replace_symbols!(func, fields, replacements)
+
+        # Now make the expression
+        exprs[i] = func
+    end
+    test_expr = exprs[1]
+    for i = 2:length(exprs)
+        test_expr = :($test_expr && $(exprs[i]))
+    end
+
+    # Now build a few lines of code
+    quote # TODO can switch this to an anonymous function for 0.5
+        test = Bool[$test_expr for idx = 1:length($(esc(table)))]
+        filter!(test, $(esc(table)))
+    end
+end
+
+macro filter_mask(x...)
+    if length(x) == 0 # Is this an error or an empty table?
+        return :(error("@filter expects a table"))
+    elseif length(x) == 1
+        return :($(esc(x[1])))
+    end
+    table = x[1]
+    exprs = Vector{Any}(length(x)-1)
+    for i = 1:length(x)-1
+        expr = x[i+1]
+        if !isa(expr,Expr) || !(expr.head == :(->))
+            return :( error("Expected syntax like @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2 )"))
+        end
+
+        # Make list of symbols and replacements
+        fields = Vector{Symbol}()
+        if isa(expr.args[1], Symbol)
+            push!(fields, expr.args[1])
+        elseif isa(expr.args[1], Expr) && expr.args[1].head == :tuple
+            for j = 1:length(expr.args[1].args)
+                if !isa(expr.args[1].args[j], Symbol)
+                    return :( error("Expected syntax like @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2 )"))
+                end
+                push!(fields, expr.args[1].args[j])
+            end
+        else
+            return :( error("Expected syntax like @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2 )"))
+        end
+
+        # Given field names build the replacements
+        replacements = [:($(esc(table))[idx, Val{$(Expr(:quote,fields[i]))}]) for i = 1:length(fields)]
+
+        # Now make replacements in the boolean function
+        func = expr.args[2]
+        replace_symbols!(func, fields, replacements)
+
+        # Now make the expression
+        exprs[i] = func
+    end
+    test_expr = exprs[1]
+    for i = 2:length(exprs)
+        test_expr = :($test_expr && $(exprs[i]))
+    end
+
+    # Now build a few lines of code
+    quote # TODO can switch this to an anonymous function for 0.5
+        Bool[$test_expr for idx = 1:length($(esc(table)))]
+    end
+end
 
 function replace_symbols!(a::Expr, symbols::Vector{Symbol}, exprs::Vector)
     for i = 1:length(a.args)

@@ -930,6 +930,15 @@ end
 
 Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx,::Colon) = table[idx]
 
+function Base.filter!{Index,ElTypes,StorageTypes}(idx::Vector{Bool}, table::Table{Index,ElTypes,StorageTypes})
+    for i = 1:ncol(table)
+        tmp = table.data[i][idx]
+        resize!(table.data[i],length(tmp))
+        table.data[i][:] = tmp
+    end
+    table
+end
+
 # TODO - sub() returns table/row with sub as data elements.
 
 

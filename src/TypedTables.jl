@@ -17,7 +17,6 @@ import Base.(==)
 
 # TODO union!, intersect! and setdiff!
 # TODO dplyr funcitons (should we use same names or julia interfaces or both??)
-#      - filter (slice is indexing)
 #      - arrange (sorting)
 #      - select/rename (combination of rename with indexing)
 #      - district (currently unique and is already O(N log N))
@@ -25,6 +24,7 @@ import Base.(==)
 #      - summarize
 #      - sample_n and sample_frac (could use rand() interface I think)
 #      - left_join, right_join, full_join (aka outer_join), semi_join, anti_join
+#      - think about group_by (similar to KeyTable of Tables)
 # TODO Load from an object with a dataframe interface
 # TODO Figure out namespace issues for head and tail (maybe both are in Base for Julia 0.5?)
 # TODO sub/slice for generating a sub-table (i.e. simply a table with different StorageTypes)
@@ -37,6 +37,10 @@ import Base.(==)
 # TODO finish DenseTable
 # TODO implement KeyTable ?
 # TODO implement DenseKeyTable ?
+
+# Julia 0.5 agenda:
+# TODO Use generalized comprehensions in @select (user specified data structure)
+#      and @filter (BitArray)
 
 
 include("Field.jl")
