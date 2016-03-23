@@ -4,7 +4,7 @@ Note: minor changes and bug fixes may be omitted from this document.
 
 ### 0.0.4
 
-- New super-macro @select does selection plus more. Includes 3 abilities:
+- New super-macro `@select` does selection plus more. Includes 3 abilities:
 
       `@select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))`
 
@@ -18,8 +18,8 @@ Note: minor changes and bug fixes may be omitted from this document.
 - New macro `@filter` does similarly on selecting rows. Takes the format:
 
       `@filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2)`
-      
-  Similarly related `@filter!` and `@filter_mask` macros a provided.
+
+  Similarly related `@filter!` and `@filter_mask` macros are provided.
 
 ### 0.0.3
 
