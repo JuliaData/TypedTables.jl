@@ -11,7 +11,7 @@ export join, unique!
 export readtable, readtable!, writetable
 
 export @field, @index, @cell, @row, @column, @table
-export @select
+export @select, @filter
 
 import Base.(==)
 

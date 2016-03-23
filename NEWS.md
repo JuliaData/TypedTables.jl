@@ -10,6 +10,8 @@ Note: minor changes and bug fixes may be ommited from this document.
   2) rename a column "col2" to new name "newname"
   3) compute a new column "newcol" from the data in "col" via a comprehension
      over f(table[Val{:col1}])
+- New macro @filter does similarly on selecting rows. Takes the format:
+      @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2)
 
 ### 0.0.3
 

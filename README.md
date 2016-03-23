@@ -175,11 +175,14 @@ and almost arbitrary code can be included on the right-hand-side and evaluated
 quickly. On the left-hand-side, more than one column name can be specified in a
 tuple format, e.g. `newcol::newtype = (col1,col2) -> f(col1) + g(col2)`.
 
-### Selecting rows (*selection*)
+### Filtering rows (a.k.a. relational selection or dplyr's `filter`)
 
 Basic iteration over and indexing of rows is implemented by default, similar to
-Julia `Array`s. Currently, one should create their own function to select the
-rows you wish to keep according to some criteria or tests.
+Julia `Array`s. One may create their own function to select the
+rows you wish to keep according to some criteria or tests, for instance passing
+to Julia's inbuilt `filter` a function that takes a `Row` and returns a `Bool`.
+
+For convenience, a macro `@filter` is provided that 
 
 Convenience functions may be considered in the future. Depending on the
 situation, users may want to create an entirely new table, or simply a
@@ -198,7 +201,7 @@ Field names may be modified with the `rename` function:
     rename(table, old_index, new_index) # rename one or more fields
     rename(table, new_index)            # rename all fields (in order)
 
-However, the new field(s) must have the same type as the previous.
+However, the new field(s) must have the same type as the previous.     
 
 ### Joins
 
