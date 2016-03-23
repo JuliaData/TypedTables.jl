@@ -2,7 +2,6 @@ macro select(x...)
     if length(x) == 0 # Is this an error or an empty table?
         return :(error("@select expects a table"))
     end
-
     table = x[1]
     exprs = Vector{Any}(length(x)-1)
     for i = 2:length(x)
@@ -38,7 +37,6 @@ macro select(x...)
                         return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
                     end
                 elseif operation == :compute
-
                     # LHS must be new field
                     if isa(expr_left,Symbol)
                         lhs = :( $(esc(expr_left)) )
@@ -54,8 +52,8 @@ macro select(x...)
                     if isa(expr_right.args[1], Symbol)
                         push!(fields, expr_right.args[1])
                     elseif isa(expr_right.args[1], Expr) && expr_right.args[1].head == :tuple
-                        for i = 1:length(expr_right.args[1].args)
-                            push!(fields, expr_right.args[1].args[i])
+                        for j = 1:length(expr_right.args[1].args)
+                            push!(fields, expr_right.args[1].args[j])
                         end
                     else
                         return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
@@ -81,20 +79,27 @@ macro select(x...)
             return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
         end
     end
+
     return Expr(:macrocall, Symbol("@table"), exprs...)
 end
 
 
 function replace_symbols!(a::Expr, symbols::Vector{Symbol}, exprs::Vector)
     for i = 1:length(a.args)
-		if isa(a.args[i], Expr)
+		if isa(a.args[i], Expr) && a.args[i].head != :line
 		    replace_symbols!(a.args[i], symbols, exprs)
         elseif isa(a.args[i], Symbol)
+            notfound = true
             for j = 1:length(symbols)
                 if a.args[i] == symbols[j]
                     a.args[i] = exprs[j]
+                    notfound = false
                     break
                 end
+            end
+            # If it's not our symbol then it belongs to the caller's scope
+            if notfound
+                a.args[i] = :($(esc(a.args[i])))
             end
         end
     end
