@@ -24,7 +24,7 @@ import Base.(==)
 #      - summarize
 #      - sample_n and sample_frac (could use rand() interface I think)
 #      - left_join, right_join, full_join (aka outer_join), semi_join, anti_join
-#      - think about group_by (similar to KeyTable of Tables)
+#      - think about group_by (generates something similar to KeyTable of Tables)
 # TODO Load from an object with a dataframe interface
 # TODO Figure out namespace issues for head and tail (maybe both are in Base for Julia 0.5?)
 # TODO sub/slice for generating a sub-table (i.e. simply a table with different StorageTypes)
@@ -50,6 +50,7 @@ include("FieldIndex.jl")
 include("Row.jl")
 include("Table.jl")
 
+include("show.jl")
 include("datamacros.jl")
 include("setalgorithms.jl")
 include("join.jl")

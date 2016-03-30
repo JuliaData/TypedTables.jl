@@ -2,7 +2,7 @@
 
 Note: minor changes and bug fixes may be omitted from this document.
 
-### 0.0.4
+### 0.0.4 (23 March 2016)
 
 - New super-macro `@select` does selection plus more. Includes 3 abilities:
 
@@ -21,7 +21,7 @@ Note: minor changes and bug fixes may be omitted from this document.
 
   Similarly related `@filter!` and `@filter_mask` macros are provided.
 
-### 0.0.3
+### 0.0.3 (21 March 2016)
 
 - Set operations: `unique()`, `unique!()`, `uniqueind()`, `groupinds()`,
   `union()`, `intersect()` and `setdiff()`.
@@ -30,10 +30,10 @@ Note: minor changes and bug fixes may be omitted from this document.
 - Ability to write a table to CSV/DLM format using `writetable()`
 - `vcat` for reordered indices, like already possible for `append!`
 
-### 0.0.2
+### 0.0.2 (16 March 2016)
 
 Improved pretty-printing, bug fixes.
 
-### 0.0.1
+### 0.0.1 (16 March 2016)
 
 First official release.
