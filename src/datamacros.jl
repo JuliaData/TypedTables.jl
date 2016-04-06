@@ -6,6 +6,7 @@ macro select(x...)
     exprs = Vector{Any}(length(x)-1)
     for i = 2:length(x)
         expr = x[i]
+
         if isa(expr, Symbol)
             # Straightforward extraction (by name)
             exprs[i-1] = :( TypedTables.extractfield(TypedTables.index($(esc(table))),Val{$(Expr(:quote,expr))}) = $(esc(table))[Val{$(Expr(:quote,expr))}] )
@@ -81,9 +82,6 @@ macro select(x...)
             return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
         end
     end
-
-    #Base.Meta.show_sexpr(Expr(:macrocall, Symbol("@table"), exprs...))
-    show(Expr(:macrocall, Symbol("@table"), exprs...))
 
     return Expr(:macrocall, Symbol("@table"), exprs...)
 end
@@ -242,7 +240,7 @@ end
 
 function replace_symbols!(a::Expr, symbols::Vector{Symbol}, exprs::Vector)
     for i = 1:length(a.args)
-		if isa(a.args[i], Expr) && a.args[i].head != :line
+		if isa(a.args[i], Expr) && a.args[i].head != :line && a.args[i].head != :.
 		    replace_symbols!(a.args[i], symbols, exprs)
         elseif isa(a.args[i], Symbol)
             notfound = true
@@ -257,6 +255,8 @@ function replace_symbols!(a::Expr, symbols::Vector{Symbol}, exprs::Vector)
             if notfound
                 a.args[i] = :($(esc(a.args[i])))
             end
+        elseif isa(a.args[1], Expr) && a.args[i].head == :.
+            a.args[i] = :($(esc(a.args[i])))
         end
     end
 end

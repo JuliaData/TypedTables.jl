@@ -42,6 +42,8 @@ function compactstring(x::Bool, l = 16)
     end
 end
 
+# TODO think hard about this one. Some data is numerical, while some is a label
+# Is there a simple way of the user controlling the difference?
 function compactstring(x::Integer,l=8)
     if x < 10_000
         return string(x)
@@ -69,10 +71,16 @@ function compactstring(x::Float64,l=16)
         else
             return "-Inf"
         end
-    elseif x == 0.0f0
+    elseif x == 0.0e0
         return "0.0000"
     else
-        if x <= 1f-3 # If it is too small
+        if x < 0
+            isneg = true
+            x = -x
+        else
+            isneg = false
+        end
+        if x <= 1e-3 # If it is too small
             exp = 0
             factor = 1e3
             while true
@@ -96,7 +104,7 @@ function compactstring(x::Float64,l=16)
             end
 
             #return "$(whole).$(frac_str)e$(exp)"
-            return "$(whole).$(frac_str) × 10$(superscript(exp))"
+            return "$("-"^isneg)$(whole).$(frac_str) × 10$(superscript(exp))"
 
         elseif x >= 1e4 # Or if it is too large
             exp = 0
@@ -121,7 +129,7 @@ function compactstring(x::Float64,l=16)
             end
 
             #return "$(whole).$(frac_str)e$(exp)"
-            return "$(whole).$(frac_str) × 10$(superscript(exp))"
+            return "$("-"^isneg)$(whole).$(frac_str) × 10$(superscript(exp))"
 
         else # Otherwise it is "reasonably" sized
             tmp = Int32(round(x*10_000))
@@ -135,7 +143,7 @@ function compactstring(x::Float64,l=16)
                 frac_str = "0" * frac_str
             end
 
-            return "$(whole).$(frac_str)"
+            return "$("-"^isneg)$(whole).$(frac_str)"
         end
     end
 end
@@ -152,6 +160,12 @@ function compactstring(x::Float32,l=16)
     elseif x == 0.0f0
         return "0.0000"
     else
+        if x < 0
+            isneg = true
+            x = -x
+        else
+            isneg = false
+        end
         if x <= 1f-3 # If it is too small
             exp = 0
             factor = 1f3
@@ -176,7 +190,7 @@ function compactstring(x::Float32,l=16)
             end
 
             #return "$(whole).$(frac_str)e$(exp)"
-            return "$(whole).$(frac_str) × 10$(superscript(exp))"
+            return "$("-"^isneg)$(whole).$(frac_str) × 10$(superscript(exp))"
 
         elseif x >= 1f4 # Or if it is too large
             exp = 0
@@ -201,7 +215,7 @@ function compactstring(x::Float32,l=16)
             end
 
             #return "$(whole).$(frac_str)e$(exp)"
-            return "$(whole).$(frac_str) × 10$(superscript(exp))"
+            return "$("-"^isneg)$(whole).$(frac_str) × 10$(superscript(exp))"
 
         else # Otherwise it is "reasonably" sized
             tmp = Int32(round(x*10_000))
@@ -215,7 +229,7 @@ function compactstring(x::Float32,l=16)
                 frac_str = "0" * frac_str
             end
 
-            return "$(whole).$(frac_str)"
+            return "$("-"^isneg)$(whole).$(frac_str)"
         end
     end
 end
