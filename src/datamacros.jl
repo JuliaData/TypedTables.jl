@@ -82,6 +82,9 @@ macro select(x...)
         end
     end
 
+    #Base.Meta.show_sexpr(Expr(:macrocall, Symbol("@table"), exprs...))
+    show(Expr(:macrocall, Symbol("@table"), exprs...))
+
     return Expr(:macrocall, Symbol("@table"), exprs...)
 end
 

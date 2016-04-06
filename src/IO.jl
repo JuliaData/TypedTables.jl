@@ -73,7 +73,7 @@ function readtable!{index}(table::Table{index}, file::IOStream; delim::Char = ',
 
     # Convert to a table
     for i = 1:size(data,1)
-        push!(table, ntuple(j->convert(eltype(index[indices[j]]), data[i,indices[j]]), length(index)))
+        push!(table, ntuple(j->convert(eltype(index[j]), data[i,indices[j]]), length(index)))
     end
 end
 

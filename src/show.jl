@@ -1,3 +1,4 @@
+
 #  ┌─┬┐
 #  ├─┼┤
 #  │ ││
@@ -11,7 +12,7 @@ function compactstring(x, l = 16)
             l2 = l - l1 - 1
             return str[1:l1] * "…" * str[end-l2+1:end]
         else
-            return str[1:l]
+            return str[1:l] * "…"
         end
     else
         return str
