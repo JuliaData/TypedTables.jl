@@ -255,7 +255,7 @@ function replace_symbols!(a::Expr, symbols::Vector{Symbol}, exprs::Vector)
             if notfound
                 a.args[i] = :($(esc(a.args[i])))
             end
-        elseif isa(a.args[1], Expr) && a.args[i].head == :.
+        elseif isa(a.args[i], Expr) && a.args[i].head == :.
             a.args[i] = :($(esc(a.args[i])))
         end
     end
