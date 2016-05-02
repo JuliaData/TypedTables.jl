@@ -25,7 +25,7 @@ end
 Row{Index<:FieldIndex}(::Index, data_in...) = error("Must instantiate Row with a tuple of type $(eltypes(Index))")
 # @generated Base.call{Index<:FieldIndex,DataTypes<:Tuple}(::Index,x::DataTypes) = :(Row{$(Index()),$DataTypes}(x)) # Replaced by call in Table.jl
 
-Base.convert{Index,DataTypes<:Tuple}(::Type{DataTypes},x::Row{Index,DataTypes}) = x.data 
+Base.convert{Index,DataTypes<:Tuple}(::Type{DataTypes},x::Row{Index,DataTypes}) = x.data
 
 @generated function check_row{Index<:FieldIndex,DataTypes<:Tuple}(::Index,::Type{DataTypes})
     if eltypes(Index()) != DataTypes
@@ -70,16 +70,16 @@ end
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, new_names::FieldIndex) = Row(rename(Index,new_names),row.data)
 rename{Index,DataTypes}(row::Row{Index,DataTypes}, old_names::Union{FieldIndex,Field}, new_names::Union{FieldIndex,Field}) = Row(rename(Index,old_names,new_names),row.data)
 
-function Base.show{Index,DataTypes}(io::IO,row::Row{Index,DataTypes})
-    print(io,"Row(")
-    for i = 1:length(Index)
-        print(io,"$(name(Index[i]))=$(compactstring(row.data[i]))")
-        if i < length(Index)
-            print(io,", ")
-        end
-    end
-    print(io,")")
-end
+#function Base.show{Index,DataTypes}(io::IO,row::Row{Index,DataTypes})
+#    print(io,"Row(")
+#    for i = 1:length(Index)
+#        print(io,"$(name(Index[i]))=$(compactstring(row.data[i]))")
+#        if i < length(Index)
+#            print(io,", ")
+#        end
+#    end
+#    print(io,")")
+#end
 
 # Can index with integers or fields
 # A single field returns a scalar value, an integer a cell, a FieldIndex or other collection returns a smaller Row.

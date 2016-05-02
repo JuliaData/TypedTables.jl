@@ -32,13 +32,13 @@ define a table as:
 
 ```
 julia> t = @table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
-    ┌───┬─────┐
-Row │ A │ B   │
-    ├───┼─────┤
-  1 │ 1 │ 2.0 │
-  2 │ 2 │ 4.0 │
-  3 │ 3 │ 6.0 │
-    └───┴─────┘
+    ╔═══╤════════╗
+Row ║ A │ B      ║
+    ╟───┼────────╢
+  1 ║ 1 │ 2.0000 ║
+  2 ║ 2 │ 4.0000 ║
+  3 ║ 3 │ 6.0000 ║
+    ╚═══╧════════╝
 ```
 
 This object stores a tuple of the two vectors as the `data` field, so that
@@ -246,13 +246,50 @@ julia> @table(A::Int64 = [1,2,3],
     C::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
     C_long::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
     D::ASCIIString = ["A","ABCD","ABCDEFGHIJKLMNOPQRSTUVWXYZ"])
-    ┌───┬─────┬───┬────────┬──────────────────────┐
-Row │ A │ B   │ C │ C_long │ D                    │
-    ├───┼─────┼───┼────────┼──────────────────────┤
-  1 │ 1 │ 2.0 │ T │  true  │ "A"                  │
-  2 │ 2 │ 4.0 │ F │ false  │ "ABCD"               │
-  3 │ 3 │ 6.0 │ - │  NULL  │ "ABCDEFGHIJKLMNOPQ…" │
-    └───┴─────┴───┴────────┴──────────────────────┘
+    ╔═══╤════════╤═══╤════════╤══════════════════════╗
+Row ║ A │ B      │ C │ C_long │ D                    ║
+    ╟───┼────────┼───┼────────┼──────────────────────╢
+  1 ║ 1 │ 2.0000 │ T │  true  │ "A"                  ║
+  2 ║ 2 │ 4.0000 │ F │ false  │ "ABCD"               ║
+  3 ║ 3 │ 6.0000 │ - │     -  │ "ABCDEFGHIJKLMNOPQ…" ║
+    ╚═══╧════════╧═══╧════════╧══════════════════════╝
+```
+
+The edge of the table is indicated by the double border. Since rows, columns and
+cells are only elements of a table, some of their borders are indicated by a
+single line. For example, rows have a single-line top/bottom, columns have
+single-line sides, and cells are entirely single-lined. Thus we can visualize
+the difference in type between the following, while keeping a consistent
+appearance:
+
+```
+julia> @cell(A::Int64=1)
+ ┌───┐
+ │ A │
+ ├───┤
+ │ 1 │
+ └───┘
+
+ julia> @row(A::Int64=1)
+  ╓───╖
+  ║ A ║
+  ╟───╢
+  ║ 1 ║
+  ╙───╜
+
+ julia> @column(A::Int64=[1])
+     ╒═══╕
+ Row │ A │
+     ├───┤
+   1 │ 1 │
+     ╘═══╛
+
+ julia> @table(A::Int64=[1])
+     ╔═══╗
+ Row ║ A ║
+     ╟───╢
+   1 ║ 1 ║
+     ╚═══╝
 ```
 
 ### File I/O
@@ -273,7 +310,8 @@ including `DataFrame`s.
 - [x] Set operations on tables (`union`, `intersect`, `setdiff`, `unique`/`unique!`, etc)
 - [x] I/O from files and `DataFrame`s (`readtable` and `writetable`)
 - [x] `@select` for dplyr-like `select` and `mutate`
-- [ ] row-seletions/filter and sort/arrange (probably *a la* dplyr)
+- [x] `@filter` for dplyr-like `filter`.
+- [ ] sort/arrange (probably also *a la* dplyr)
 - [ ] Other types of joins
 - [ ] More support for views, `slice` and `sub`
 - [ ] `DenseTable` for row-based storage

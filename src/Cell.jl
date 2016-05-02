@@ -45,7 +45,7 @@ end
     end
 end
 
-Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F))=$(compactstring(x.data))")
+#Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F))=$(compactstring(x.data))")
 
 @inline name{F,ElType}(::Cell{F,ElType}) = name(F)
 @inline name{F,ElType}(::Type{Cell{F,ElType}}) = name(F)

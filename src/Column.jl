@@ -42,13 +42,13 @@ Base.convert{F,ElType,StorageType}(::Type{StorageType},x::Column{F,ElType,Storag
     end
 end
 
-function Base.show{F,ElType,StorageType}(io::IO,x::Column{F,ElType,StorageType})
-    if isempty(x)
-        print(io, "Empty ")
-    end
-    println(io, "Column $F")
-    Base.showarray(x.data,header=false)
-end
+#function Base.show{F,ElType,StorageType}(io::IO,x::Column{F,ElType,StorageType})
+#    if isempty(x)
+#        print(io, "Empty ")
+#    end
+#    println(io, "Column $F")
+#    Base.showarray(x.data,header=false)
+#end
 
 =={F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{F,ElType,StorageType}) = (col1.data == col2.data)
 
