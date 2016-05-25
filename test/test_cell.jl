@@ -10,7 +10,7 @@ a_new = Field{:A_new,Int64}()
     @test @cell(B::Float64 = 2.0) == Cell(b,2.0)
     @test @cell(b = 2.0) == Cell(b,2.0)
     @test Cell(Field{:A,Int64}(),1) == Cell{Field{:A,Int64}(),Int64}(1)
-    @test a(1)  == Cell{Field{:A,Int64}(),Int64}(1)
+    @test @inferred(a(1))  == Cell{Field{:A,Int64}(),Int64}(1)
 end
 
 c1 = @cell A::Int64 = 1
@@ -30,14 +30,14 @@ c3 = @cell(A::Int64 = 3)
     @test samefield(a,c1) == true
     @test samefield(c1,b) == false
 
-    @test rename(c1, a_new) == @cell(a_new = 1)
+    @test @inferred(rename(c1, a_new)) == @cell(a_new = 1)
 end
 
 @testset "Accessing and interating" begin
     @test copy(c1) == deepcopy(c1)
     @test c1[1] == c1
     @test c1[a] == 1
-    @test first(c1) == c1
+    @test @inferred(first(c1)) == c1
     @test endof(c1) == 1
 end
 

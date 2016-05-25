@@ -1,10 +1,10 @@
 @testset "Row" begin
 
 @testset "Constructors and macros" begin
-    @test Row(Field{:A,Int64}(),(1,)) == Row{FieldIndex{(Field{:A,Int64}(),)}(),Tuple{Int64}}((1,))
-    @test Row(Field{:A,Int64}(),1) == Row{FieldIndex{(Field{:A,Int64}(),)}(),Tuple{Int64}}((1,))
-    @test Row((Field{:A,Int64}(),Field{:B,Float64}()),(1,2.0)) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
-    @test Row(FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),(1,2.0)) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
+    @test @inferred(Row(Field{:A,Int64}(),(1,))) == Row{FieldIndex{(Field{:A,Int64}(),)}(),Tuple{Int64}}((1,))
+    @test @inferred(Row(Field{:A,Int64}(),1)) == Row{FieldIndex{(Field{:A,Int64}(),)}(),Tuple{Int64}}((1,))
+    @test @inferred(Row((Field{:A,Int64}(),Field{:B,Float64}()),(1,2.0))) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
+    @test @inferred(Row(FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),(1,2.0))) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
 
     @test @index(A::Int64,B::Float64)((1,2.0)) == Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))
 
@@ -17,8 +17,8 @@ end
     @test names(typeof(@row(A::Int64=1, B::Float64=2.0))) == (:A,:B)
     @test eltypes(@row(A::Int64=1, B::Float64=2.0)) == Tuple{Int64,Float64}
     @test eltypes(typeof(@row(A::Int64=1, B::Float64=2.0))) == Tuple{Int64,Float64}
-    @test index(@row(A::Int64=1, B::Float64=2.0)) == @index(A::Int64,B::Float64)
-    @test index(typeof(@row(A::Int64=1, B::Float64=2.0))) == @index(A::Int64,B::Float64)
+    @test @inferred(index(Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0)))) == @index(A::Int64,B::Float64)
+    @test @inferred(index(typeof(Row{FieldIndex{(Field{:A,Int64}(),Field{:B,Float64}())}(),Tuple{Int64,Float64}}((1,2.0))))) == @index(A::Int64,B::Float64)
     @test length(@row(A::Int64=1, B::Float64=2.0)) == 2
     @test length(typeof(@row(A::Int64=1, B::Float64=2.0))) == 2
     @test endof(@row(A::Int64=1, B::Float64=2.0)) == 2
@@ -56,15 +56,21 @@ end
 end
 
 @testset "Composing and Concatenating" begin
-    @test hcat(@cell(A::Int64=1)) == Row{@index(A::Int64),Tuple{Int64}}((1,))
-    @test hcat(@row(A::Int64=1)) == Row{@index(A::Int64),Tuple{Int64}}((1,))
+    cell_a = @cell(A::Int64=1)
+    cell_b = @cell(B::Float64=2.0)
+    cell_c = @cell(C::Bool=true)
+    row_a = @row(A::Int64=1)
+    row_b = @row(B::Float64=2.0)
 
-    @test hcat(@cell(A::Int64=1),@cell(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
-    @test hcat(@cell(A::Int64=1),@row(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
-    @test hcat(@row(A::Int64=1),@cell(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
-    @test hcat(@row(A::Int64=1),@row(B::Float64=2.0)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+    @test @inferred(hcat(cell_a)) == Row{@index(A::Int64),Tuple{Int64}}((1,))
+    @test @inferred(hcat(row_a)) == Row{@index(A::Int64),Tuple{Int64}}((1,))
 
-    @test hcat(@cell(A::Int64=1),@cell(B::Float64=2.0),@cell(C::Bool=true)) == Row{@index(A::Int64,B::Float64,C::Bool),Tuple{Int64,Float64,Bool}}((1,2.0,true))
+    @test @inferred(hcat(cell_a, cell_b)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+    @test @inferred(hcat(cell_a, row_b)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+    @test @inferred(hcat(row_a, cell_b)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+    @test @inferred(hcat(row_a, row_b)) == Row{@index(A::Int64,B::Float64),Tuple{Int64,Float64}}((1,2.0))
+
+    @test @inferred(hcat(cell_a, cell_b, cell_c)) == Row{@index(A::Int64,B::Float64,C::Bool),Tuple{Int64,Float64,Bool}}((1,2.0,true))
 end
 
 end

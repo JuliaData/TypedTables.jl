@@ -149,15 +149,15 @@ Base.start{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes})
 Base.next{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},i) = (table[i],i+1)
 Base.done{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},i) = (i-1 == length(table))
 
-# get/set index
-Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx::Int) = Row(Index,ntuple(i->getindex(table.data[i],idx),length(Index)))
-Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx) = Table(Index,ntuple(i->getindex(table.data[i],idx),length(Index)))
+# get/set index (not fast... use generated functions?)
+Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx::Int) = Row{Index,ElTypes}(ntuple(i->getindex(table.data[i],idx),length(Index)))
+Base.getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx) = Table{Index,ElTypes,StorageTypes}(ntuple(i->getindex(table.data[i],idx),length(Index)))
 
 Base.setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Row{Index},idx::Int) = (for i = 1:length(Index); setindex!(table.data[i],val.data[i],idx); end; val)
 Base.setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Table{Index,ElTypes, StorageTypes},idx) = (for i = 1:length(Index); setindex!(table.data[i],val.data[i],idx); end; val)
 
-Base.unsafe_getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx::Int) = Row(Index,ntuple(i->unsafe_getindex(table.data[i],idx),length(Index)))
-Base.unsafe_getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx) = Table(Index,ntuple(i->Base.unsafe_getindex(table.data[i],idx),length(Index)))
+Base.unsafe_getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx::Int) = Row{Index, ElTypes}(ntuple(i->unsafe_getindex(table.data[i],idx),length(Index)))
+Base.unsafe_getindex{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},idx) = Table{Index,ElTypes,StorageTypes}(ntuple(i->Base.unsafe_getindex(table.data[i],idx),length(Index)))
 Base.unsafe_setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Row{Index},idx::Int) = for i = 1:length(Index); Base.unsafe_setindex!(table.data[i],val.data[i],idx); end
 Base.unsafe_setindex!{Index,ElTypes,StorageTypes}(table::Table{Index,ElTypes,StorageTypes},val::Table{Index,StorageTypes},idx) = for i = 1:length(Index); Base.unsafe_setindex!(table.data[i],val.data[i],idx); end
 
@@ -770,7 +770,7 @@ head(t::Table, n = 5) = length(t) >= n ? t[1:n] : t
 tail(t::Table, n = 5) = length(t) >= n ? t[end-n+1:end] : t
 
 # Can create a subtable easily by selecting columns
-Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},::F) = table.data[Index[F()]]
+@generated Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},::F) = :( table.data[$(Index[F()])] )
 Base.getindex{Index,ElTypes,StorageTypes,F<:DefaultKey}(table::Table{Index,ElTypes,StorageTypes},::F) = 1:length(table.data[1])
 
 @generated function Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
@@ -823,7 +823,7 @@ end
 end
 
 # Simultaneously indexing by single row and column
-Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},idx::Int,::F) = table.data[Index[F()]][idx]
+@generated Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},idx::Int,::F) = :( table.data[$(Index[F()])][idx] )
 Base.getindex{Index,ElTypes,StorageTypes,F<:DefaultKey}(table::Table{Index,ElTypes,StorageTypes},idx::Int,::F) = idx
 
 @generated function Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},idx::Int,::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
@@ -876,7 +876,7 @@ end
 end
 
 # Simultaneously indexing by multiple rows and column
-Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},idx,::F) = table.data[Index[F()]][idx]
+@generated Base.getindex{Index,ElTypes,StorageTypes,F<:Field}(table::Table{Index,ElTypes,StorageTypes},idx,::F) = :( table.data[$(Index[F()])][idx] )
 Base.getindex{Index,ElTypes,StorageTypes,F<:DefaultKey}(table::Table{Index,ElTypes,StorageTypes},idx,::F) = (1:length(table.data[1]))[idx]
 
 @generated function Base.getindex{Index,ElTypes,StorageTypes,NewIndex<:FieldIndex}(table::Table{Index,ElTypes,StorageTypes},idx,::NewIndex) # Need special possibility for DefaultKey, which may or many not exist in array
