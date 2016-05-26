@@ -103,8 +103,26 @@ function Base.union{Index}(table1::Union{Row{Index},Table{Index}}, table2::Union
 
     vcat(table1[idx1], table2[idx2])
 end
-function Base.union{Index}(table1::Union{Row{Index},Table{Index}}, table2::Union{Row{Index},Table{Index}}, tables::Union{Row,Table}...)
-    union(union(table1, table2), tables...)
+function Base.union(table1::Union{Row,Table}, table2::Union{Row,Table}, tables::Union{Row,Table}...)
+    union(union(table1, table2), tables...) # TODO a bit inefficient to build the hash multiple times...
+end
+
+function Base.union!{Index}(table1::Table{Index}, table2::Union{Row{Index},Table{Index}})
+    seen = Set{eltypes(Index)}()
+    for i = 1:length(table1)
+        if !in(table1[i].data, seen)
+            push!(seen, table1[i].data)
+        end
+    end
+    for i = 1:length(table2)
+        if !in(table2[i].data, seen)
+            push!(seen, table2[i].data)
+            push!(table1, table2[i])
+        end
+    end
+end
+function Base.union!(table1::Union{Row,Table}, table2::Union{Row,Table}, tables::Union{Row,Table}...)
+    union!(union!(table1, table2), tables...) # TODO a bit inefficient to build the hash multiple times...
 end
 
 function Base.intersect{Index}(table1::Union{Row{Index},Table{Index}}, table2::Union{Row{Index},Table{Index}})

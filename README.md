@@ -1,4 +1,4 @@
-# Tables
+# TypedTables
 
 A generic yet type-safe system for implementing data tables (sometimes called
 data frames, from R) in Julia.

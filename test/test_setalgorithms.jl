@@ -23,5 +23,7 @@ table2 = hcat(col_a2, col_b2)
 @test length(@inferred(setdiff(table1,table2))) == 4
 @test length(@inferred(intersect(table1,table2))) == 1
 
+table1_copy = copy(table1)
+@test (union!(table1_copy,table2); length(table1_copy) == 8)
 
 end

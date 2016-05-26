@@ -15,6 +15,7 @@ export @select, @filter, @filter!, @filter_mask
 
 import Base.(==)
 
+# TODO Do we need a unique table? It could keep a persistent hash. (Perhaps a multi-column key table with no value columns?)
 # TODO union!, intersect! and setdiff!
 # TODO dplyr funcitons (should we use same names or julia interfaces or both??)
 #      - arrange (sorting)
@@ -41,6 +42,7 @@ import Base.(==)
 # Julia 0.5 agenda:
 # TODO Use generalized comprehensions in @select (user specified data structure)
 #      and @filter (BitArray)
+# TODO Use @pure functions where beneficial
 
 
 include("Field.jl")
