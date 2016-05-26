@@ -2,6 +2,19 @@
 
 Note: minor changes and bug fixes may be omitted from this document.
 
+### 0.0.5 (27 May 2016)
+
+- Improved, faster formatting. Now `Cell`, `Column`, `Row` and `Table` all use
+  the same output style, with difference in border to identify the type.
+  Previously a large amount of code was recompiled every time a table was
+  shown, making printing of tables have an annoying delay in response. Now
+  code reuse has been increased and the compilation delay reduced.
+
+- Added mutating `union!()` function.
+
+- coveralls activated. Inference bugs detected with awesome `@inferred` test
+  macro and corrected.
+
 ### 0.0.4 (23 March 2016)
 
 - New super-macro `@select` does selection plus more. Includes 3 abilities:
