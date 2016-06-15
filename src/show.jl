@@ -754,7 +754,7 @@ function Base.show(io::IO,row::Row)
                                          br = "─╜")
 end
 
-showall(io::IO, row::Row) = show(io, row)
+showall(io::IO, row::Row) = show(io, row) # TODO fix this (row can be too wide)
 
 function Base.show(io::IO, cell::Cell)
     println("Cell:")
