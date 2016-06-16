@@ -552,7 +552,7 @@ function Base.show(io::IO,table::Table)
         ncols = ncol(table)
         nrows = length(table)
 
-        println("$nrows-row × $ncols-column Table:")
+        println(io, "$nrows-row × $ncols-column Table:")
     end
 
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
@@ -609,7 +609,7 @@ function Base.showall(io::IO,table::Table)
         ncols = ncol(table)
         nrows = length(table)
 
-        println("$nrows-row × $ncols-column Table:")
+        println(io, "$nrows-row × $ncols-column Table:")
     end
 
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
@@ -655,7 +655,7 @@ function Base.show(io::IO, col::Column)
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
     nrows = length(col)
 
-    println("$nrows-row Column:")
+    println(io, "$nrows-row Column:")
 
     # First we format all of our output and determine its size
     # Rows (on side)
@@ -690,7 +690,7 @@ function Base.showall(io::IO, col::Column)
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
     nrows = length(col)
 
-    println("$nrows-element Column:")
+    println(io, "$nrows-element Column:")
 
     # First we format all of our output and determine its size
     # Rows (on side)
@@ -724,7 +724,7 @@ function Base.show(io::IO,row::Row)
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
     ncols = ncol(row)
 
-    println("$ncols-element Row:")
+    println(io, "$ncols-element Row:")
 
     # First we format all of our output and determine its size
 
@@ -757,7 +757,7 @@ end
 showall(io::IO, row::Row) = show(io, row) # TODO fix this (row can be too wide)
 
 function Base.show(io::IO, cell::Cell)
-    println("Cell:")
+    println(io, "Cell:")
 
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
 
