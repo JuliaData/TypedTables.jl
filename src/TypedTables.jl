@@ -2,7 +2,7 @@ module TypedTables
 
 using NullableArrays
 
-export Field, DefaultKey, FieldIndex, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
+export DefaultKey, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
 export rename, name, eltypes, field, index, key, keyname, ncol, nrow, head, tail, samefield, samefields, storagetype, storagetypes
 
@@ -10,7 +10,7 @@ export join, unique!
 
 export readtable, readtable!, writetable
 
-export @field, @index, @cell, @row, @column, @table
+export @Cell, @Row, @Column, @Table
 export @select, @filter, @filter!, @filter_mask
 
 import Base.(==)
@@ -45,18 +45,16 @@ import Base.(==)
 # TODO Use @pure functions where beneficial
 
 
-include("Field.jl")
 include("Cell.jl")
-include("Column.jl")
-include("FieldIndex.jl")
-include("Row.jl")
-include("Table.jl")
+#include("Column.jl")
+#include("Row.jl")
+#include("Table.jl")
 
-include("show.jl")
-include("datamacros.jl")
-include("setalgorithms.jl")
-include("join.jl")
-include("IO.jl")
+#include("show.jl")
+#include("datamacros.jl")
+#include("setalgorithms.jl")
+#include("join.jl")
+#include("IO.jl")
 
 
 end # module

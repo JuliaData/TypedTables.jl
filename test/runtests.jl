@@ -10,15 +10,13 @@ end
 
 @testset "Tables tests" begin
 
-include("test_field.jl")
 include("test_cell.jl")
-include("test_column.jl")
-include("test_fieldindex.jl")
-include("test_row.jl")
-include("test_table.jl")
+#include("test_column.jl")
+#include("test_row.jl")
+#include("test_table.jl")
 
-include("test_join.jl")
-include("test_setalgorithms.jl")
-include("test_IO.jl")
+#include("test_join.jl")
+#include("test_setalgorithms.jl")
+#include("test_IO.jl")
 
 end
