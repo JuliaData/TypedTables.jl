@@ -46,7 +46,7 @@ import Base.(==)
 
 
 include("Cell.jl")
-#include("Column.jl")
+include("Column.jl")
 #include("Row.jl")
 #include("Table.jl")
 

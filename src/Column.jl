@@ -1,201 +1,142 @@
 
 """
-A Column is a vector (or other store) of data annotated by a Field name
+A Column is a vector (or similar store) of data annotated by a column name
 """
-immutable Column{F, ElType, StorageType}
+immutable Column{Name, StorageType}
     data::StorageType
-    function Column(x::StorageType)
-        check_Column(F,ElType,StorageType)
-        new(x)
-    end
-end
-@generated Column{F<:Field,StorageType}(::F,x::StorageType) = :(Column{$(F()),$(eltype(F())),$StorageType}(x) )
-@generated Column{Name,T}(::Field{Name,T}) = :(Column{$(Field{Name,T}()),T,$(makestoragetype(T))}($(makestoragetype(T))()) )
-@generated Column{Name,T}(::Field{Name,T},x::T...) = :(Column{$(Field{Name,T}()),T,$(makestoragetype(T))}($(makestoragetype(T))([x...])) )
-
-@generated Column{F,ElType}(x::Cell{F,ElType}...) = :(Column{$(F),$ElType,$(makestoragetype(ElType))}($(makestoragetype(ElType))($ElType[x[i].data for i=1:length(x)])) )
-
-@generated function Base.call{Name,T1,T2}(::Field{Name,T1},x::T2)
-    if eltype(T2) == T1 # We have another method for creating a cell if T1==T2
-        return :(Column{$(Field{Name,T1}()),$T1,$T2}(x))
-    else
-        str = "Can't instantiate a Cell or Column of $(Field{Name,T1}()) with a $T2"
+    function Column{T}(x::T)
+        check_Column(Val{Name}, StorageType)
+        new(convert(StorageType, x))
     end
 end
 
-makestoragetype{T}(::Type{Nullable{T}}) = NullableVector{T}
-makestoragetype{T}(::Type{T}) = Vector{T}
+@inline call{Name, StorageType}(::Type{Column{Name}}, x::StorageType) = Column{Name, StorageType}(x)
+@inline call{Name, StorageType}(::Type{Column{Name,StorageType}}) = Column{Name, StorageType}(StorageType())
 
+Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Column{Name,T1}) = Column{Name,T2}(x.data)
+Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Cell{Name,T1}) = Column{Name,T2}([x.data]) # ??
 
-Base.convert{F,ElType,StorageType}(::Type{Ref{StorageType}},x::Column{F,ElType,Ref{StorageType}}) = x.data # Not even possible, but it stops a silly ambiguity warning
-Base.convert{F,ElType,StorageType}(::Type{StorageType},x::Column{F,ElType,StorageType}) = x.data
-
-@generated function check_Column{F,ElType,StorageType}(::F,::Type{ElType},::Type{StorageType})
-    if !isa(F(),Field)
-        return :(error("Field $F should be an instance of field"))
-    elseif eltype(F()) != ElType
-        return :(error("ElType $ElType do not match fieldtype $F"))
-    elseif eltype(StorageType) != eltype(F())
-        return :(error("Elements of StorageType $StorageType do not match fieldtype $F"))
-    else
-        return nothing
+@generated function check_Column{Name, StorageType}(::Type{Val{Name}}, ::Type{StorageType})
+    if !isa(Name, Symbol)
+        return :( error("Field name $Name should be a Symbol") )
+    elseif eltype(StorageType) == StorageType
+        warn("Column :$Name storage type $StorageType doesn't appear to be a storage container")
     end
+
 end
+    return nothing
 
-#function Base.show{F,ElType,StorageType}(io::IO,x::Column{F,ElType,StorageType})
-#    if isempty(x)
-#        print(io, "Empty ")
-#    end
-#    println(io, "Column $F")
-#    Base.showarray(x.data,header=false)
-#end
+Base.(:(==)){Name}(col1::Column{Name}, col2::Column{Name}) = (col1.data == col2.data)
 
-=={F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{F,ElType,StorageType}) = (col1.data == col2.data)
+@inline rename{Name1, Name2, ElType}(x::Column{Name1, ElType}, ::Type{Val{Name2}}) = Column{Name2, ElType}(x.data)
 
+@inline name{Name, StorageType}(::Column{Name, StorageType}) = Name
+@inline name{Name}(::Type{Column{Name}}) = Name
+@inline name{Name, StorageType}(::Type{Column{Name, StorageType}}) = Name
+@inline Base.eltype{Name, StorageType}(::Column{Name, StorageType}) = eltype(StorageType)
+@inline Base.eltype{Name, StorageType}(::Type{Column{Name, StorageType}}) = eltype(StorageType)
+@inline storagetype{Name, StorageType}(::Column{Name, StorageType}) = StorageType
+@inline storagetype{Name, StorageType}(::Type{Column{Name, StorageType}}) = StorageType
 
-@inline name{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = name(F)
-@inline name{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = name(F)
-@inline Base.eltype{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = eltype(StorageType)
-@inline Base.eltype{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = eltype(StorageType)
-@inline storagetype{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = StorageType
-@inline storagetype{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) =StorageType
-@inline field{F,ElType,StorageType}(::Column{F,ElType,StorageType}) = F
-@inline field{F,ElType,StorageType}(::Type{Column{F,ElType,StorageType}}) = F
+@inline nrow{Name, StorageType}(col::Column{Name, StorageType}) = length(col.data)
+@inline ncol{Name, StorageType}(col::Column{Name, StorageType}) = 1
+@inline ncol{C <: Column}(::Type{C}) = 1
 
-@inline samefield{F1,F2}(x::Column{F1},y::Column{F2}) = samefield(F1,F2)
-@inline samefield{F1,F2}(x::Cell{F1},y::Column{F2}) = samefield(F1,F2)
-@inline samefield{F1,F2}(x::Column{F1},y::Cell{F2}) = samefield(F1,F2)
-@inline samefield{F1<:Field,F2}(x::F1,y::Column{F2}) = samefield(F1(),F2)
-@inline samefield{F1,F2<:Field}(x::Column{F1},y::F2) = samefield(F1,F2())
+Base.getindex{Name}(c::Column{Name}, ::Type{Val{Name}}) = c.data
+Base.getindex{Name1, Name2}(c::Column{Name1}, ::Type{Val{Name2}}) = error("Tried to index column of name :$Name1 with name :$Name2")
 
-@inline rename{F1,F2<:Field,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F2) = rename(x,F1,F2())
-@inline rename{F1,NewName,ElType,StorageType}(x::Column{F1,ElType,StorageType},::Type{Val{NewName}}) = rename(x,F1,Val{NewName})
-@generated function rename{F1,F1_type,F2<:Field,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F1_type,::F2)
-    if F1_type() == F1
-        return :(Column{$(F2()),ElType,StorageType}(x.data))
-    else
-        str = "Cannot rename: can't find field $F1"
-        return :(error($str))
-    end
-end
-@generated function rename{F1,F1_type,NewName,ElType,StorageType}(x::Column{F1,ElType,StorageType},::F1_type,::Type{Val{NewName}})
-    if F1_type() == F1 || F1_type == Type{Val{name(F1)}}
-        return :(Column{$(Field{NewName,ElType}()),$ElType}(x.data))
-    else
-        str = "Cannot rename: can't find field $F1_type"
-        return :(error($str))
-    end
-end
-
-
-# Vector-like introspection
-Base.length{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = length(col.data)
-ncol{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = 1
-nrow{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = length(col.data)
-Base.ndims{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = 1
-Base.size{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = (length(col.data),)
-Base.size{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i::Int) = i == 1 ? length(col.data) : error("Columns are one-dimensional")
-Base.isempty{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = isempty(col.data)
-Base.endof{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = endof(col.data)
+@inline Base.length{Name, StorageType}(col::Column{Name, StorageType}) = length(col.data)
+Base.ndims{Name, StorageType}(col::Column{Name, StorageType}) = 1
+Base.size{Name, StorageType}(col::Column{Name, StorageType}) = (length(col.data),)
+Base.size{Name, StorageType}(col::Column{Name, StorageType}, i::Int) = i == 1 ? length(col.data) : error("Columns are one-dimensional")
+Base.isempty{Name, StorageType}(col::Column{Name, StorageType}) = isempty(col.data)
+Base.endof{Name, StorageType}(col::Column{Name, StorageType}) = endof(col.data)
 
 # Iterators
-Base.start{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = start(col.data)
-Base.next{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i) = next(col.data,i)
-Base.done{F,ElType,StorageType}(col::Column{F,ElType,StorageType},i) = done(col.data,i)
+Base.start{Name, StorageType}(col::Column{Name, StorageType}) = start(col.data)
+Base.next{Name, StorageType}(col::Column{Name, StorageType}, i) = next(col.data, i)
+Base.done{Name, StorageType}(col::Column{Name, StorageType}, i) = done(col.data, i)
 
 # get/set index
-Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx::Int) = getindex(col.data,idx)
-Base.getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx) = Column(F,getindex(col.data,idx))
+Base.getindex{Name, StorageType}(col::Column{Name, StorageType}, idx::Int) = getindex(col.data, idx)
+Base.getindex{Name, StorageType}(col::Column{Name, StorageType}, idx) = Column{Name}(getindex(col.data, idx))
 
-# Union seems to fail... annoying! (because of the Cell/Cell combination doesn't use all template parameters, that function signature is not callable...)
-#Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Union{Column{F,ElType,StorageType},Cell{F,ElType}},idx) = setindex!(col.data,val.data,idx)
-#Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Union{ElType,StorageType},idx) = setindex!(col.data,val,idx)
-Base.setindex!{F,ElType}(col::Column{F,ElType,ElType},val::ElType,idx) = setindex!(col.data,val,idx) # To make Julia happy (maybe error??)
-Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Cell{F,ElType},idx) = setindex!(col.data,val.data,idx)
-Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::ElType,idx) = setindex!(col.data,val,idx)
-Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Column{F,ElType,StorageType},idx) = setindex!(col.data,val.data,idx)
-Base.setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::StorageType,idx) = setindex!(col.data,val,idx)
+Base.setindex!{Name, StorageType}(col::Column{Name, StorageType}, val::Cell{Name}, idx::Integer) = setindex!(col.data, val.data, idx)
+Base.setindex!{Name, StorageType}(col::Column{Name, StorageType}, val::Column{Name}, idx) = setindex!(col.data, val.data, idx)
+Base.setindex!{Name, StorageType}(col::Column{Name, StorageType}, val, idx) = setindex!(col.data, val, idx)
 
-Base.unsafe_getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx::Int) = Cell(F,Base.unsafe_getindex(col.data,idx))
-Base.unsafe_getindex{F,ElType,StorageType}(col::Column{F,ElType,StorageType},idx) = Column(F,Base.unsafe_getindex(col.data,idx))
+Base.unsafe_getindex{Name, StorageType}(col::Column{Name, StorageType}, idx::Int) = unsafe_getindex(col.data, idx)
+Base.unsafe_getindex{Name, StorageType}(col::Column{Name, StorageType}, idx) = Column{Name}(unsafe_getindex(col.data, idx))
 
-# Union seems to fail... annoying!
-#Base.unsafe_setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Union{Column{F,ElType,StorageType},Cell{F,ElType}},idx) = Base.unsafe_setindex!(col.data,val.data,idx)
-#Base.unsafe_setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Union{ElType,StorageType},idx) = Base.unsafe_setindex!(col.data,val,idx)
-Base.unsafe_setindex!{F,ElType}(col::Column{F,ElType,ElType},val::ElType,idx) = Base.unsafe_setindex!(col.data,val,idx) # To make Julia happy (maybe error??)
-Base.unsafe_setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Cell{F,ElType},idx) = Base.unsafe_setindex!(col.data,val.data,idx)
-Base.unsafe_setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::ElType,idx) = Base.unsafe_setindex!(col.data,val,idx)
-Base.unsafe_setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::Column{F,StorageType},idx) = Base.unsafe_setindex!(col.data,val.data,idx)
-Base.unsafe_setindex!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},val::StorageType,idx) = Base.unsafe_setindex!(col.data,val,idx)
+Base.unsafe_setindex!{Name, StorageType}(col::Column{Name, StorageType}, val::Cell{Name}, idx::Integer) = unsafe_setindex!(col.data, val.data, idx)
+Base.unsafe_setindex!{Name, StorageType}(col::Column{Name, StorageType}, val::Column{Name}, idx) = unsafe_setindex!(col.data, val.data, idx)
+Base.unsafe_setindex!{Name, StorageType}(col::Column{Name, StorageType}, val, idx) = unsafe_setindex!(col.data, val, idx)
 
-# Mutators: Push!, append!, pop!, etc
-Base.push!{F}(col::Column{F},cell::Cell{F}) = push!(col.data,cell.data)
-Base.push!{F,ElType}(col::Column{F,ElType},data_in::ElType) = push!(col.data,data_in)
-Base.append!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},col_in::Column{F,ElType,StorageType}) = append!(col.data,col_in.data)
-Base.append!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},data_in::StorageType) = append!(col.data,data_in)
-Base.pop!{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = pop!(col.data)
+# Mutators: push!, append!, pop!, etc
+Base.pop!(col::Column) = pop!(col.data)
+Base.shift!(col::Column) = shift!(col.data)
 
-Base.unshift!{F}(col::Column{F},cell::Cell{F}) = unshift!(col.data,cell.data)
-Base.unshift!{F,ElType}(col::Column{F,ElType},data_in::ElType) = unshift!(col.data,data_in)
-Base.prepend!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},col_in::Column{F,ElType,StorageType}) = prepend!(col.data,col_in.data)
-Base.prepend!{F,ElType,StorageType}(col::Column{F,ElType,StorageType},data_in::StorageType) = prepend!(col.data,data_in)
-Base.shift!{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = shift!(col.data)
+Base.push!(col::Column, data_in) = (push!(col.data, data_in); col)
+Base.push!{Name}(col::Column{Name}, cell::Cell{Name}) = (push!(col.data, cell.data); col)
+Base.push!{Name}(col::Column{Name}, i::Integer, cell::Cell) = error("Column with name :$Name don't match cell with name :$(name(cell))")
+Base.unshift!(col::Column, data_in) = (unshift!(col.data, data_in); col)
+Base.unshift!{Name}(col::Column{Name}, cell::Cell{Name}) = (unshift!(col.data, cell.data); col)
+Base.unshift!{Name}(col::Column{Name}, i::Integer, cell::Cell) = error("Column with name :$Name don't match cell with name :$(name(cell))")
 
-Base.empty!{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = empty!(col.data)
+Base.append!(col::Column, data_in) = (append!(col.data, data_in); col)
+Base.append!{Name}(col::Column{Name}, cell::Column{Name}) = (append!(col.data, cell.data); col)
+Base.append!{Name}(col::Column{Name}, i::Integer, cell::Cell) = error("Column with name :$Name don't match column with name :$(name(cell))")
+Base.prepend!(col::Column, data_in) = (prepend!(col.data, data_in); col)
+Base.prepend!{Name}(col::Column{Name}, cell::Column{Name}) = (prepend!(col.data, cell.data); col)
+Base.prepend!{Name}(col::Column{Name}, i::Integer, cell::Cell) = error("Column with name :$Name don't match column with name :$(name(cell))")
 
-# insert!, splice!, deleteat!
-# resize! ?
+Base.insert!(col::Column, i::Integer, v) = (insert!(col.data, i, v); col)
+Base.insert!{Name}(col::Column{Name}, i::Integer, cell::Cell{Name}) = (insert!(col.data, i, cell.data); col)
+Base.insert!{Name}(col::Column{Name}, i::Integer, cell::Cell) = error("Column with name :$Name don't match cell with name :$(name(cell))")
+Base.deleteat!(col::Column, i) = (deleteat!(col.data, i); col)
+Base.splice!{Name}(col::Column{Name}, i::Integer) = splice!(col.data, i)
+Base.splice!{Name}(col::Column{Name}, i::Integer, r) = splice!(col.data, i, r)
+Base.splice!{Name}(col::Column{Name}, i) = Column{Name}(splice!(col.data, i))
+Base.splice!{Name}(col::Column{Name}, i, r) = Column{Name}(splice!(col.data, i, r))
+
+Base.empty!(col::Column) = (empty!(col.data); col)
+
 # unique/unique! (union, etc??)
 
-Base.sort{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...) = Column{F, ElType, StorageType}(sort(col.data; kwargs...))
-Base.sort!{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...) = sort!(col.data; kwargs...)
-
-#function Base.unique{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...)
-#    tmp = sort(col)
-#
-#        Column{F, ElType, StorageType}(unique(col.data; kwargs...))
-#
-#end
-Base.sort!{F, ElType, StorageType}(col::Column{F, ElType, StorageType}; kwargs...) = sort!(col.data; kwargs...)
-
-
-# Some non-mutating functions
-# something like join.... union? similarly for joins: outer, left, etc. Also, find.
-
-Base.copy{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = Column{F,ElType,StorageType}(copy(col.data))
-Base.deepcopy{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = Column{F,ElType,StorageType}(deepcopy(col.data))
+Base.sort{Name, StorageType}(col::Column{Name, StorageType}; kwargs...) = Column{Name, StorageType}(sort(col.data; kwargs...))
+Base.sort!(col::Column; kwargs...) = (sort!(col.data; kwargs...); col)
 
 # Concatenate cells and columns into colums
-Base.vcat{F,ElType}(cell::Cell{F,ElType}) = Column{F,ElType,Vector{ElType}}([cell.data])
-Base.vcat{F,ElType,StorageType}(col::Column{F,ElType,StorageType}) = Column{F,ElType,Vector{ElType}}(col.data)
+Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(c1.data))
+Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}, c2::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(c1.data, c2.data))
+@generated function Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}, c2::Union{Cell{Name}, Column{Name}}, cs::Union{Cell{Name}, Column{Name}}...)
+    # Do our best to help inference here
+    exprs = [:(cs[$j].data) for j = 1:length(cs)]
+    vcat_expr = Expr(:call, :vcat, :(c1.data), :(c2.data), exprs...)
+    return Expr(:call, Column{Name}, vcat_expr)
+end
 
-Base.vcat{F,ElType}(cell1::Cell{F,ElType},cell2::Cell{F,ElType}) = Column{F,ElType,Vector{ElType}}(vcat(cell1.data,cell2.data))
-Base.vcat{F,StorageType,ElType}(cell1::Cell{F,ElType},col2::Column{F,ElType,StorageType}) = Column{F,ElType,StorageType}(vcat(cell1.data,col2.data))
-Base.vcat{F,StorageType,ElType}(col1::Column{F,ElType,StorageType},cell2::Cell{F,ElType}) = Column{F,ElType,StorageType}(vcat(col1.data,cell2.data))
-Base.vcat{F,ElType,StorageType}(col1::Column{F,ElType,StorageType},col2::Column{F,ElType,StorageType}) = Column{F,ElType,StorageType}(vcat(col1.data,col2.data))
+# copy
+Base.copy{Name, StorageType}(col::Column{Name, StorageType}) = Column{Name, StorageType}(copy(col.data))
 
-Base.vcat{F,ElType}(c1::Cell{F,ElType},c2::Cell{F,ElType},cs::Cell{F,ElType}...) = vcat(vcat(c1,c2),cs...)
-Base.vcat{F,ElType,StorageType}(c1::Union{Cell{F,ElType},Column{F,ElType,StorageType}},c2::Union{Cell{F,ElType},Column{F,ElType,StorageType}},cs::Union{Cell{F,ElType},Column{F,ElType,StorageType}}...) = vcat(vcat(c1,c2),cs...)
-
-# Otherwise, fields don't match...
-Base.vcat(x::Union{Cell,Column}...) = error("Fields $(ntuple(i->field(x[i]),length(x))) don't match")
-
-# Currently @column and @cell do the same thing, by calling field
-macro column(expr)
+# @Column and @Cell are very similar
+macro Column(expr)
     if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
-        error("Expecting expression like @column(name::Type = value) or @column(field = value)")
+        error("A Expecting expression like @Column(name::Type = value) or @Column(name = value)")
     end
     local field
-    if isa(expr.args[1],Symbol)
-        field = expr.args[1]
-    elseif isa(expr.args[1],Expr)
-        if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
-            error("Expecting expression like @column(name::Type = value) or @cell(field = value)")
-        end
-        field = :(TypedTables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
-    else
-        error("Expecting expression like @column(name::Type = value) or @cell(field = value)")
-    end
     value = expr.args[2]
-    return :(TypedTables.Column($(esc(field)),$(esc(value))))
+    if isa(expr.args[1], Symbol)
+        name = expr.args[1]
+        return :( TypedTables.Column{$(QuoteNode(name))}($(esc(value))) )
+    elseif isa(expr.args[1],Expr)
+        if expr.args[1].head != :(::) || length(expr.args[1].args) != 2 || !isa(expr.args[1].args[1], Symbol)
+            error("B Expecting expression like @Column(name::Type = value) or @Column(name = value)")
+        end
+        name = expr.args[1].args[1]
+        eltype = expr.args[1].args[2]
+        field = :( TypedTables.Column{$(QuoteNode(name)), $(esc(eltype))}($(esc(value))) )
+    else
+        error("C Expecting expression like @Column(name::Type = value) or @Column(name = value)")
+    end
 end

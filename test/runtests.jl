@@ -11,7 +11,7 @@ end
 @testset "Tables tests" begin
 
 include("test_cell.jl")
-#include("test_column.jl")
+include("test_column.jl")
 #include("test_row.jl")
 #include("test_table.jl")
 
