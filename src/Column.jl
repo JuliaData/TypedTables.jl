@@ -19,12 +19,14 @@ Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Cell{Name,T1}) = Column{
 @generated function check_Column{Name, StorageType}(::Type{Val{Name}}, ::Type{StorageType})
     if !isa(Name, Symbol)
         return :( error("Field name $Name should be a Symbol") )
+    elseif Name == :Row
+        return :( error("Field name cannot be :Row") )
     elseif eltype(StorageType) == StorageType
         warn("Column :$Name storage type $StorageType doesn't appear to be a storage container")
     end
-
-end
     return nothing
+end
+
 
 Base.(:(==)){Name}(col1::Column{Name}, col2::Column{Name}) = (col1.data == col2.data)
 
@@ -44,6 +46,7 @@ Base.(:(==)){Name}(col1::Column{Name}, col2::Column{Name}) = (col1.data == col2.
 
 Base.getindex{Name}(c::Column{Name}, ::Type{Val{Name}}) = c.data
 Base.getindex{Name1, Name2}(c::Column{Name1}, ::Type{Val{Name2}}) = error("Tried to index column of name :$Name1 with name :$Name2")
+Base.getindex{Name}(c::Column{Name}, ::Type{Val{:Row}}) = 1:length(c.data)
 
 @inline Base.length{Name, StorageType}(col::Column{Name, StorageType}) = length(col.data)
 Base.ndims{Name, StorageType}(col::Column{Name, StorageType}) = 1

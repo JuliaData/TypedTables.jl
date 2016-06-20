@@ -19,6 +19,9 @@ end
         str = "Row parameter 1 (Names) is expected to be a tuple of unique symbols, got $Names" # TODO: reinsert colons in symbols?
         return :(error($str))
     end
+    if :Row ∈ Names
+        return :( error("Field name cannot be :Row") )
+    end
     N = length(Names)
     if length(Types.parameters) != N || reduce((a,b) -> a | !isa(b, DataType), false, Types.parameters)
         str = "Row parameter 2 (Types) is expected to be a Tuple{} of $N DataTypes, got $Types"
@@ -84,7 +87,7 @@ rename{Names, NewNames}(row::Row{Names}, ::Type{Val{NewNames}}) = Row{NewNames}(
     return :(Row{$NewNames}(row.data))
 end
 
-columnindex{N}(names::NTuple{N,Symbol}, name::Symbol) = error("Can't search for columns $name")
+columnindex{N}(names::NTuple{N,Symbol}, name) = error("Can't search for columns $name")
 function columnindex{N}(names::NTuple{N,Symbol}, name::Symbol)
     for i = 1:length(names)
         if names[i] == name
@@ -93,7 +96,6 @@ function columnindex{N}(names::NTuple{N,Symbol}, name::Symbol)
     end
     error("Can't find column with name :$name")
 end
-
 function columnindex{N, M}(names::NTuple{N,Symbol}, searchnames::NTuple{M,Symbol})
     return ntuple(i->columnindex(names, searchnames[i]), M)
 end
@@ -216,19 +218,19 @@ macro Row(exprs...)
     for i = 1:N
         expr = exprs[i]
         if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
-            error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
+            error("A Expecting expression like @Row(name1::Type1 = value1, name2::Type2 = value2) or @Row(name1 = value1, name2 = value2)")
         end
         if isa(expr.args[1],Symbol)
             names[i] = (expr.args[1])
             values[i] = esc(expr.args[2])
         elseif isa(expr.args[1],Expr)
             if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
-                error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
+                error("A Expecting expression like @Row(name1::Type1 = value1, name2::Type2 = value2) or @Row(name1 = value1, name2 = value2)")
             end
             names[i] = (expr.args[1].args[1])
             values[i] = esc(Expr(:call, :convert, expr.args[1].args[2], expr.args[2]))
         else
-            error("A Expecting expression like @row(name1::Type1 = value1, name2::Type2 = value2) or @row(field1 = value1, field2 = value2)")
+            error("A Expecting expression like @Row(name1::Type1 = value1, name2::Type2 = value2) or @Row(name1 = value1, name2 = value2)")
         end
     end
 

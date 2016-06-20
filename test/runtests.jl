@@ -13,7 +13,7 @@ end
 include("test_cell.jl")
 include("test_column.jl")
 include("test_row.jl")
-#include("test_table.jl")
+include("test_table.jl")
 
 #include("test_join.jl")
 #include("test_setalgorithms.jl")

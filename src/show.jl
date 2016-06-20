@@ -544,7 +544,7 @@ function make_strings(data; maxl::Int = 5, width_suggestion::Int = 20)
 end
 
 
-function Base.show(io::IO,table::Table)
+function Base.show(io::IO, table::Table)
     if ncol(table) == 0
         print(io,"Empty Table")
         return
@@ -560,7 +560,7 @@ function Base.show(io::IO,table::Table)
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = UTF8String(string(name(DefaultKey)))
+    row_header_str = UTF8String("Row")
     if nrows > 2*maxl
         row_str = UTF8String[string(i) for i = vcat(1:maxl, nrows-maxl+1:nrows)]
         dotsbreak = maxl
@@ -617,7 +617,7 @@ function Base.showall(io::IO,table::Table)
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = UTF8String(string(name(DefaultKey)))
+    row_header_str = UTF8String("Row")
     row_str = UTF8String[string(i) for i = 1:nrows]
 
     # header....
@@ -659,7 +659,7 @@ function Base.show(io::IO, col::Column)
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = UTF8String(string(name(DefaultKey)))
+    row_header_str = UTF8String("Row")
     if nrows > 2*maxl
         row_str = UTF8String[string(i) for i = vcat(1:maxl, nrows-maxl+1:nrows)]
         dotsbreak = maxl
@@ -690,11 +690,11 @@ function Base.showall(io::IO, col::Column)
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
     nrows = length(col)
 
-    println(io, "$nrows-element Column:")
+    println(io, "$nrows-row Column:")
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = UTF8String(string(name(DefaultKey)))
+    row_header_str = UTF8String("Row")
     row_str = UTF8String[string(i) for i = 1:nrows]
 
     # header....
@@ -724,7 +724,7 @@ function Base.show(io::IO,row::Row)
     s = Base.tty_size() # [height, width] in characters TODO fix for Julia 0.5
     ncols = ncol(row)
 
-    println(io, "$ncols-element Row:")
+    println(io, "$ncols-column Row:")
 
     # First we format all of our output and determine its size
 

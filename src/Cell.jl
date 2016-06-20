@@ -19,6 +19,8 @@ Base.convert{Name, T1, T2}(::Type{Cell{Name, T2}}, x::Cell{Name,T1}) = Cell{Name
 @generated function check_Cell{Name, ElType}(::Type{Val{Name}}, ::Type{ElType})
     if !isa(Name, Symbol)
         return :(error("Field name $F should be a symbol"))
+    elseif Name == :Row
+        return :( error("Field name cannot be :Row") )
     elseif !isa(ElType, DataType)
         return :(error("ElType $ElType should be a data type"))
     else
