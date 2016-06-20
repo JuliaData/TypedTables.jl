@@ -54,7 +54,7 @@ include("show.jl")
 include("datamacros.jl")
 include("setalgorithms.jl")
 #include("join.jl")
-#include("IO.jl")
+include("IO.jl")
 
 
 end # module

@@ -486,7 +486,7 @@ end
         str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
         return :(error($str))
     end
-    exprs = [:(push!(t.data[$c], v.data[$c])) for c = 1:length(Names)]
+    exprs = [:(push!(t.data[$c], v[$c])) for c = 1:length(Names)]
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.push!{Names1,Names2}(t::Table{Names1}, r::Row{Names2})
@@ -500,7 +500,7 @@ end
         str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
         return :(error($str))
     end
-    exprs = [:(unshift!(t.data[$c], v.data[$c])) for c = 1:length(Names)]
+    exprs = [:(unshift!(t.data[$c], v[$c])) for c = 1:length(Names)]
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.unshift!{Names1,Names2}(t::Table{Names1}, r::Row{Names2})
@@ -514,7 +514,7 @@ end
         str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
         return :(error($str))
     end
-    exprs = [:(append!(t.data[$c], v.data[$c])) for c = 1:length(Names)]
+    exprs = [:(append!(t.data[$c], v[$c])) for c = 1:length(Names)]
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.append!{Names1,Names2}(t::Table{Names1}, t2::Table{Names2})
@@ -528,7 +528,7 @@ end
         str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
         return :(error($str))
     end
-    exprs = [:(prepend!(t.data[$c], v.data[$c])) for c = 1:length(Names)]
+    exprs = [:(prepend!(t.data[$c], v[$c])) for c = 1:length(Names)]
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.prepend!{Names1,Names2}(t::Table{Names1}, t2::Table{Names2})
@@ -542,7 +542,7 @@ end
         str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
         return :(error($str))
     end
-    exprs = [:(insert!(t.data[$c], i, v.data[$c])) for c = 1:length(Names)]
+    exprs = [:(insert!(t.data[$c], i, v[$c])) for c = 1:length(Names)]
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.insert!{Names1,Names2}(t::Table{Names1}, i::Integer, r::Row{Names2})
@@ -566,7 +566,7 @@ end
     return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
 end
 @generated function Base.splice!{Names}(t::Table{Names}, i::Integer, v::Tuple)
-    exprs = [:(splice!(t.data[$c], i, v.data[$c])) for c = 1:length(Names)]
+    exprs = [:(splice!(t.data[$c], i, v[$c])) for c = 1:length(Names)]
     return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
 end
 @generated function Base.splice!{Names1,Names2}(t::Table{Names1}, i::Integer, v::Union{Row{Names2},Table{Names2}})
@@ -579,7 +579,7 @@ end
     return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
 end
 @generated function Base.splice!{Names}(t::Table{Names}, i, v::Tuple)
-    exprs = [:(splice!(t.data[$c], i, v.data[$c])) for c = 1:length(Names)]
+    exprs = [:(splice!(t.data[$c], i, v[$c])) for c = 1:length(Names)]
     return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
 end
 @generated function Base.splice!{Names1,Names2}(t::Table{Names1}, i, v::Union{Row{Names2},Table{Names2}})
