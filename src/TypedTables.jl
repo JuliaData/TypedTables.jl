@@ -52,7 +52,7 @@ include("Table.jl")
 
 include("show.jl")
 include("datamacros.jl")
-#include("setalgorithms.jl")
+include("setalgorithms.jl")
 #include("join.jl")
 #include("IO.jl")
 
