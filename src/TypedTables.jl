@@ -4,7 +4,7 @@ using NullableArrays
 
 export DefaultKey, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
-export rename, name, eltypes, field, index, key, keyname, ncol, nrow, head, tail, samefield, samefields, storagetype, storagetypes
+export rename, name, eltypes, permutecols, ncol, nrow, head, tail, storagetype, storagetypes
 
 export join, unique!
 
@@ -47,7 +47,7 @@ import Base.(==)
 
 include("Cell.jl")
 include("Column.jl")
-#include("Row.jl")
+include("Row.jl")
 #include("Table.jl")
 
 #include("show.jl")

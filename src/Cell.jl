@@ -26,7 +26,7 @@ Base.convert{Name, T1, T2}(::Type{Cell{Name, T2}}, x::Cell{Name,T1}) = Cell{Name
     end
 end
 
-Base.(:(==)){Name}(col1::Cell{Name}, col2::Cell{Name}) = (col1.data == col2.data)
+Base.(:(==)){Name}(cell1::Cell{Name}, cell2::Cell{Name}) = (cell1.data == cell2.data)
 
 @inline rename{Name1, Name2, ElType}(x::Cell{Name1, ElType}, ::Type{Val{Name2}}) = Cell{Name2, ElType}(x.data)
 
@@ -52,6 +52,7 @@ Base.endof(c::Cell) = 1
 
 Base.getindex(c::Cell) = c.data
 Base.getindex(c::Cell, i::Integer) = ((i == 1) ? c.data : throw(BoundsError())) # This matches the behaviour of other scalars in Julia
+Base.getindex(c::Cell, ::Colon) = c
 
 
 Base.copy{F,ElType}(cell::Cell{F,ElType}) = Cell{F,ElType}(copy(cell.data))
