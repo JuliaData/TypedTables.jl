@@ -2,6 +2,23 @@
 
 Note: minor changes and bug fixes may be omitted from this document.
 
+### 0.1.0 (21 June 2016)
+
+- Major overhaul of types to remove complexity of `Field` and `FieldIndex`,
+  which were unwieldly for the user. Now column names are referred to directly
+  as symbols in the type variables and column-indexing is always with a `Val{}`.
+
+- Changed macros to upper case `@Table`, `@Row`, etc. Type parameters are now
+  optional (and indicate storage types for columns and tables, not element
+  types).
+
+- Rewrote and simplified `join()`. It now uses a hashing algorithm and should be
+  faster.
+
+- Added some extra functions like `deleteat!`, `insert!` and `splice!`.
+
+- `show()` now prints a header indicating the size of the table (similarly for row, column, cell).
+
 ### 0.0.5 (27 May 2016)
 
 - Improved, faster formatting. Now `Cell`, `Column`, `Row` and `Table` all use

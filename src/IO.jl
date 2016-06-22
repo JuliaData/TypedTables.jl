@@ -1,14 +1,15 @@
 """
 Read a table from another data structure that supports indexing columns by
-symbols, such as a DataFrame. Requires a well-specified `FieldIndex`.
+symbols, such as a DataFrame. Requires a `Val{Names}` where `Names` is a
+tuple of Symbols.
 
 The reverse transformation (to DataFrames) can be acheived by:
-   DataFrames(collect(table.data), collect(names(table)))
+   DataFrame(collect(table.data), collect(names(table)))
 """
-@generated function readtable{Fields}(index::FieldIndex{Fields}, x)
-    exprs = ntuple(i->:(x[$(Expr(:quote,name(Fields[i])))]), length(Fields))
+@generated function readtable{Names}(::Type{Val{Names}}, x)
+    exprs = ntuple(i->:(x[$(Expr(:quote,Names[i]))]), length(Names))
     expr = Expr(:tuple, exprs...)
-    return :( Table(index, $expr) )
+    return :( Table{Names}($expr) )
 end
 
 """
@@ -16,13 +17,13 @@ Read a table from a file in DLM (delimited) or CSV (comma-sereperated values,
 default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
 instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
-function readtable(index::FieldIndex, file::Union{AbstractString,IOStream}; kwargs...)
-    table = Table(index)
+function readtable{Names,Types}(::Type{Table{Names,Types}}, file::Union{AbstractString,IOStream}; kwargs...)
+    table = Table{Names,Types}()
     readtable!(table, file; kwargs...)
     return table
 end
 
-function readtable!{index}(table::Table{index}, filename::AbstractString; kwargs...)
+function readtable!(table::Table, filename::AbstractString; kwargs...)
     open(filename) do fio
         readtable!(table, fio; kwargs...)
     end
@@ -33,7 +34,7 @@ Append data to a table from a file in DLM (delimited) or CSV (comma-sereperated
 values, default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
 instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
-function readtable!{index}(table::Table{index}, file::IOStream; delim::Char = ',', eol::Char = '\n', header::Bool = false, multiplespaces = false, kwargs...)
+function readtable!{Names, Types}(table::Table{Names, Types}, file::IOStream; delim::Char = ',', eol::Char = '\n', header::Bool = false, multiplespaces = false, kwargs...)
     if multiplespaces == true
         delim = Base.DataFmt.invalid_dlm(Char)
     end
@@ -50,9 +51,9 @@ function readtable!{index}(table::Table{index}, file::IOStream; delim::Char = ',
     local indices
     if header == true
         # Reoreded or extra indices are possible
-        colnames = map(string,names(index))
+        colnames = map(string, Names)
 
-        indices = Vector{Int}(length(index))
+        indices = Vector{Int}(length(Names))
         for i = 1:length(colnames)
             found = 0
             for j = 1:length(headerdata)
@@ -68,16 +69,16 @@ function readtable!{index}(table::Table{index}, file::IOStream; delim::Char = ',
             end
         end
     else
-        indices = collect(1:length(index))
+        indices = collect(1:length(Names))
     end
 
     # Convert to a table
     for i = 1:size(data,1)
-        push!(table, ntuple(j->convert(eltype(index[j]), data[i,indices[j]]), length(index)))
+        push!(table, ntuple(j->convert(eltype(Types.parameters[j]), data[i,indices[j]]), length(Names)))
     end
 end
 
-function writetable{index}(filename::AbstractString, table::Table{index}; kwargs...)
+function writetable(filename::AbstractString, table::Table; kwargs...)
     fio = open(filename, false, true, true, true, false)
     writetable(fio, table; kwargs...)
     close(fio)
@@ -95,11 +96,10 @@ Write a table to disk using delimeted text format. Optional arguments include:
   char_delim = '\''
   char_delim_right = char_delim
 """
-function writetable{index}(fileio::IOStream, table::Table{index}; header::Bool = false, delim = ',', eol = '\n', string_delim = '\"', string_delim_right = string_delim, char_delim = '\'', char_delim_right = char_delim, null = "NA")
+function writetable{Names}(fileio::IOStream, table::Table{Names}; header::Bool = false, delim = ',', eol = '\n', string_delim = '\"', string_delim_right = string_delim, char_delim = '\'', char_delim_right = char_delim, null = "NA")
     if header == true
-        n = names(index)
         for j = 1:ncol(table)
-            write(fileio, n[j])
+            write(fileio, Names[j])
             if j == ncol(table)
                 write(fileio, eol)
             else
@@ -111,8 +111,8 @@ function writetable{index}(fileio::IOStream, table::Table{index}; header::Bool =
     isnullable = fill(false, ncol(table))
     isstring = fill(false, ncol(table))
     ischar = fill(false, ncol(table))
-    for i = 1:length(index)
-        typ = eltype(index[i])
+    for i = 1:length(Names)
+        typ = eltype(Types.parameters[i])
         if typ <: Nullable
             isnullable[i] = true
             typ = eltype(typ)

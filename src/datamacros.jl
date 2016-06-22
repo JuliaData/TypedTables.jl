@@ -9,7 +9,8 @@ macro select(x...)
 
         if isa(expr, Symbol)
             # Straightforward extraction (by name)
-            exprs[i-1] = :( TypedTables.extractfield(TypedTables.index($(esc(table))),Val{$(Expr(:quote,expr))}) = $(esc(table))[Val{$(Expr(:quote,expr))}] )
+            #exprs[i-1] = :( TypedTables.extractfield(TypedTables.index($(esc(table))),Val{$(Expr(:quote,expr))}) = $(esc(table))[Val{$(Expr(:quote,expr))}] )
+            exprs[i-1] = :( $(esc(expr)) = $(esc(table))[Val{$(Expr(:quote, expr))}] )
         elseif isa(expr, Expr)
             if expr.head == :(=) || expr.head == :(kw)
                 expr_left = expr.args[1]
@@ -31,24 +32,27 @@ macro select(x...)
                     return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
                 elseif operation == :rename
                     if isa(expr_left,Symbol)
-                        exprs[i-1] = :( TypedTables.rename(TypedTables.extractfield(TypedTables.index($(esc(table))),Val{$(Expr(:quote,expr_right))}), Val{$(Expr(:quote,expr_left))}) = $(esc(table))[Val{$(Expr(:quote,expr_right))}] )
+                        #exprs[i-1] = :( TypedTables.rename(TypedTables.extractfield(TypedTables.index($(esc(table))),Val{$(Expr(:quote,expr_right))}), Val{$(Expr(:quote,expr_left))}) = $(esc(table))[Val{$(Expr(:quote,expr_right))}] )
+                        exprs[i-1] = :($(esc(expr_left)) = $(esc(table))[Val{$(Expr(:quote,expr_right))}])
                     elseif isa(expr_left, Expr) && expr_left.head == :(::)
                         expr_left.args[2] = :($(esc(expr_left.args[2])))
-                        exprs[i-1] = :($(macroexpand(:(TypedTables.@field($expr_left)))) = $(esc(table))[Val{$(Expr(:quote,expr_right))}] )
+                        #exprs[i-1] = :($(macroexpand(:(TypedTables.@field($expr_left)))) = $(esc(table))[Val{$(Expr(:quote,expr_right))}] )
+                        exprs[i-1] = :($(esc(expr_left)) = $(esc(table))[Val{$(Expr(:quote,expr_right))}])
                     else
                         return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
                     end
                 elseif operation == :compute
                     # LHS must be new field
                     if isa(expr_left,Symbol)
-                        lhs = :( $(esc(expr_left)) )
+                        lhs = esc(expr_left)
                     elseif isa(expr_left, Expr) && expr_left.head == :(::)
-                        expr_left.args[2] = :($(esc(expr_left.args[2])))
-                        lhs = :($(macroexpand(:(TypedTables.@field($expr_left)))))
+                        #expr_left.args[2] = :($(esc(expr_left.args[2])))
+                        #lhs = :($(macroexpand(:(TypedTables.@field($expr_left)))))
+                        lhs = esc(expr_left)
                     else
                         return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
                     end
-                    eltype = :( eltype($lhs) )
+                    #eltype = :( eltype($lhs) )
 
                     # RHS is (field_names) -> function. First identify the field names
                     fields = Vector{Symbol}()
@@ -70,11 +74,11 @@ macro select(x...)
                     replace_symbols!(func, fields, replacements)
 
                     # Now make the expression
-                    exprs[i-1] = :( $(lhs) = $eltype[$(func) for idx = 1:length($(esc(table)))] )
+                    exprs[i-1] = :( $(lhs) = [$(func) for idx = 1:length($(esc(table)))] )
                 end
-            elseif expr.head == :(::)
+            #elseif expr.head == :(::)
                 # Straightforward extraction (by name and type)
-                exprs[i-1] = :($(macroexpand(:(TypedTables.@field($expr)))) = $(esc(table))[Val{$(Expr(:quote,expr.args[1]))}] )
+                #exprs[i-1] = :($(macroexpand(:(TypedTables.@field($expr)))) = $(esc(table))[Val{$(Expr(:quote,expr.args[1]))}] )
             else
                 return(:( error("Expected syntax like @select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))") ))
             end
@@ -83,7 +87,10 @@ macro select(x...)
         end
     end
 
-    return Expr(:macrocall, Symbol("@table"), exprs...)
+    dump(exprs, 100)
+    println(exprs)
+
+    return Expr(:macrocall, Symbol("@Table"), exprs...)
 end
 
 macro filter(x...)
@@ -182,9 +189,11 @@ macro filter!(x...)
     end
 
     # Now build a few lines of code
-    quote # TODO can switch this to an anonymous function for 0.5
-        test = Bool[$test_expr for idx = 1:length($(esc(table)))]
-        filter!(test, $(esc(table)))
+    # TODO can switch this to an anonymous function using filter!() for 0.5
+    # TODO in general we should also consider a lazy view like filter()
+    quote
+        test_not = Bool[!$test_expr for idx = 1:length($(esc(table)))]
+        deleteat!($(esc(table)), (:)[test_not])
     end
 end
 

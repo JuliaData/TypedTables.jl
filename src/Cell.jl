@@ -3,119 +3,80 @@
 # ==========================================
 
 """
-A Cell is a single piece of data annotated by a Field name
+A `Cell` is a single piece of data annotated by a column name
 """
-immutable Cell{F, ElType}
+immutable Cell{Name, ElType}
     data::ElType
-    function Cell(x::ElType)
-        check_Cell(F,ElType)
-        new(x)
+    function Cell{T}(x::T)
+        check_Cell(Val{Name},ElType)
+        new(convert(ElType,x))
     end
 end
-@generated Cell{F<:Field,ElType}(::F,x::ElType) = :(Cell{$(F()),$ElType}(x))
-@generated Base.call{Name,T}(::Field{Name,T},x::T) = :(Cell{$(Field{Name,T}()),$T}(x))
+@inline call{Name, ElType}(::Type{Cell{Name}}, x::ElType) = Cell{Name,ElType}(x)
 
-# TODO All of these converts give wierd dispatch warnings (possibly a Julia bug? Clashes with similar things from Nullable and Ref)
-#Base.convert{F,T1,T2}(::Type{Ref{T1}},x::Cell{F,T2}) = convert(Ref{T1},x.data)
-#Base.convert{F,T1,T2}(::Type{Nullable{T1}},x::Cell{F,T2}) = convert(Nullable{T1},x.data)
-#Base.convert{F,T1,T2}(t1::Type{T1},x::Cell{F,T2}) = convert(T1,x.data)
+Base.convert{Name, T1, T2}(::Type{Cell{Name, T2}}, x::Cell{Name,T1}) = Cell{Name,T2}(x.data)
 
-#Base.convert{Name,T}(::Type{Ref{T}},x::Cell{F,T}) = Ref{T}(x.data)
-#@generated Base.convert{F,T<:DataType}(::Type{T},x::Cell{F,T}) = :(x.data)
-#@generated Base.convert{F,T}(::Type{Ref{T}},x::Cell{F,T}) = :(x.data)
-
-Base.convert{F,T}(::Type{Ref{T}},x::Cell{F,Ref{T}}) = x.data # Stops a silly ambiguity warning
-Base.convert{F,T}(::Type{T},x::Cell{F,T}) = x.data
-
-@generated function Base.convert{F1,F2,T1,T2}(::Type{Cell{F2,T2}},x::Cell{F1,T1})
-    if name(F1) != name(F2)
-        return :(error("Names do not match"))
-    else
-        return :(Cell{F2,T2}(convert(T2,x.data)))
-    end
-end
-
-@generated function check_Cell{F,ElType}(::F,::Type{ElType})
-    if !isa(F(),Field)
-        return :(error("Field $F should be an instance of field"))
-    elseif ElType != eltype(F())
-        return :(error("ElType $ElType does not match fieldtype $F"))
+@generated function check_Cell{Name, ElType}(::Type{Val{Name}}, ::Type{ElType})
+    if !isa(Name, Symbol)
+        return :(error("Field name $F should be a symbol"))
+    elseif Name == :Row
+        return :( error("Field name cannot be :Row") )
+    elseif !isa(ElType, DataType)
+        return :(error("ElType $ElType should be a data type"))
     else
         return nothing
     end
 end
 
-#Base.show{F,ElType}(io::IO,x::Cell{F,ElType}) = print(io,"$(name(F))=$(compactstring(x.data))")
+Base.(:(==)){Name}(cell1::Cell{Name}, cell2::Cell{Name}) = (cell1.data == cell2.data)
 
-@inline name{F,ElType}(::Cell{F,ElType}) = name(F)
-@inline name{F,ElType}(::Type{Cell{F,ElType}}) = name(F)
-@inline Base.eltype{F,ElType}(::Cell{F,ElType}) = ElType
-@inline Base.eltype{F,ElType}(::Type{Cell{F,ElType}}) = ElType
-@inline Base.length{F,ElType}(::Cell{F,ElType}) = 1
-@inline Base.length{F,ElType}(::Type{Cell{F,ElType}}) = 1
-@inline field{F,ElType}(::Cell{F,ElType}) = F
-@inline field{F,ElType}(::Type{Cell{F,ElType}}) = F
+@inline rename{Name1, Name2, ElType}(x::Cell{Name1, ElType}, ::Type{Val{Name2}}) = Cell{Name2, ElType}(x.data)
 
-@inline samefield{F1,F2}(x::Cell{F1},y::Cell{F2}) = samefield(F1,F2)
-@inline samefield{F1<:Field,F2}(x::F1,y::Cell{F2}) = samefield(F1(),F2)
-@inline samefield{F1,F2<:Field}(x::Cell{F1},y::F2) = samefield(F1,F2())
+@inline name{Name,ElType}(::Cell{Name,ElType}) = Name
+@inline name{Name}(::Type{Cell{Name}}) = Name
+@inline name{Name,ElType}(::Type{Cell{Name,ElType}}) = Name
+@inline Base.eltype{Name,ElType}(::Cell{Name,ElType}) = ElType
+@inline Base.eltype{Name,ElType}(::Type{Cell{Name,ElType}}) = ElType
+@inline Base.length{Name,ElType}(::Cell{Name,ElType}) = 1
+@inline Base.length{Name,ElType}(::Type{Cell{Name,ElType}}) = 1
 
+@inline nrow(::Cell) = 1
+@inline ncol(::Cell) = 1
+@inline ncol{C <: Cell}(::Type{C}) = 1
 
-Base.start(c::Cell) = false # Same iterators as Julia scalars
-Base.next(c::Cell,i::Bool) = (c,true)
-Base.done(c::Cell,i::Bool) = i
+Base.getindex{Name}(c::Cell{Name}, ::Type{Val{Name}}) = c.data
+Base.getindex{Name1, Name2}(c::Cell{Name1}, ::Type{Val{Name2}}) = error("Tried to index cell of field name :$Name1 with field name :$Name2")
+
+Base.start(c::Cell) = false # Similar iterators as Julia scalars
+Base.next(c::Cell, i::Bool) = (c.data, true)
+Base.done(c::Cell, i::Bool) = i
 Base.endof(c::Cell) = 1
-@generated function Base.getindex{F1,F2<:Field,ElType}(c::Cell{F1,ElType},::F2)
-    if F1 == F2()
-        return :(c.data)
-    else
-        str = "Tried to index cell of field $F1 with field $(F2())"
-        return :(error($str))
-    end
-end
-Base.getindex(c::Cell,i::Int) = ((i == 1) ? c : throw(BoundsError())) # throw(BoundsError()) # This matches the behaviour of other scalars in Julia
 
-#@inline rename{OldName,ElType,NewName}(x::Cell{F,ElType},::F2) = rename(x,F1,F2())
+Base.getindex(c::Cell) = c.data
+Base.getindex(c::Cell, i::Integer) = ((i == 1) ? c.data : throw(BoundsError())) # This matches the behaviour of other scalars in Julia
+Base.getindex(c::Cell, ::Colon) = c
 
-@inline rename{F1,F2<:Field,ElType}(x::Cell{F1,ElType},::F2) = rename(x,F1,F2())
-@inline rename{F1,NewName,ElType}(x::Cell{F1,ElType},::Type{Val{NewName}}) = rename(x,F1,Val{NewName})
-@generated function rename{F1,F1_type,F2<:Field,ElType}(x::Cell{F1,ElType},::F1_type,::F2)
-    if F1_type() == F1 || F1_type == Type{Val{name(F1)}}
-        return :(Cell{$(F2()),ElType}(x.data))
-    else
-        str = "Cannot rename: can't find field $F1"
-        return :(error($str))
-    end
-end
-@generated function rename{F1,F1_type,NewName,ElType}(x::Cell{F1,ElType},::F1_type,::Type{Val{NewName}})
-    if F1_type() == F1 || F1_type == Type{Val{name(F1)}}
-        return :(Cell{$(Field{NewName,ElType}()),$ElType}(x.data))
-    else
-        str = "Cannot rename: can't find field $F1_type"
-        return :(error($str))
-    end
-end
 
 Base.copy{F,ElType}(cell::Cell{F,ElType}) = Cell{F,ElType}(copy(cell.data))
-Base.deepcopy{F,ElType}(cell::Cell{F,ElType}) = Cell{F,ElType}(deepcopy(cell.data))
 
-# Currently @column and @cell do the same thing, by calling field
-macro cell(expr)
+# @Column and @Cell are very similar
+macro Cell(expr)
     if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
-        error("A Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        error("A Expecting expression like @Cell(name::Type = value) or @Cell(name = value)")
     end
     local field
     value = expr.args[2]
-    if isa(expr.args[1],Symbol)
-        field = expr.args[1]
+    if isa(expr.args[1], Symbol)
+        name = expr.args[1]
+        return :( TypedTables.Cell{$(QuoteNode(name))}($(esc(value))) )
     elseif isa(expr.args[1],Expr)
-        if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
-            error("B Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        if expr.args[1].head != :(::) || length(expr.args[1].args) != 2 || !isa(expr.args[1].args[1], Symbol)
+            error("B Expecting expression like @Cell(name::Type = value) or @Cell(name = value)")
         end
-        field = :(TypedTables.Field{$(Expr(:quote,expr.args[1].args[1])),$(expr.args[1].args[2])}())
+        name = expr.args[1].args[1]
+        eltype = expr.args[1].args[2]
+        field = :( TypedTables.Cell{$(QuoteNode(name)), $(esc(eltype))}($(esc(value))) )
     else
-        error("C Expecting expression like @cell(name::Type = value) or @cell(field = value)")
+        error("C Expecting expression like @Cell(name::Type = value) or @Cell(name = value)")
     end
-
-    return :(TypedTables.Cell($(esc(field)),$(esc(value))))
 end

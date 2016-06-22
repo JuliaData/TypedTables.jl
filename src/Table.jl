@@ -2,28 +2,28 @@
 #    Tables
 # ======================================
 
-"""
-AbstractTable{Index,Key} represents tables with a given set of indices (a
-FieldIndex) and a key (either one of the fields in FieldIndex, or else
-DefaultKey(), which represents the intrinsic row number of a table)
-"""
-abstract AbstractTable{Index,Key}
-@inline index{Index,Key}(::AbstractTable{Index,Key}) = Index
-@inline eltypes{Index,Key}(::AbstractTable{Index,Key}) = eltypes(Index)
-@inline Base.names{Index,Key}(::AbstractTable{Index,Key}) = names(Index)
-@inline key{Index,Key}(::AbstractTable{Index,Key}) = Key
-@inline Base.keytype{Index,Key}(::AbstractTable{Index,Key}) = eltype(Key)
-@inline keyname{Index,Key}(::AbstractTable{Index,Key}) = name(Key)
+#"""
+#AbstractTable{Index,Key} represents tables with a given set of indices (a
+#FieldIndex) and a key (either one of the fields in FieldIndex, or else
+#DefaultKey(), which represents the intrinsic row number of a table)
+#"""
+#abstract AbstractTable{Index,Key}
+#@inline index{Index,Key}(::AbstractTable{Index,Key}) = Index
+#@inline eltypes{Index,Key}(::AbstractTable{Index,Key}) = eltypes(Index)
+#@inline Base.names{Index,Key}(::AbstractTable{Index,Key}) = names(Index)
+#@inline key{Index,Key}(::AbstractTable{Index,Key}) = Key
+#@inline Base.keytype{Index,Key}(::AbstractTable{Index,Key}) = eltype(Key)
+#@inline keyname{Index,Key}(::AbstractTable{Index,Key}) = name(Key)
 
 """
-A table stores the data as a vector of row-tuples.
+A table stores columns of data accessible by their field names.
 """
-immutable Table{Index, ElTypes <: Tuple, StorageTypes <: Tuple} <: AbstractTable{Index,DefaultKey()}
+immutable Table{Names, StorageTypes <: Tuple} #<: AbstractTable{Index,DefaultKey()}
     data::StorageTypes
 
-    function Table(data_in, check_sizes::Type{Val{true}} = Val{true})
-        check_table(Index,ElTypes,StorageTypes)
-        ls = map(length,data_in)
+    function Table(data_in::Tuple, check_sizes::Type{Val{true}} = Val{true})
+        check_table(Val{Names}, StorageTypes)
+        ls = map(length, data_in)
         for i in 2:length(data_in)
             if ls[i] != ls[1]
                 error("Column inputs must be same length.")
@@ -32,36 +32,643 @@ immutable Table{Index, ElTypes <: Tuple, StorageTypes <: Tuple} <: AbstractTable
         new(data_in)
     end
 
-    function Table(data_in, check_sizes::Type{Val{false}})
-        check_table(Index,ElTypes,StorageTypes)
+    function Table(data_in::Tuple, check_sizes::Type{Val{false}})
+        check_table(Val{Names}, StorageTypes)
         new(data_in)
     end
 end
 
-@generated function check_table{Index <: FieldIndex, ElTypes <: Tuple, StorageTypes <: Tuple}(::Index,::Type{ElTypes},::Type{StorageTypes})
-    try
-        types = (eltypes(Index).parameters...)
-        given_eltypes = (ElTypes.parameters...)
-        storage_eltypes = ntuple(i->eltype(StorageTypes.parameters[i]), length(StorageTypes.parameters))
-        if types == given_eltypes
-            if types == storage_eltypes
-                return nothing
-            else
-                str = "Storage types $StorageTypes do not match Index $Index"
-                return :(error($str))
-            end
-        else
-            str = "Element types $ElTypes do not match Index $Index"
-            return :(error($str))
+@generated function check_table{Names, Types}(::Type{Val{Names}}, ::Type{Types})
+    if !isa(Names, Tuple) || eltype(Names) != Symbol || length(Names) != length(unique(Names))
+        str = "Table parameter 1 (Names) is expected to be a tuple of unique symbols, got $Names"
+        return :(error($str))
+    end
+    if :Row ∈ Names
+        return :( error("Field name cannot be :Row") )
+    end
+    N = length(Names)
+    if length(Types.parameters) != N || reduce((a,b) -> a | !isa(b, DataType), false, Types.parameters)
+        str = "Table parameter 2 (Types) is expected to be a Tuple{} of $N DataTypes, got $Types"
+        return :(error($str))
+    end
+    for j = 1:N
+        if eltype(Types.parameters[j]) == Types.parameters[j]
+            warn("Column :$(Names[j]) storage type $(Types.parameters[j]) doesn't appear to be a storage container")
         end
-    catch
-        return :(error("Error with table parameters"))
+    end
+
+    return nothing
+end
+
+@generated function Base.call{Names, CheckSizes}(::Type{Table{Names}}, data::Tuple, ::Type{Val{CheckSizes}} = Val{true})
+    if !isa(Names, Tuple) || eltype(Names) != Symbol || length(Names) != length(unique(Names))
+        str = "Table parameter 1 (Names) is expected to be a tuple of unique symbols, got $Names"
+        return :(error($str))
+    end
+
+    if length(Names) == length(data.parameters)
+        return quote
+            $(Expr(:meta,:inline))
+            Table{Names, $data}(data, Val{CheckSizes})
+        end
+    else
+        return :(error("Can't construct Table with $(length(Names)) columns with input $data"))
     end
 end
 
-function check_table(a,b)
-    error("Error with table parameters")
+@generated function call{Names, StorageTypes <: Tuple}(::Type{Table{Names,StorageTypes}})
+    exprs = [:($(StorageTypes.parameters[j])()) for j = 1:length(Names)]
+    return Expr(:call, Table{Names, StorageTypes}, Expr(:tuple, exprs...))
 end
+
+
+# TODO think about conversions...
+Base.call{Names, Types, Types_new}(::Type{Table{Names,Types_new}}, t::Table{Names,Types}) = convert(Table{Names,Types_new}, t)
+@generated function Base.convert{Names, Names_new, Types, Types_new <: Tuple}(::Type{Table{Names_new,Types_new}}, t::Table{Names,Types})
+    if !isa(Names_new, Tuple) || eltype(Names_new) != Symbol || length(Names_new) != length(Names) || length(Names_new) != length(unique(Names_new))
+        str = "Cannot convert $(length(Names)) columns to new names $(Names_new)."
+        return :(error($str))
+    end
+    if length(Types_new.parameters) != length(Types.parameters)
+        str = "Cannot convert $(length(Types.pareters)) columns to $(length(Types_new.parameters)) new types."
+        return :(error($str))
+    end
+    exprs = [:(convert(Types_new.parameters[$j], t.data[$j])) for j = 1:length(Names)]
+    return Expr(:call, Table{Names_new,Types_new}, Expr(:tuple, exprs...), Val{false})
+end
+
+Base.(:(==)){Names, Types1, Types2}(table1::Table{Names, Types1}, table2::Table{Names, Types2}) = (table1.data == table2.data)
+@generated function Base.(:(==)){Names1, Types1, Names2, Types2}(table1::Table{Names1,Types1}, table2::Table{Names2,Types2})
+    try
+        order = permutator(Names1, Names2)
+        expr = :( table1.data[$(order[1])] == table2.data[1] )
+        for j = 2:length(Names1)
+            expr = Expr(:call, :(&), expr, :( table1.data[$(order[j])] == table2.data[$j] ))
+        end
+        return expr
+    catch
+        return false
+    end
+end
+
+rename{Names, NewNames}(table::Table{Names}, ::Type{Val{NewNames}}) = Table{NewNames}(table.data)
+
+@generated function rename{Names, OldName, NewName}(t::Table{Names}, ::Type{Val{OldName}}, ::Type{Val{NewName}})
+    j = columnindex(Names, OldName)
+
+    NewNames = [Names...]
+    NewNames[j] = NewName
+    NewNames = (NewNames...)
+
+    return :(Table{$NewNames}(t.data, Val{false}))
+end
+
+@inline Base.names{Names}(::Table{Names}) = Names
+@inline Base.names{Names, Types <: Tuple}(::Type{Table{Names,Types}}) = Names
+@inline Base.names{Names}(::Type{Table{Names}}) = Names
+@generated function eltypes{Names, Types}(::Union{Table{Names,Types}, Type{Table{Names,Types}}})
+    elem_types = map(eltype, Types.parameters)
+    quote
+        $(Expr(:meta, :inline))
+        $(Expr(:curly, :Tuple, elem_types...))
+    end
+end
+@inline storagetypes{Names, Types <: Tuple}(::Table{Names,Types}) = Types
+@inline storagetypes{Names, Types <: Tuple}(::Type{Table{Names,Types}}) = Types
+
+@inline nrow(t::Table) = length(t.data[1])
+@inline ncol{Names}(::Table{Names}) = length(Names)
+@inline ncol{Names,Types}(::Type{Table{Names,Types}}) = length(Names)
+@inline ncol{Names}(::Type{Table{Names}}) = length(Names)
+
+#############################################################################
+# Indexing columns
+#############################################################################
+@generated function Base.getindex{Names, GetName}(t::Table{Names}, ::Type{Val{GetName}})
+    if isa(GetName, Symbol)
+        if GetName == :Row
+            return quote
+                $(Expr(:meta, :inline))
+                1:nrow(t)
+            end
+        end
+
+        j = columnindex(Names, GetName)
+
+        return quote
+            $(Expr(:meta, :inline))
+            t.data[$j]
+        end
+    elseif isa(GetName, Tuple)
+        inds = columnindex(Names, GetName)
+        exprs = [:(t.data[$(inds[j])]) for j = 1:length(inds)]
+        expr = Expr(:call, Table{GetName}, Expr(:tuple, exprs...))
+
+        return quote
+            $(Expr(:meta, :inline))
+            $expr
+        end
+    else
+        str = "Can't get column(s) named $Name"
+        return :(error($str))
+    end
+end
+
+
+#############################################################################
+# iterating over rows
+#############################################################################
+
+# TODO don't assume all containers are compatible with each other... (e.g. different implementations of dictionaries).
+# Probably should define some kind of table key for this
+
+# TODO very strong assumption about columns being of same length. Probably
+# should check in start? And hope the user doesn't change the column sizes
+# differently? Or do the safe thing and get the user to wrap it in @inbounds??
+
+Base.start(t::Table) = 1
+@generated function Base.next{Names}(t::Table{Names}, state)
+    exprs = [:(Base.unsafe_getindex(t.data[$i],state)) for i = 1:length(Names)]
+    return Expr(:tuple, Expr(:call, Row{Names}, Expr(:tuple, exprs...)), :(state + 1))
+end
+Base.done(t::Table, state) = state > nrow(t)
+
+
+#############################################################################
+# indexing rows
+#############################################################################
+
+@inline Base.length(t::Table) = nrow(t)
+@inline Base.endof(t::Table) = nrow(t)
+@inline Base.size(t::Table) = (nrow(t),)
+@inline Base.size(t::Table, i::Integer) = i == 1 ? nrow(t) : error("Tables are one-dimensional storage containers of Rows. Consider using `ncol()`")
+@inline Base.ndims(t::Table) = 1
+@inline Base.isempty(t::Table) = isempty(t.data[1])
+
+# head/tail
+function head(t::Table, n = 5)
+    if nrow(t) <= n
+        return t
+    else
+        return t[1:n]
+    end
+end
+
+function tail(t::Table, n = 5)
+    if nrow(t) <= n
+        return t
+    else
+        return t[end-n+1:end]
+    end
+end
+
+
+@generated function Base.getindex{Names}(t::Table{Names}, i::Integer)
+    exprs = [:(getindex(t.data[$c], i)) for c = 1:length(Names)]
+    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
+end
+@generated function Base.getindex{Names}(t::Table{Names}, inds)
+    exprs = [:(getindex(t.data[$c], inds)) for c = 1:length(Names)]
+    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
+end
+Base.getindex{Names}(t::Table{Names}, ::Colon) = t
+
+@generated function Base.setindex!{Names1,Names2}(t::Table{Names1}, v::Row{Names2}, i::Integer)
+    if Names1 == Names2
+        exprs = [:(setindex!(t.data[$c], v.data[$c], i)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    else
+        if length(Names1) != length(Names2)
+            str = "Cannot assign $(length(v.parameters)) columns to $(length(Names)) columns"
+            return :(error($str))
+        end
+
+        order = permutator(Names1, Names2)
+        exprs = [:(setindex!(t.data[$(order[c])], v.data[$c], i)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    end
+end
+@generated function Base.setindex!{Names}(t::Table{Names}, v::Tuple, i)
+    if length(v.parameters) != length(Names)
+        str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
+        return :(error($str))
+    end
+    exprs = [:(setindex!(t.data[$c], v.data[$c], i)) for c = 1:length(Names)]
+    return Expr(:block, exprs...)
+end
+@generated function Base.setindex!{Names1,Names2}(t::Table{Names1}, v::Table{Names2}, inds)
+    if Names1 == Names2
+        exprs = [:(setindex!(t.data[$c], v.data[$c], inds)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    else
+        if length(Names1) != length(Names2)
+            str = "Cannot assign $(length(v.parameters)) columns to $(length(Names)) columns"
+            return :(error($str))
+        end
+
+        order = permutator(Names1, Names2)
+        exprs = [:(setindex!(t.data[$(order[c])], v.data[$c], inds)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    end
+end
+
+
+@generated function Base.unsafe_getindex{Names}(t::Table{Names}, i::Integer)
+    exprs = [:(Base.unsafe_getindex(t.data[$c], i)) for c = 1:length(Names)]
+    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
+end
+@generated function Base.unsafe_getindex{Names}(t::Table{Names}, inds)
+    exprs = [:(Base.unsafe_getindex(t.data[$c], inds)) for c = 1:length(Names)]
+    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
+end
+
+@generated function Base.unsafe_setindex!{Names1,Names2}(t::Table{Names1}, v::Row{Names2}, i::Integer)
+    if Names1 == Names2
+        exprs = [:(Base.unsafe_setindex!(t.data[$c], v.data[$c], i)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    else
+        if length(Names1) != length(Names2)
+            str = "Cannot assign $(length(v.parameters)) columns to $(length(Names)) columns"
+            return :(error($str))
+        end
+
+        order = permutator(Names1, Names2)
+        exprs = [:(Base.unsafe_setindex!(t.data[$(order[c])], v.data[$c], i)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    end
+end
+@generated function Base.unsafe_setindex!{Names}(t::Table{Names}, v::Tuple, i)
+    if length(v.parameters) != length(Names)
+        str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
+        return :(error($str))
+    end
+    exprs = [:(Base.unsafe_setindex!(t.data[$c], v.data[$c], i)) for c = 1:length(Names)]
+    return Expr(:block, exprs...)
+end
+@generated function Base.unsafe_setindex!{Names1,Names2}(t::Table{Names1}, v::Table{Names2}, inds)
+    if Names1 == Names2
+        exprs = [:(Base.unsafe_setindex!(t.data[$c], v.data[$c], inds)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    else
+        if length(Names1) != length(Names2)
+            str = "Cannot assign $(length(v.parameters)) columns to $(length(Names)) columns"
+            return :(error($str))
+        end
+
+        order = permutator(Names1, Names2)
+        exprs = [:(Base.unsafe_setindex!(t.data[$(order[c])], v.data[$c], inds)) for c = 1:length(Names1)]
+        return Expr(:block, exprs...)
+    end
+end
+
+
+#############################################################################
+# Indexing with two variables
+#############################################################################
+
+@generated function Base.getindex{Names, GetName}(t::Table{Names}, rowinds, ::Type{Val{GetName}})
+    if isa(GetName, Symbol)
+        if GetName == :Row
+            return quote
+                $(Expr(:meta, :inline))
+                (1:nrow(t))[rowinds]
+            end
+        end
+
+        j = columnindex(Names, GetName)
+
+        return quote
+            $(Expr(:meta, :inline))
+            t.data[$j][rowinds]
+        end
+    elseif isa(GetName, Tuple) && eltype(GetName) == Symbol && length(GetName) == length(unique(GetName))
+        inds = columnindex(Names, GetName)
+        exprs = [:(t.data[$(inds[j])][rowinds]) for j = 1:length(inds)]
+        if rowinds <: Integer
+            expr = Expr(:call, Row{GetName}, Expr(:tuple, exprs...))
+        else
+            expr = Expr(:call, Table{GetName}, Expr(:tuple, exprs...))
+        end
+
+        return quote
+            $(Expr(:meta, :inline))
+            $expr
+        end
+    else
+        str = "Can't get column(s) named $Name"
+        return :(error($str))
+    end
+end
+
+@generated function Base.unsafe_getindex{Names, GetName}(t::Table{Names}, rowinds, ::Type{Val{GetName}})
+    if isa(GetName, Symbol)
+        if GetName == :Row
+            return quote
+                $(Expr(:meta, :inline))
+                Base.unsafe_getindex(1:nrow(t), rowinds)
+            end
+        end
+
+        j = columnindex(Names, GetName)
+
+        return quote
+            $(Expr(:meta, :inline))
+            Base.unsafe_getindex(t.data[$j], rowinds)
+        end
+    elseif isa(GetName, Tuple) && eltype(GetName) == Symbol && length(GetName) == length(unique(GetName))
+        inds = columnindex(Names, GetName)
+        exprs = [:(Base.unsafe_getindex(t.data[$(inds[j])], rowinds)) for j = 1:length(inds)]
+        if rowinds <: Integer
+            expr = Expr(:call, Row{GetName}, Expr(:tuple, exprs...))
+        else
+            expr = Expr(:call, Table{GetName}, Expr(:tuple, exprs...))
+        end
+
+        return quote
+            $(Expr(:meta, :inline))
+            $expr
+        end
+    else
+        str = "Can't get column(s) named $Name"
+        return :(error($str))
+    end
+end
+
+@generated function Base.setindex!{Names, GetName}(t::Table{Names}, value, rowinds, ::Type{Val{GetName}})
+    if isa(GetName, Symbol)
+        j = columnindex(Names, GetName)
+        if value <: Union{Cell, Column}
+            return quote
+                $(Expr(:meta, :inline))
+                t.data[$j][rowinds] = value.data
+            end
+        else
+            return quote
+                $(Expr(:meta, :inline))
+                t.data[$j][rowinds] = value
+            end
+        end
+    elseif isa(GetName, Tuple) && eltype(GetName) == Symbol && length(GetName) == length(unique(GetName))
+        inds = columnindex(Names, GetName)
+        if value <: Union{Row, Table}
+            order = permutator(names(value), GetName)
+            exprs = [:(t.data[$(inds[j])][rowinds] = value.data[$(order[j])]) for j = 1:length(inds)]
+            return Expr(:block, Expr(:meta, :inline), exprs...)
+        elseif value <: Tuple && length(value.parameters) == length(inds)
+            exprs = [:(t.data[$(inds[j])][rowinds] = value[$j]) for j = 1:length(inds)]
+            return Expr(:block, Expr(:meta, :inline), exprs...)
+        else
+            str = "Can't set columns $GetName with a $value"
+            return :(error($str))
+        end
+    else
+        str = "Can't set column(s) named $Name"
+        return :(error($str))
+    end
+end
+
+@generated function Base.unsafe_setindex!{Names, GetName}(t::Table{Names}, value, rowinds, ::Type{Val{GetName}})
+    if isa(GetName, Symbol)
+        j = columnindex(Names, GetName)
+        if value <: Union{Cell, Column}
+            return quote
+                $(Expr(:meta, :inline))
+                Base.unsafe_setindex!(t.data[$j], value.data, rowinds)
+            end
+        else
+            return quote
+                $(Expr(:meta, :inline))
+                Base.unsafe_setindex!(t.data[$j], value, rowinds)
+            end
+        end
+    elseif isa(GetName, Tuple) && eltype(GetName) == Symbol && length(GetName) == length(unique(GetName))
+        inds = columnindex(Names, GetName)
+        if value <: Union{Row, Table}
+            order = permutator(names(value), GetName)
+            exprs = [:(Base.unsafe_setindex!(t.data[$(inds[j])], value.data[$(order[j])], rowinds)) for j = 1:length(inds)]
+            return Expr(:block, Expr(:meta, :inline), exprs...)
+        elseif value <: Tuple && length(value.parameters) == length(inds)
+            exprs = [:(Base.unsafe_setindex!(t.data[$(inds[j])], value[$j], rowinds)) for j = 1:length(inds)]
+            return Expr(:block, Expr(:meta, :inline), exprs...)
+        else
+            str = "Can't set columns $GetName with a $value"
+            return :(error($str))
+        end
+    else
+        str = "Can't set column(s) named $Name"
+        return :(error($str))
+    end
+end
+
+Base.getindex{Names}(t::Table{Names}, inds, ::Colon) = t[inds]
+Base.unsafe_getindex{Names}(t::Table{Names}, inds, ::Colon) = Base.unsafe_getindex(t, inds)
+Base.setindex!{Names}(t::Table{Names}, value, inds, ::Colon) = Base.setindex!(t, value, inds)
+Base.unsafe_setindex!{Names}(t::Table{Names}, value, inds, ::Colon) = Base.unsafe_setindex!(t, value, inds)
+
+
+
+#############################################################################
+# push, pop, etc
+#############################################################################
+
+@generated function Base.pop!{Names}(t::Table{Names})
+    exprs = [:(pop!(t.data[$c])) for c = 1:length(Names)]
+    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
+end
+
+@generated function Base.shift!{Names}(t::Table{Names})
+    exprs = [:(shift!(t.data[$c])) for c = 1:length(Names)]
+    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
+end
+
+@generated function Base.push!{Names}(t::Table{Names}, v::Tuple)
+    if length(Names) != length(v.parameters)
+        str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
+        return :(error($str))
+    end
+    exprs = [:(push!(t.data[$c], v[$c])) for c = 1:length(Names)]
+    return Expr(:block, exprs..., :t)
+end
+@generated function Base.push!{Names1,Names2}(t::Table{Names1}, r::Row{Names2})
+    order = permutator(Names1, Names2)
+    exprs = [:(push!(t.data[$(order[c])], r.data[$c])) for c = 1:length(Names1)]
+    return Expr(:block, exprs..., :t)
+end
+
+@generated function Base.unshift!{Names}(t::Table{Names}, v::Tuple)
+    if length(Names) != length(v.parameters)
+        str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
+        return :(error($str))
+    end
+    exprs = [:(unshift!(t.data[$c], v[$c])) for c = 1:length(Names)]
+    return Expr(:block, exprs..., :t)
+end
+@generated function Base.unshift!{Names1,Names2}(t::Table{Names1}, r::Row{Names2})
+    order = permutator(Names1, Names2)
+    exprs = [:(unshift!(t.data[$(order[c])], r.data[$c])) for c = 1:length(Names1)]
+    return Expr(:block, exprs..., :t)
+end
+
+@generated function Base.append!{Names}(t::Table{Names}, v::Tuple)
+    if length(Names) != length(v.parameters)
+        str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
+        return :(error($str))
+    end
+    exprs = [:(append!(t.data[$c], v[$c])) for c = 1:length(Names)]
+    return Expr(:block, exprs..., :t)
+end
+@generated function Base.append!{Names1,Names2}(t::Table{Names1}, t2::Table{Names2})
+    order = permutator(Names1, Names2)
+    exprs = [:(append!(t.data[$(order[c])], t2.data[$c])) for c = 1:length(Names1)]
+    return Expr(:block, exprs..., :t)
+end
+
+@generated function Base.prepend!{Names}(t::Table{Names}, v::Tuple)
+    if length(Names) != length(v.parameters)
+        str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
+        return :(error($str))
+    end
+    exprs = [:(prepend!(t.data[$c], v[$c])) for c = 1:length(Names)]
+    return Expr(:block, exprs..., :t)
+end
+@generated function Base.prepend!{Names1,Names2}(t::Table{Names1}, t2::Table{Names2})
+    order = permutator(Names1, Names2)
+    exprs = [:(prepend!(t.data[$(order[c])], t2.data[$c])) for c = 1:length(Names1)]
+    return Expr(:block, exprs..., :t)
+end
+
+@generated function Base.insert!{Names}(t::Table{Names}, i::Integer, v::Tuple)
+    if length(Names) != length(v.parameters)
+        str = "Cannot assign a $(length(v.parameters))-tuple to $(length(Names)) columns"
+        return :(error($str))
+    end
+    exprs = [:(insert!(t.data[$c], i, v[$c])) for c = 1:length(Names)]
+    return Expr(:block, exprs..., :t)
+end
+@generated function Base.insert!{Names1,Names2}(t::Table{Names1}, i::Integer, r::Row{Names2})
+    order = permutator(Names1, Names2)
+    exprs = [:(insert!(t.data[$(order[c])], i, r.data[$c])) for c = 1:length(Names1)]
+    return Expr(:block, exprs..., :t)
+end
+
+@generated function Base.empty!{Names}(t::Table{Names})
+    exprs = [:(empty!(t.data[$c])) for c = 1:length(Names)]
+    return Expr(:block, exprs..., :t)
+end
+
+@generated function Base.deleteat!{Names}(t::Table{Names}, i)
+    exprs = [:(deleteat!(t.data[$c], i)) for c = 1:length(Names)]
+    return Expr(:block, exprs..., :t)
+end
+
+@generated function Base.splice!{Names}(t::Table{Names}, i::Integer)
+    exprs = [:(splice!(t.data[$c], i)) for c = 1:length(Names)]
+    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
+end
+@generated function Base.splice!{Names}(t::Table{Names}, i::Integer, v::Tuple)
+    exprs = [:(splice!(t.data[$c], i, v[$c])) for c = 1:length(Names)]
+    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
+end
+@generated function Base.splice!{Names1,Names2}(t::Table{Names1}, i::Integer, v::Union{Row{Names2},Table{Names2}})
+    order = permutator(Names2, Names1)
+    exprs = [:(splice!(t.data[$c], i, v.data[$(order[c])])) for c = 1:length(Names1)]
+    return Expr(:call, Row{Names1}, Expr(:tuple, exprs...))
+end
+@generated function Base.splice!{Names}(t::Table{Names}, i)
+    exprs = [:(splice!(t.data[$c], i)) for c = 1:length(Names)]
+    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
+end
+@generated function Base.splice!{Names}(t::Table{Names}, i, v::Tuple)
+    exprs = [:(splice!(t.data[$c], i, v[$c])) for c = 1:length(Names)]
+    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
+end
+@generated function Base.splice!{Names1,Names2}(t::Table{Names1}, i, v::Union{Row{Names2},Table{Names2}})
+    order = permutator(Names2, Names1)
+    exprs = [:(splice!(t.data[$c], i, v.data[$(order[c])])) for c = 1:length(Names1)]
+    return Expr(:call, Table{Names1}, Expr(:tuple, exprs...))
+end
+
+# Vertically concatenate rows and tables into tables
+@generated function Base.vcat{Names}(t1::Union{Row{Names}, Table{Names}})
+    exprs = [:(vcat(t1.data[$c])) for c = 1:length(Names)]
+    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
+end
+
+# TODO still problem with mixed Row-Table vcat inherited from Base scalar-Vector vcat
+@generated function Base.vcat{Names1, Names2}(t1::Union{Row{Names1}, Table{Names1}}, t2::Union{Row{Names2}, Table{Names2}})
+    if Names1 == Names2
+        exprs = [:(vcat(t1.data[$c], t2.data[$c])) for c = 1:length(Names1)]
+        return Expr(:call, Table{Names1}, Expr(:tuple, exprs...))
+    else
+        if length(Names1) != length(Names2)
+            str = "Cannot match $(length(v.parameters)) columns to $(length(Names)) columns"
+        end
+
+        order = permutator(Names1, Names2)
+        exprs = [:(vcat(t1.data[$c], t2.data[$(order[c])])) for c = 1:length(Names1)]
+        return Expr(:call, Table{Names1}, Expr(:tuple, exprs...))
+    end
+end
+
+Base.vcat{Names1, Names2}(t1::Union{Row{Names1}, Table{Names1}}, t2::Union{Row{Names2}, Table{Names2}}, ts::Union{Row, Table}...) = vcat(vcat(t1, t2), ts...)
+
+# Horizontally concatenate columns and tables into tables
+@generated Base.hcat{Name}(c::Column{Name}) = :( Table{$((Name,))}((c.data,)) )
+Base.hcat(t::Table) = t
+
+@generated function Base.hcat(r1::Union{Column,Table}, r2::Union{Column,Table})
+    names1 = (r1 <: Column ? (name(r1),) : names(r1))
+    names2 = (r2 <: Column ? (name(r2),) : names(r2))
+
+    if length(intersect(names1, names2)) != 0
+        str = "Column names are not distinct. Got $names1 and $names2"
+        return :(error($str))
+    end
+
+    newnames = (names1..., names2...)
+    exprs1 = r1 <: Column ? [:(r1.data)] : [:(r1.data[$j]) for j = 1:length(names1)]
+    exprs2 = r2 <: Column ? [:(r2.data)] : [:(r2.data[$j]) for j = 1:length(names2)]
+    exprs = vcat(exprs1, exprs2)
+
+    return Expr(:call, Table{newnames}, Expr(:tuple, exprs...))
+end
+
+Base.hcat(t1::Union{Column,Table}, t2::Union{Column,Table}, ts::Union{Column,Table}...) = hcat(hcat(t1, t2), ts...)
+
+# copy
+@generated function Base.copy{Names}(t::Table{Names})
+    exprs = [:(copy(t.data[$j])) for j = 1:length(Names)]
+    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
+end
+
+macro Table(exprs...)
+    N = length(exprs)
+    names = Vector{Any}(N)
+    values = Vector{Any}(N)
+    for i = 1:N
+        expr = exprs[i]
+        if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
+            error("A Expecting expression like @Table(name1::Type1 = value1, name2::Type2 = value2) or @Table(name1 = value1, name2 = value2)")
+        end
+        if isa(expr.args[1],Symbol)
+            names[i] = (expr.args[1])
+            values[i] = esc(expr.args[2])
+        elseif isa(expr.args[1],Expr)
+            if expr.args[1].head != :(::) || length(expr.args[1].args) != 2
+                error("A Expecting expression like @Table(name1::Type1 = value1, name2::Type2 = value2) or @Table(name1 = value1, name2 = value2)")
+            end
+            names[i] = (expr.args[1].args[1])
+            values[i] = esc(Expr(:call, :convert, expr.args[1].args[2], expr.args[2]))
+        else
+            error("A Expecting expression like @Table(name1::Type1 = value1, name2::Type2 = value2) or @Table(name1 = value1, name2 = value2)")
+        end
+    end
+
+    tabletype = TypedTables.Table{(names...)}
+    return Expr(:call, tabletype, Expr(:tuple, values...))
+end
+
+#=
 
 @generated Table{Index<:FieldIndex,StorageTypes<:Tuple}(::Index,data_in::StorageTypes,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$StorageTypes}(data_in,check_sizes) )
 @generated Table{Index<:FieldIndex}(::Index,check_sizes::Union{Type{Val{true}},Type{Val{false}}} = Val{true}) = :(Table{$(Index()),$(eltypes(Index)),$(makestoragetypes(eltypes(Index)))}(instantiate_tuple($(makestoragetypes(eltypes(Index)))),check_sizes) )
@@ -515,3 +1122,5 @@ Base.next{Index,ElTypes,StorageTypes}(::TableKey{Index,ElTypes,StorageTypes},i::
 Base.done{Index,ElTypes,StorageTypes}(k::TableKey{Index,ElTypes,StorageTypes},i::Int) = (i-1) == length(k.parent.x)
 Base.show(io::IO,k::TableKey) = show(io::IO,1:length(k.parent.x))
 Base.copy(k::TableKey) = 1:length(k)
+
+=#

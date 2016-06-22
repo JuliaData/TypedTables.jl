@@ -1,3 +1,91 @@
+
+# First lets define a fast natural inner join, before worrying about other kinds
+# of joins.
+
+# Our initial implementation will use a simple hashing algorithm
+@generated function Base.join{Names1, Names2}(t1::Table{Names1}, t2::Table{Names2})
+    int_names = (intersect(Names1, Names2)...)
+    int_indices = collect(columnindex(Names1, int_names))
+    int_types = Expr(:curly, :Tuple, eltypes(t1).parameters[int_indices]...)
+
+    quote
+        # Make a hashmap of the overlapping part of t1, indicating the relevant
+        # rows`
+        hashmap = Dict{Row{$int_names, $int_types}, Vector{Int}}()
+        for i1 = 1:nrow(t1)
+            @inbounds int_row = t1[i1, Val{$int_names}]
+            if haskey(hashmap, int_row) # Can we avoid querying twice?
+                push!(hashmap[int_row], i1)
+            else
+                hashmap[int_row] = [i1]
+            end
+        end
+
+        # Make an empty output table
+        out = jointype(t1, t2)()
+
+        # Now see if t2 overlaps with the hashmap and push onto the solution as
+        # appropriate
+        for i2 = 1:nrow(t2)
+            @inbounds int_row = t2[i2, Val{$int_names}]
+            if haskey(hashmap, int_row)
+                for i1 in hashmap[int_row]
+                    # Combine matching rows and push onto output table
+                    push!(out, joinrow(t1[i1], t2[i2]))
+                end
+            end
+        end
+        return out
+    end
+end
+
+@generated function jointype{Names1,Types1,Names2,Types2}(t1::Table{Names1,Types1}, t2::Table{Names2,Types2})
+    names_ab = (intersect(Names1, Names2)...)
+    indices_ab = collect(columnindex(Names1, names_ab))
+    types_ab = storagetypes(t1).parameters[indices_ab]
+
+    names_a = (setdiff(Names1, Names2)...)
+    indices_a = collect(columnindex(Names1, names_a))
+    types_a = storagetypes(t1).parameters[indices_a]
+
+    names_b = (setdiff(Names2, Names1)...)
+    indices_b = collect(columnindex(Names2, names_b))
+    types_b = storagetypes(t2).parameters[indices_b]
+
+    new_names = (names_ab..., names_a..., names_b...)
+    new_types = Expr(:curly, :Tuple, types_ab..., types_a..., types_b...)
+
+    return :(Table{$new_names, $new_types})
+end
+
+
+@generated function joinrow{Names1,Types1,Names2,Types2}(r1::Row{Names1,Types1}, r2::Row{Names2,Types2})
+    names_ab = (intersect(Names1, Names2)...)
+    indices_ab = collect(columnindex(Names1, names_ab))
+    types_ab = eltypes(r1).parameters[indices_ab]
+
+    names_a = (setdiff(Names1, Names2)...)
+    indices_a = collect(columnindex(Names1, names_a))
+    types_a = eltypes(r1).parameters[indices_a]
+
+    names_b = (setdiff(Names2, Names1)...)
+    indices_b = collect(columnindex(Names2, names_b))
+    types_b = eltypes(r2).parameters[indices_b]
+
+    new_names = (names_ab..., names_a..., names_b...)
+    new_types = Expr(:curly, :Tuple, types_ab..., types_a..., types_b...)
+
+    exprs = vcat([:(r1.data[$(indices_ab[j])]) for j = 1:length(indices_ab)],
+                 [:(r1.data[$(indices_a[j])]) for j = 1:length(indices_a)],
+                 [:(r2.data[$(indices_b[j])]) for j = 1:length(indices_b)])
+
+    return Expr(:call, :(Row{$new_names, $new_types}), Expr(:tuple, exprs...))
+end
+
+
+
+
+#=
 # Built-in join types
 abstract AbstractJoin
 immutable InnerJoin <: AbstractJoin; end
@@ -48,40 +136,48 @@ performed individually on each element of the row.
 Users may define their own jointype as a subtype of `AbstractJoin` and the
 corresponding method
 
-  `join{Index}(a::Row{Index},b::Row{Index}, jointype)`
+  `join{Names}(a::Row{Names},b::Row{Names}, jointype)`
 
 for joining (the overlapping potion of Rows) with more complex behaviour.
 """
-Base.join{Index}(a::Row{Index}, b::Row{Index}, jointype::AbstractJoin = InnerJoin()) = join(a, b, jointype, isdispatchable(jointype))
+Base.join{Names}(a::Row{Names}, b::Row{Names}, jointype::AbstractJoin = InnerJoin()) = join(a, b, jointype, isdispatchable(jointype))
 
 
-@generated function Base.join{Index}(a::Row{Index}, b::Row{Index}, jointype::AbstractJoin = InnerJoin(), ::DispatchableJoin = DispatchableJoin())
-    expr1 = Vector{Expr}(length(Index))
-    for i = 1:length(Index)
-        expr1[i] = :(if !testjoin(a.data[$i], b.data[$i], jointype); return Nullable{Row{$Index,$(eltypes(Index))}}(); end)
+@generated function Base.join{Names, Types}(a::Row{Names, Types}, b::Row{Names}, jointype::AbstractJoin = InnerJoin(), ::DispatchableJoin = DispatchableJoin())
+    expr1 = Vector{Expr}(length(Names))
+    for i = 1:length(Names)
+        expr1[i] = :(if !testjoin(a.data[$i], b.data[$i], jointype); return Nullable{Row{Names,Types}}(); end)
     end
     expr1 = Expr(:block, expr1...)
 
-    expr2 = Vector{Expr}(length(Index))
-    for i = 1:length(Index)
+    expr2 = Vector{Expr}(length(Names))
+    for i = 1:length(Names)
         expr2[i] = :( dojoin(a.data[$i], b.data[$i], jointype) )
     end
     expr2 = Expr(:tuple, expr2...)
-    :($expr1; Nullable{Row{$Index,$(eltypes(Index))}}(Row{$Index,$(eltypes(Index))}($expr2)) )
+    :($expr1; Nullable{Row{Names,Types}}(Row{Names,Types}($expr2)) )
 end
 
 
-function Base.join(a::Row, b::Row, jointype::AbstractJoin = InnerJoin())
-    idx_a = setdiff(index(a),index(b))
-    idx_ab = intersect(index(a),index(b))
-    idx_b = setdiff(index(b),index(a))
-    idx_out = idx_ab + idx_a + idx_b
+@generated function Base.join(a::Row, b::Row, jointype::AbstractJoin = InnerJoin())
+    idx_a = (setdiff(names(a), names(b))...)
+    idx_ab = (intersect(names(a), names(b))...)
+    idx_b = (setdiff(names(b), names(a))...)
+    idx_out = (idx_ab..., idx_a..., idx_b...)
 
-    tmp = join(a[idx_ab],b[idx_ab],jointype)
-    if isnull(tmp)
-        return Nullable{Row{idx_out,eltypes(idx_out)}}()
-    else
-        return Nullable{Row{idx_out,eltypes(idx_out)}}(hcat(get(tmp),a[idx_a],b[idx_b]))
+    t_a  = eltypes(a).parameters[columnindex(names(a), idx_a)]
+    t_ab = eltypes(a).parameters[columnindex(names(a), idx_ab)]
+    t_b  = eltypes(b).parameters[columnindex(names(b), idx_b)]
+
+    types = Expr(:curly, :Tuple, t_ab..., t_a..., t_b...)
+
+    quote
+        tmp = join(a[Val{$idx_ab}], b[Val{$idx_ab}], jointype)
+        if isnull(tmp)
+            return Nullable{Row{$idx_out, types}}()
+        else
+            return Nullable{Row{$idx_out, types}}(hcat(get(tmp), a[Val{$idx_a}], b[Val{$idx_b}]))
+        end
     end
 end
 
@@ -103,15 +199,20 @@ corresponding method for either (a) `TypedTables.testjoin()` and `TypedTables.do
 individual data elements, or (b) `join()` on `Row`s for more complex behaviour (e.g.
 multi-cell tests).
 """
-function Base.join(a::Table, b::Table, jointype::AbstractJoin = InnerJoin())
-    out = Table(intersect(index(a),index(b)) + setdiff(index(a),index(b)) + setdiff(index(b),index(a)))
-    for i = 1:length(a)
-        for j = 1:length(b)
-            row = join(a[i],b[j],jointype)
-            if !isnull(row)
-                push!(out,get(row))
+@generated function Base.join(a::Table, b::Table, jointype::AbstractJoin = InnerJoin())
+    NewNames = ...
+    NewTypes = ...
+    quote
+        out = Table{$NewNames, $NewTypes}()
+        for i = 1:length(a)
+            for j = 1:length(b)
+                row = join(a[i], b[j], jointype)
+                if !isnull(row)
+                    push!(out, get(row))
+                end
             end
         end
+        return out
     end
-    return out
 end
+=#
