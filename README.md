@@ -32,7 +32,8 @@ since their type-parameter list can become cumbersome. For example, we can
 define a table as:
 
 ```
-julia> t = @table(A::Int64=[1,2,3], B::Float64=[2.0,4.0,6.0])
+julia> t = @Table(A=[1,2,3], B=[2.0,4.0,6.0])
+3-row × 2-column Table:
     ╔═══╤════════╗
 Row ║ A │ B      ║
     ╟───┼────────╢
@@ -43,7 +44,7 @@ Row ║ A │ B      ║
 ```
 
 This object stores a tuple of the two vectors as the `data` field, so that
-`t.data == ([1,2,3],[2.0,4.0,6.0])`. One could access the data directly, or
+`t.data == ([1,2,3], [2.0,4.0,6.0])`. One could access the data directly, or
 one can get each row, column, or cell via indexing.
 
 ## Structure
@@ -54,51 +55,51 @@ one (possibly abstract) data-type and is stored in its own (user-definable) data
 structure, like a `Vector` or `NullableVector`, and the columns making up a
 table must have identical lengths.
 
-The name and type of each column is called a `Field`, and in analogy to Julia
-syntax for type fields, we can define them by `@field(Name::Type)`. The macro
-produces an instance of a singleton type, like `@field(A::Int64) == Field{:A,Int64}()`.
-These fields are used for multiple tasks, such as indexing or adding a new
-column to a table. Returning to our earlier example, we can extract the `A`
-column from `t` via `a[@field(A::Int64)] == [1,2,3]`. Of course, we could also
-keep our fields in scope as objects, for convenience:
+The name of each column (sometimes called the field name) is a `Symbol`, stored
+as a type parameter of the `Table` (as a tuple of `Symbol`s). The name `Symbol`s
+are then used for things like indexing. However, so that Julia can determine the
+type of the column(s) you wish yo extract, you need to index with a `Val` type.
+Returning to our earlier example, we can extract the `:A`
+column from `t` via `a[Val{:A}] == [1,2,3]`. One possible way to avoid this
+notation is to define field name objects as Julia variables for convenience (but
+of course this is not necessary):
+```julia
+A = Val{:A}
+B = Val{:B}
+t = @Table(A=[1,2,3], B=[2.0,4.0,6.0]) # "A" does not refer to the variable bound above - the macro converts it to a Symbol
+...
+t[A]
+```
 
-    A = @field(A::Int64)
-    B = @field(B::Float64)
-    t = @table(A=[1,2,3], B=[2.0,4.0,6.0]) # Note: uses identifier here for the fields - will error without the above 2 lines
-    ...
-    t[A]
-
-By default, indexing a table this way will return a view, not a copy, of the
-data. If you don't want to modify your original table when you mutate your
-extracted column, it is better to call `copy(t[A])`
+By default, indexing the columns of a table this way will return a view, not a
+copy, of the data. If you don't want to modify your original table when you
+mutate your extracted column, it is better to call `copy(t[Val{:A}])`
 
 Indexing a table by an integer (or range, etc) will return a single `Row` of the
 table (or a `Table` containing the indicated rows). The `Row` type retains the
-information of the names and types of the fields, so that it too can be indexed.
+information of the names and types of the fields.
 You can access the row's data via the `row.data` field or via indexing with the
-corresponding `Field`.
+corresponding `Val{:name}`.
 
-A single element of a table is called a `Cell`, and contains the `Field` of the
-corresponding `Column` as well as a single piece of data, and can be constructed
-by the macro `@cell`:
-
-    @cell(A::Int64=1)
+A single element of a table is called a `Cell`, and is essentially a decorated,
+single piece of data, and can be constructed by the macro `@Cell`:
+```julia
+@Cell(A=1)
+```
 
 `Cell`s can be concatenated into `Column`s via `vcat` and `Row`s via `hcat`, and
 similarly for building `Table`s out of `Column`s and/or `Row`s.
 
-Both `Table`s and `Row`s have multiple `Field`s, which
-are stored in another singleton container called a `FieldIndex`, which can be
-constructed by the `@index` macro:
-
-    idx = @index(A::Int64, B::Float64)
-
-An empty table could be created with just it's index, e.g. `t = Table(idx)`. By
-default, this will use `Vector`s for most data types to store the columns,
-except for `Nullable` data which will utilize `NullableVector`s for efficiency.
-The user can build a table using any data storage container, so long as they
-support the access methods they will use (e.g. indexing, iteration, etc. In the
-case of iteration, the various containers must share the same iteration states).
+An empty table could be created with just it's names and types, e.g.
+`t = Table{(:A,:B), Tuple{Vector{Int},Vector{Float64}}}()`. For example, you
+might want to use `Vector`s for most data types to store the columns, or you
+might choose to use `NullableVector`s for efficiency storage of columns which
+may contain missing values. The user can build a table using any data storage
+container, so long as they support the access methods used (more-or-less the
+`AbstractVector` interface). For convenience, types can be annotated in the
+macro invocation, e.g: `@Row(A::Int = 1, B::Float64 = 2)`, which will
+automatically convert the second field to a `Float64` (similarly for `@Cell`,
+`@Column` and `@Table`).
 
 ## Details
 
@@ -106,28 +107,21 @@ Feel free to skip this section, since the details are not necessarily important
 for usage.
 
 This package makes extensive use of Julia's type system to annotate a collection
-with field names and types. Currently, the most basic unit is the `Field`, which
-is an *instance* of the singleton type `Field{:name, Type}()`, and will appear
-to the user at the REPL in a Julia-like form `name::Type`.
+with field names and types.
+`Column`s and `Cell`s are annotated by a single `Symbol` and data type, so that
+`@Cell(A::Int=1)` generates `Cell{:A,Int}(1)`.
+Similarly, `@Column(A=[1,2,3])` will generate
+`Column{:A, Vector{Int}}([1,2,3])`.
 
-Collections of `Field`s are also a unique type, stored as another singleton type
-`FieldIndex{(Field1,...)}()`. They appear on the REPL like a tuple a fields.
+On the other hand, `Row`s and `Table`s are annotated by a tuple of `Symbol`s -
+even in the case that there is a single column. The second type parameter of
+`Row`s and `Table`s is a `Tuple{}` of the elements of the individual fields.
+For `Table`, different storage containers can be used for different fields,
+so long as they obey the same semantics with respect to iterating, indexing,
+etc.
 
-`Column`s and `Cell`s are themselves annotated by a `Field`, for instance
-`@cell(A::Int=1)` generates `Cell{Field{:A,Int},Int}(1)`. Note the additional
-element type given in the type parameters (this may change in the future).
-Similarly, `@column(A::Int=[1,2,3])` will generate
-`Column{Field{:A,Int},Int,Vector{Int}}(1)`. This has a third parameter defining
-the storage type - `Column`s can also accept any storage container other than
-`Vector`, and will intelligently default to `NullableVector` when it is
-constructed from a field with `Nullable` elements.
-
-On the other hand, `Row`s and `Table`s are annotated by a `FieldIndex`. The
-element type of a `Row` is a `Tuple{}` of the elements of the individual fields.
-For `Table`, different storage containers can be used for different fields. Care
-must be taken that each storage container supports the methods of access (e.g.
-iteration via `start`/`next`/`done`, or direct access via `getindex`) that you
-will use to access the `Table`, since they will be broadcast across the columns.
+Finally, both `Column`s and `Table`s provide an extra field name called `:Row`
+which corresponds to the row number of each field. We have that `table[Val{:Row}] = 1:nrow(table)`.
 
 ## Relational algebra
 
@@ -136,45 +130,31 @@ return a `Table`.
 
 ### Selecting columns (a.k.a. relational projection or dplyr's `select`)
 
-#### Indexing columns
+### Indexing columns
 
-Indexing a table with a `FieldIndex` will result in a smaller table. This is
-implemented by copying the *reference* to the associated storage containers, so
-it constitutes a lightweight view. Care must be taken not to e.g. not change the
-number of rows in a subtable, if you want to continue to use the parent table
-(of course, `copy` and `deepcopy` are defined to help with this situation).
+Before, we saw that we can extract the data corresponding to a single column by
+indexing with a `Val{symbol}`. To extract multiple columns and build a new
+table as a subset of existing columns, we can index with a (`Val` of a) tuple
+of `Symbol`s, such as `subtable = table[Val{:A, :C}]`.
 
-One can also index with a `Field` or just a column name with `Val{:name}` to
-obtain the *raw data* from a single column. Indexing with `Val{1}`, etc will
-result in a type-annotated `Column` containing the data, rather than the raw
-storage array.
+#### The `@Select` macro
 
-The `Val`-based indexing can be extended by indexing with a tuple of values
-(either all `Int`, like `Val{(1,2,3)}`, or `Symbol`, like `Val{(:A,:B,:C)}`) to
-return a `Table`, similar to the `FieldIndex` method.
-
-There is also one special column of every `Table`, referenced with the Field
-`DefaultKey()`, and having field name `:Row`. Indexing with this will also
-return the row-number of the record.
-
-#### The `@select` macro
-
-A powerful `@select` macro has been included that can project, rename and
-compute new columns - incorporating the popular R-package `dplyr`s grammer for
+A powerful `@Select` macro has been included that can project, rename and
+compute new columns - incorporating the popular R-package `dplyr`s grammar for
 `select` as well as `mutate`.
 
 The macro is typified by the following example:
 ``` julia
-@select(table, col1, newname = col2, newcol::newtype = col1 -> f(col1))
+@select(table, col1, newname = col2, newcol::neweltype = col1 -> f(col1))
 ```
 Here, we take the column labelled `col1` from the table, unmodified, plus the
 column `col2` taking the new name `newcol` and finally and new column called
-`newcol` of type `newtype` (compulsory syntax unless `newcol` is a field) that
-is calculated from the values of `col1` via the function `f(col1)`. This new
-column is calculated via a comprehension (so generates an `Array{newtype,1}`),
-and almost arbitrary code can be included on the right-hand-side and evaluated
-quickly. On the left-hand-side, more than one column name can be specified in a
-tuple format, e.g. `newcol::newtype = (col1,col2) -> f(col1) + g(col2)`.
+`newcol` with elements of type `newtype` (optional) that is calculated from the
+values of `col1` via the function `f(col1)`. This new column is calculated via
+a comprehension (so generates an `Vector{newtype}`), and almost arbitrary code
+can be included on the right-hand-side and evaluated quickly. On the
+left-hand-side, more than one column name can be specified in a tuple format
+similar to anonymous functions,  e.g. `newcol = (col1,col2) -> f(col1) + g(col2)`.
 
 ### Filtering rows (a.k.a. relational selection or dplyr's `filter`)
 
@@ -182,23 +162,26 @@ tuple format, e.g. `newcol::newtype = (col1,col2) -> f(col1) + g(col2)`.
 
 Basic iteration over and indexing of rows is implemented by default, similar to
 Julia `Array`s. One may create their own function to select the
-rows you wish to keep according to some criteria or tests, for instance passing
-to Julia's inbuilt `filter` a function that takes a `Row` and returns a `Bool`.
+rows you wish to keep according to some criteria or tests, for instance by passing
+to Julia's inbuilt `filter()` a function that takes a `Row` and returns a `Bool`.
 
 #### The `@filter` macro family
 
 For convenience, a macro `@filter` is provided that can apply a series of
 predicates to the data in the table to eliminate rows. Syntax follows the form:
 
-    @filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2)
+```julia
+@filter(table, col1 -> col1 == 1, (col1, col2) -> col1 < col2)
+```
 
 Similar to `@select`, the left of the `->` symbol defines the columns that are
 used in the function to the right. All conditions must be met and are tested via
-short-circuit evaluation (equivalent to a single condition joined by `&&`).
+short-circuit evaluation (exactly equivalent to a single condition joined by `&&`).
 
 Depending on the situation, users may want to create an entirely new table using
-`@filter`, the mutating version `@filter!`, or simply generate a `Vector{Bool}`
-index of the relevant rows as a "view" of the subset using `@filter_mask`.
+`@filter`, or maybe mutate the table with the version `@filter!`, or simply
+generate a `Vector{Bool}` index of the relevant rows as a "view" of the subset
+using `@filter_mask`.
 
 ### Concatenation
 
@@ -209,22 +192,22 @@ appropriate `hcat` or `vcat` command.
 
 Field names may be modified with the `rename` function:
 
-    rename(table, old_field, new_field) # rename a single field
-    rename(table, old_index, new_index) # rename one or more fields
-    rename(table, new_index)            # rename all fields (in order)
-
-However, the new field(s) must have the same type as the previous.     
+```julia
+rename(table, old_name, new_name) # rename a single field
+rename(table, new_names)          # rename all fields (in order)
+```
 
 ### Joins
 
 Two tables can be joined with the syntax
 
-    join(table, table2, [jointype])
+```julia
+join(table1, table2)
+```
 
 The default (and currently only) type of join supported is the natural inner
-join, parameterized by the singleton `InnerJoin()`. In the future, more types
-of joins will be implemented and a convenient framework for users to implement
-their own join tests, etc will be included.
+join, and is performed by hashing the relevant sub-columns of `table1` and
+then comparing them with `table2`.
 
 ### Set operations
 
@@ -242,11 +225,12 @@ and also to minimize the horizontal size of a column when possible (compare row
 "C" to "C_long" below).
 
 ```
-julia> @table(A::Int64 = [1,2,3],
-    B::Float64 = [2.0,4.0,6.0],
-    C::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
-    C_long::Nullable{Bool} = Nullable{Bool}[true,false,Nullable{Bool}()],
-    D::ASCIIString = ["A","ABCD","ABCDEFGHIJKLMNOPQRSTUVWXYZ"])
+julia> @Table(A = [1,2,3],
+              B = [2.0,4.0,6.0],
+              C = Nullable{Bool}[true,false,Nullable{Bool}()],
+              C_long = Nullable{Bool}[true,false,Nullable{Bool}()],
+              D = ["A","ABCD","ABCDEFGHIJKLMNOPQRSTUVWXYZ"])
+3-row × 5-column Table:
     ╔═══╤════════╤═══╤════════╤══════════════════════╗
 Row ║ A │ B      │ C │ C_long │ D                    ║
     ╟───┼────────┼───┼────────┼──────────────────────╢
@@ -265,6 +249,7 @@ appearance:
 
 ```
 julia> @cell(A::Int64=1)
+Cell:
  ┌───┐
  │ A │
  ├───┤
@@ -272,6 +257,7 @@ julia> @cell(A::Int64=1)
  └───┘
 
  julia> @row(A::Int64=1)
+ 1-column Row:
   ╓───╖
   ║ A ║
   ╟───╢
@@ -279,6 +265,7 @@ julia> @cell(A::Int64=1)
   ╙───╜
 
  julia> @column(A::Int64=[1])
+ 1-row Column:
      ╒═══╕
  Row │ A │
      ├───┤
@@ -286,6 +273,7 @@ julia> @cell(A::Int64=1)
      ╘═══╛
 
  julia> @table(A::Int64=[1])
+ 1-row × 1-column Table:
      ╔═══╗
  Row ║ A ║
      ╟───╢
@@ -300,7 +288,7 @@ delimited text files (such as CSV). Currently `readtable` relies on Julia's
 inbuilt `readdlm` function, while `writetable` is a specialized version that
 accepts a variety of keyword arguments for creating the desired output.
 
-Furthermore, `readtable` is overloaded to accept column-dictionary-like opjects,
+Furthermore, `readtable` is overloaded to accept column-dictionary-like objects,
 including `DataFrame`s.
 
 ## Roadmap
@@ -314,9 +302,11 @@ including `DataFrame`s.
 - [x] `@filter` for dplyr-like `filter`.
 - [ ] sort/arrange (probably also *a la* dplyr)
 - [ ] Other types of joins
-- [ ] More support for views, `slice` and `sub`
+- [ ] More support for views, `slice` and `sub` (or `view`)
+- [ ] Make `Table` and `Column` inherit from `AbstractVector{Row{...}}}`
 - [ ] `DenseTable` for row-based storage
 - [ ] `KeyTable` and `DenseKeyTable` for tables that are indexed by a key value
 - [ ] Sorted tables and/or sorting information included with a table
 - [ ] Some way of interacting with SQL-formatted queries and other JuliaStats formalisms (maybe?)
-- [ ] Remove dependence on generated functions via trait-based metaprogramming (probably requires Julia 0.5 `@pure` functions)
+- [ ] Make life easier for users by removing `Val{}` (either advanced constant
+      propagation using `@pure` functions or by generated types for easy field access).
