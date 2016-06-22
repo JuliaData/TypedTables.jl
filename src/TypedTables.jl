@@ -6,7 +6,7 @@ export DefaultKey, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
 export rename, name, eltypes, permutecols, ncol, nrow, head, tail, storagetype, storagetypes
 
-export join, unique!
+export unique!
 
 export readtable, readtable!, writetable
 
@@ -53,7 +53,7 @@ include("Table.jl")
 include("show.jl")
 include("datamacros.jl")
 include("setalgorithms.jl")
-#include("join.jl")
+include("join.jl")
 include("IO.jl")
 
 
