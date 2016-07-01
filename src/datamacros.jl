@@ -87,9 +87,6 @@ macro select(x...)
         end
     end
 
-    dump(exprs, 100)
-    println(exprs)
-
     return Expr(:macrocall, Symbol("@Table"), exprs...)
 end
 
