@@ -1,3 +1,23 @@
+# Not really a "data" macro, but very convenient nonetheless
+macro col(ex...)
+    if length(ex) < 2
+        error("Use @col(table, colname1, ...)")
+    end
+
+    if length(ex) == 2
+        table = ex[1]
+        colname = Expr(:quote,ex[2])
+
+        return esc(:($table[Val{$colname}]))
+    else
+        table = ex[1]
+        colnames = ex[2:end]
+
+        return esc(:($table[Val{$colnames}]))
+    end
+end
+
+# Select, rename and compute columns, returning a new table
 macro select(x...)
     if length(x) == 0 # Is this an error or an empty table?
         return :(error("@select expects a table"))

@@ -45,7 +45,8 @@ Row ║ A │ B      ║
 
 This object stores a tuple of the two vectors as the `data` field, so that
 `t.data == ([1,2,3], [2.0,4.0,6.0])`. One could access the data directly, or
-one can get each row, column, or cell via indexing.
+one can get each row, column, or cell via indexing. One convenient way of
+getting a column is with the `@col` macro, for example `@col(t, A)`
 
 ## Structure
 
@@ -60,9 +61,10 @@ as a type parameter of the `Table` (as a tuple of `Symbol`s). The name `Symbol`s
 are then used for things like indexing. However, so that Julia can determine the
 type of the column(s) you wish yo extract, you need to index with a `Val` type.
 Returning to our earlier example, we can extract the `:A`
-column from `t` via `a[Val{:A}] == [1,2,3]`. One possible way to avoid this
-notation is to define field name objects as Julia variables for convenience (but
-of course this is not necessary):
+column from `t` via `t[Val{:A}] == [1,2,3]`. For convenience, we recommend using
+the `@col` macro, such as `@col(t, A)`, which is a nicer shortcut for the above.
+Another possible workaround to avoid this notation is to define field name
+objects as Julia variables for convenience (but of course this is not necessary):
 ```julia
 A = Val{:A}
 B = Val{:B}
@@ -133,13 +135,15 @@ return a `Table`.
 ### Indexing columns
 
 Before, we saw that we can extract the data corresponding to a single column by
-indexing with a `Val{symbol}`. To extract multiple columns and build a new
-table as a subset of existing columns, we can index with a (`Val` of a) tuple
-of `Symbol`s, such as `subtable = table[Val{:A, :C}]`.
+using the `@col` macro or indexing with a `Val{symbol}`. To extract multiple
+columns and build a new `Table` with a subset of existing columns, we can call
+`@col` with multiple columns (e.g. `subtable = @col(table, A, C)`) or otherwise
+index with a (`Val` of a) tuple of `Symbol`s, such as
+`subtable = table[Val{(:A, :C)}]`.
 
-#### The `@Select` macro
+#### The `@select` macro
 
-A powerful `@Select` macro has been included that can project, rename and
+A powerful `@select` macro has been included that can project, rename and
 compute new columns - incorporating the popular R-package `dplyr`s grammar for
 `select` as well as `mutate`.
 
@@ -300,11 +304,13 @@ including `DataFrame`s.
 - [x] I/O from files and `DataFrame`s (`readtable` and `writetable`)
 - [x] `@select` for dplyr-like `select` and `mutate`
 - [x] `@filter` for dplyr-like `filter`.
+- [ ] inherit from `AbstractTable` in *AbstractTables.jl*
+- [ ] support *DataStreams.jl*
 - [ ] sort/arrange (probably also *a la* dplyr)
 - [ ] Other types of joins
 - [ ] More support for views, `slice` and `sub` (or `view`)
-- [ ] Make `Table` and `Column` inherit from `AbstractVector{Row{...}}}`
-- [ ] `DenseTable` for row-based storage
+- [ ] Make `Table` and `Column` inherit from `AbstractVector{Row{...}}}` (maybe?)
+- [ ] `DenseTable` for row-based storage (a vector of rows)
 - [ ] `KeyTable` and `DenseKeyTable` for tables that are indexed by a key value
 - [ ] Sorted tables and/or sorting information included with a table
 - [ ] Some way of interacting with SQL-formatted queries and other JuliaStats formalisms (maybe?)

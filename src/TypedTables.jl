@@ -11,7 +11,7 @@ export unique!
 export readtable, readtable!, writetable
 
 export @Cell, @Row, @Column, @Table
-export @select, @filter, @filter!, @filter_mask
+export @col, @select, @filter, @filter!, @filter_mask
 
 import Base.(==)
 

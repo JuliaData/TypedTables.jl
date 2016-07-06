@@ -2,6 +2,13 @@
 
 Note: minor changes and bug fixes may be omitted from this document.
 
+### 0.1.1 (6 July 2016)
+
+- New `@col` convenience macro for extracting one or more columns from a table
+  or row.
+
+- Removed unnecessary output used in prior debugging.
+
 ### 0.1.0 (21 June 2016)
 
 - Major overhaul of types to remove complexity of `Field` and `FieldIndex`,
