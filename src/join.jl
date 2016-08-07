@@ -14,11 +14,14 @@
         hashmap = Dict{Row{$int_names, $int_types}, Vector{Int}}()
         for i1 = 1:nrow(t1)
             @inbounds int_row = t1[i1, Val{$int_names}]
-            if haskey(hashmap, int_row) # Can we avoid querying twice?
+            #=
+            if haskey(hashmap, int_row) # Can we avoid querying twice? Yes
                 push!(hashmap[int_row], i1)
             else
                 hashmap[int_row] = [i1]
             end
+            =#
+            push!(get!(hashmap, int_row, Vector{Int}(0)), i1)
         end
 
         # Make an empty output table
