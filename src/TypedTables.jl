@@ -1,6 +1,6 @@
 module TypedTables
 
-using NullableArrays
+using NullableArrays, Compat
 
 export DefaultKey, Cell, Column, Row, Table, DenseTable, KeyTable, DenseKeyTable
 
