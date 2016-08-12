@@ -555,7 +555,7 @@ function Base.show(io::IO, table::Table)
         println(io, "$nrows-row × $ncols-column Table:")
     end
 
-    s = displaysize(io) # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
 
     # First we format all of our output and determine its size
@@ -612,7 +612,7 @@ function Base.showall(io::IO,table::Table)
         println(io, "$nrows-row × $ncols-column Table:")
     end
 
-    s = displaysize(io) # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
 
     # First we format all of our output and determine its size
@@ -651,7 +651,7 @@ function Base.showall(io::IO,table::Table)
 end
 
 function Base.show(io::IO, col::Column)
-    s = displaysize(io) # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
     nrows = length(col)
 
@@ -687,7 +687,7 @@ function Base.show(io::IO, col::Column)
 end
 
 function Base.showall(io::IO, col::Column)
-    s = displaysize(io) # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
     nrows = length(col)
 
     println(io, "$nrows-row Column:")
@@ -721,7 +721,7 @@ function Base.show(io::IO,row::Row)
         return
     end
 
-    s = displaysize(io) # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
     ncols = ncol(row)
 
     println(io, "$ncols-column Row:")
@@ -759,7 +759,7 @@ showall(io::IO, row::Row) = show(io, row) # TODO fix this (row can be too wide)
 function Base.show(io::IO, cell::Cell)
     println(io, "Cell:")
 
-    s = displaysize(io) # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
 
     # First we format all of our output and determine its size
 
