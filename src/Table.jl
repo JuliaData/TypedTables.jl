@@ -98,8 +98,8 @@ end
     return Expr(:call, Table{Names_new,Types_new}, Expr(:tuple, exprs...), Val{false})
 end
 
-Base.:(==){Names, Types1, Types2}(table1::Table{Names, Types1}, table2::Table{Names, Types2}) = (table1.data == table2.data)
-@generated function Base.:(==){Names1, Types1, Names2, Types2}(table1::Table{Names1,Types1}, table2::Table{Names2,Types2})
+@compat Base.:(==){Names, Types1, Types2}(table1::Table{Names, Types1}, table2::Table{Names, Types2}) = (table1.data == table2.data)
+@compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(table1::Table{Names1,Types1}, table2::Table{Names2,Types2})
     try
         order = permutator(Names1, Names2)
         expr = :( table1.data[$(order[1])] == table2.data[1] )
