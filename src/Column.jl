@@ -10,8 +10,8 @@ immutable Column{Name, StorageType}
     end
 end
 
-@inline call{Name, StorageType}(::Type{Column{Name}}, x::StorageType) = Column{Name, StorageType}(x)
-@inline call{Name, StorageType}(::Type{Column{Name,StorageType}}) = Column{Name, StorageType}(StorageType())
+@compat @inline (::Type{Column{Name}}){Name, StorageType}(x::StorageType) = Column{Name, StorageType}(x)
+@compat @inline (::Type{Column{Name,StorageType}}){Name, StorageType}() = Column{Name, StorageType}(StorageType())
 
 Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Column{Name,T1}) = Column{Name,T2}(x.data)
 Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Cell{Name,T1}) = Column{Name,T2}([x.data]) # ??
@@ -28,7 +28,7 @@ Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Cell{Name,T1}) = Column{
 end
 
 
-Base.(:(==)){Name}(col1::Column{Name}, col2::Column{Name}) = (col1.data == col2.data)
+@compat Base.:(==){Name}(col1::Column{Name}, col2::Column{Name}) = (col1.data == col2.data)
 
 @inline rename{Name1, Name2, ElType}(x::Column{Name1, ElType}, ::Type{Val{Name2}}) = Column{Name2, ElType}(x.data)
 

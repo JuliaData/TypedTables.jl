@@ -12,7 +12,7 @@ immutable Cell{Name, ElType}
         new(convert(ElType,x))
     end
 end
-@inline call{Name, ElType}(::Type{Cell{Name}}, x::ElType) = Cell{Name,ElType}(x)
+@compat @inline (::Type{Cell{Name}}){Name, ElType}(x::ElType) = Cell{Name,ElType}(x)
 
 Base.convert{Name, T1, T2}(::Type{Cell{Name, T2}}, x::Cell{Name,T1}) = Cell{Name,T2}(x.data)
 
@@ -28,7 +28,7 @@ Base.convert{Name, T1, T2}(::Type{Cell{Name, T2}}, x::Cell{Name,T1}) = Cell{Name
     end
 end
 
-Base.(:(==)){Name}(cell1::Cell{Name}, cell2::Cell{Name}) = (cell1.data == cell2.data)
+@compat Base.:(==){Name}(cell1::Cell{Name}, cell2::Cell{Name}) = (cell1.data == cell2.data)
 
 @inline rename{Name1, Name2, ElType}(x::Cell{Name1, ElType}, ::Type{Val{Name2}}) = Cell{Name2, ElType}(x.data)
 

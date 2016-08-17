@@ -31,7 +31,7 @@ end
     return nothing
 end
 
-@generated function Base.call{Names}(::Type{Row{Names}}, data::Tuple)
+@compat @generated function (::Type{Row{Names}}){Names}(data::Tuple)
     if !isa(Names, Tuple) || eltype(Names) != Symbol || length(Names) != length(unique(Names))
         str = "Row parameter 1 (Names) is expected to be a tuple of unique symbols, got $Names" # TODO: reinsert colons in symbols?
         return :(error($str))
@@ -47,7 +47,8 @@ end
     end
 end
 
-Base.call{Names, Types, Types_new}(::Type{Row{Names,Types_new}}, r::Row{Names,Types}) = convert(Row{Names,Types_new}, r)
+@compat (::Type{Row{Names,Types_new}}){Names, Types, Types_new}(r::Row{Names,Types}) = convert(Row{Names,Types_new}, r)
+
 @generated function Base.convert{Names, Names_new, Types, Types_new <: Tuple}(::Type{Row{Names_new,Types_new}}, r::Row{Names,Types})
     if !isa(Names_new, Tuple) || eltype(Names_new) != Symbol || length(Names_new) != length(Names) || length(Names_new) != length(unique(Names_new))
         str = "Cannot convert $(length(Names)) columns to new names $(Names_new)."
@@ -61,8 +62,8 @@ Base.call{Names, Types, Types_new}(::Type{Row{Names,Types_new}}, r::Row{Names,Ty
     return Expr(:call, Row{Names_new,Types_new}, Expr(:tuple, exprs...))
 end
 
-Base.(:(==)){Names, Types1, Types2}(row1::Row{Names, Types1}, row2::Row{Names, Types2}) = (row1.data == row2.data)
-@generated function Base.(:(==)){Names1, Types1, Names2, Types2}(row1::Row{Names1,Types1}, row2::Row{Names2,Types2})
+@compat Base.:(==){Names, Types1, Types2}(row1::Row{Names, Types1}, row2::Row{Names, Types2}) = (row1.data == row2.data)
+@compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(row1::Row{Names1,Types1}, row2::Row{Names2,Types2})
     try
         order = permutator(Names1, Names2)
         expr = :( row1.data[$(order[1])] == row2.data[1] )

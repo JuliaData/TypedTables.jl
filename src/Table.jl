@@ -60,7 +60,7 @@ end
     return nothing
 end
 
-@generated function Base.call{Names, CheckSizes}(::Type{Table{Names}}, data::Tuple, ::Type{Val{CheckSizes}} = Val{true})
+@compat @generated function (::Type{Table{Names}}){Names, CheckSizes}(data::Tuple, ::Type{Val{CheckSizes}} = Val{true})
     if !isa(Names, Tuple) || eltype(Names) != Symbol || length(Names) != length(unique(Names))
         str = "Table parameter 1 (Names) is expected to be a tuple of unique symbols, got $Names"
         return :(error($str))
@@ -76,14 +76,15 @@ end
     end
 end
 
-@generated function call{Names, StorageTypes <: Tuple}(::Type{Table{Names,StorageTypes}})
+@compat @generated function (::Type{Table{Names,StorageTypes}}){Names, StorageTypes <: Tuple}()
     exprs = [:($(StorageTypes.parameters[j])()) for j = 1:length(Names)]
     return Expr(:call, Table{Names, StorageTypes}, Expr(:tuple, exprs...))
 end
 
 
 # TODO think about conversions...
-Base.call{Names, Types, Types_new}(::Type{Table{Names,Types_new}}, t::Table{Names,Types}) = convert(Table{Names,Types_new}, t)
+@compat (::Type{Table{Names,Types_new}}){Names, Types, Types_new}(t::Table{Names,Types}) = convert(Table{Names,Types_new}, t)
+
 @generated function Base.convert{Names, Names_new, Types, Types_new <: Tuple}(::Type{Table{Names_new,Types_new}}, t::Table{Names,Types})
     if !isa(Names_new, Tuple) || eltype(Names_new) != Symbol || length(Names_new) != length(Names) || length(Names_new) != length(unique(Names_new))
         str = "Cannot convert $(length(Names)) columns to new names $(Names_new)."
@@ -97,8 +98,8 @@ Base.call{Names, Types, Types_new}(::Type{Table{Names,Types_new}}, t::Table{Name
     return Expr(:call, Table{Names_new,Types_new}, Expr(:tuple, exprs...), Val{false})
 end
 
-Base.(:(==)){Names, Types1, Types2}(table1::Table{Names, Types1}, table2::Table{Names, Types2}) = (table1.data == table2.data)
-@generated function Base.(:(==)){Names1, Types1, Names2, Types2}(table1::Table{Names1,Types1}, table2::Table{Names2,Types2})
+@compat Base.:(==){Names, Types1, Types2}(table1::Table{Names, Types1}, table2::Table{Names, Types2}) = (table1.data == table2.data)
+@compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(table1::Table{Names1,Types1}, table2::Table{Names2,Types2})
     try
         order = permutator(Names1, Names2)
         expr = :( table1.data[$(order[1])] == table2.data[1] )
