@@ -1,5 +1,6 @@
 using TypedTables
 using NullableArrays
+using Compat
 
 if VERSION >= v"0.5-"
     using Base.Test

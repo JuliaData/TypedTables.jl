@@ -17,7 +17,7 @@ Read a table from a file in DLM (delimited) or CSV (comma-sereperated values,
 default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
 instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
-function readtable{Names,Types}(::Type{Table{Names,Types}}, file::Union{AbstractString,IOStream}; kwargs...)
+function readtable{Names,Types}(::Type{Table{Names,Types}}, file::Union{AbstractString,IO}; kwargs...)
     table = Table{Names,Types}()
     readtable!(table, file; kwargs...)
     return table
@@ -34,7 +34,7 @@ Append data to a table from a file in DLM (delimited) or CSV (comma-sereperated
 values, default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
 instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
-function readtable!{Names, Types}(table::Table{Names, Types}, file::IOStream; delim::Char = ',', eol::Char = '\n', header::Bool = false, multiplespaces = false, kwargs...)
+function readtable!{Names, Types}(table::Table{Names, Types}, file::IO; delim::Char = ',', eol::Char = '\n', header::Bool = false, multiplespaces = false, kwargs...)
     if multiplespaces == true
         delim = Base.DataFmt.invalid_dlm(Char)
     end
@@ -96,7 +96,7 @@ Write a table to disk using delimeted text format. Optional arguments include:
   char_delim = '\''
   char_delim_right = char_delim
 """
-function writetable{Names}(fileio::IOStream, table::Table{Names}; header::Bool = false, delim = ',', eol = '\n', string_delim = '\"', string_delim_right = string_delim, char_delim = '\'', char_delim_right = char_delim, null = "NA")
+function writetable{Names,Types}(fileio::IO, table::Table{Names,Types}; header::Bool = false, delim = ',', eol = '\n', string_delim = '\"', string_delim_right = string_delim, char_delim = '\'', char_delim_right = char_delim, null = "NA")
     if header == true
         for j = 1:ncol(table)
             write(fileio, Names[j])
