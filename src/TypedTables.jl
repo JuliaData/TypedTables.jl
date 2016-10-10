@@ -13,7 +13,7 @@ export readtable, readtable!, writetable
 export @Cell, @Row, @Column, @Table
 export @col, @select, @filter, @filter!, @filter_mask
 
-import Base.(==)
+import Base: @pure, @_inline_meta, @_pure_meta, ==
 
 # TODO Do we need a unique table? It could keep a persistent hash. (Perhaps a multi-column key table with no value columns?)
 # TODO union!, intersect! and setdiff!
@@ -44,6 +44,8 @@ import Base.(==)
 #      and @filter (BitArray)
 # TODO Use @pure functions where beneficial
 
+include("AbstractCell.jl")
+include("AbstractColumn.jl")
 
 include("Cell.jl")
 include("Column.jl")

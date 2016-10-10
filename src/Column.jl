@@ -14,7 +14,7 @@ end
 @compat @inline (::Type{Column{Name,StorageType}}){Name, StorageType}() = Column{Name, StorageType}(StorageType())
 
 Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Column{Name,T1}) = Column{Name,T2}(x.data)
-Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Cell{Name,T1}) = Column{Name,T2}([x.data]) # ??
+#Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Cell{Name,T1}) = Column{Name,T2}([x.data]) # ??
 
 @generated function check_Column{Name, StorageType}(::Type{Val{Name}}, ::Type{StorageType})
     if !isa(Name, Symbol)
@@ -32,12 +32,9 @@ end
 
 @inline rename{Name1, Name2, ElType}(x::Column{Name1, ElType}, ::Type{Val{Name2}}) = Column{Name2, ElType}(x.data)
 
-@inline name{Name, StorageType}(::Column{Name, StorageType}) = Name
 @inline name{Name}(::Type{Column{Name}}) = Name
 @inline name{Name, StorageType}(::Type{Column{Name, StorageType}}) = Name
-@inline Base.eltype{Name, StorageType}(::Column{Name, StorageType}) = eltype(StorageType)
 @inline Base.eltype{Name, StorageType}(::Type{Column{Name, StorageType}}) = eltype(StorageType)
-@inline storagetype{Name, StorageType}(::Column{Name, StorageType}) = StorageType
 @inline storagetype{Name, StorageType}(::Type{Column{Name, StorageType}}) = StorageType
 
 @inline nrow{Name, StorageType}(col::Column{Name, StorageType}) = length(col.data)
