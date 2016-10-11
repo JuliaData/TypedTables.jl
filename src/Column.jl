@@ -2,7 +2,7 @@
 """
 A Column is a vector (or similar store) of data annotated by a column name
 """
-immutable Column{Name, StorageType}
+immutable Column{Name, StorageType} <: AbstractColumn
     data::StorageType
     function Column{T}(x::T)
         check_Column(Val{Name}, StorageType)
@@ -10,11 +10,14 @@ immutable Column{Name, StorageType}
     end
 end
 
-@compat @inline (::Type{Column{Name}}){Name, StorageType}(x::StorageType) = Column{Name, StorageType}(x)
-@compat @inline (::Type{Column{Name,StorageType}}){Name, StorageType}() = Column{Name, StorageType}(StorageType())
+@inline (::Type{Column{Name}}){Name, StorageType}(x::StorageType) = Column{Name, StorageType}(x)
 
-Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Column{Name,T1}) = Column{Name,T2}(x.data)
-#Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Cell{Name,T1}) = Column{Name,T2}([x.data]) # ??
+# Some convenience constructors
+@inline (::Type{Column{Name,StorageType}}){Name, StorageType}() = Column{Name, StorageType}(StorageType())
+@inline (::Type{Column{Name,StorageType}}){Name, StorageType}(len::Integer) = Column{Name, StorageType}(StorageType(len))
+
+@inline (::Type{Column{Name}}){Name, T}(::Type{T}) = Column{Name}(makestoragetype(T)())
+@inline (::Type{Column{Name}}){Name, T}(::Type{T}, len::Integer) = Column{Name}(makestoragetype(T)(len))
 
 @generated function check_Column{Name, StorageType}(::Type{Val{Name}}, ::Type{StorageType})
     if !isa(Name, Symbol)
@@ -27,13 +30,19 @@ Base.convert{Name, T1, T2}(::Type{Column{Name, T2}}, x::Column{Name,T1}) = Colum
     return nothing
 end
 
+@inline Base.get(c::Column) = c.data
+@pure name{Name}(::Type{Column{Name}}) = Name
+@pure name{Name, StorageType}(::Type{Column{Name, StorageType}}) = Name
+#@inline Base.eltype{Name, StorageType}(::Type{Column{Name, StorageType}}) = eltype(StorageType)
+#@inline storagetype{Name, StorageType}(::Type{Column{Name, StorageType}}) = StorageType
 
+#=
 @compat Base.:(==){Name}(col1::Column{Name}, col2::Column{Name}) = (col1.data == col2.data)
 
 @inline rename{Name1, Name2, ElType}(x::Column{Name1, ElType}, ::Type{Val{Name2}}) = Column{Name2, ElType}(x.data)
 
-@inline name{Name}(::Type{Column{Name}}) = Name
-@inline name{Name, StorageType}(::Type{Column{Name, StorageType}}) = Name
+@pure name{Name}(::Type{Column{Name}}) = Name
+@pure name{Name, StorageType}(::Type{Column{Name, StorageType}}) = Name
 @inline Base.eltype{Name, StorageType}(::Type{Column{Name, StorageType}}) = eltype(StorageType)
 @inline storagetype{Name, StorageType}(::Type{Column{Name, StorageType}}) = StorageType
 
@@ -118,7 +127,7 @@ end
 
 # copy
 Base.copy{Name, StorageType}(col::Column{Name, StorageType}) = Column{Name, StorageType}(copy(col.data))
-
+=#
 # @Column and @Cell are very similar
 macro Column(expr)
     if expr.head != :(=) && expr.head != :(kw) # strange Julia bug, see issue 7669
@@ -140,3 +149,5 @@ macro Column(expr)
         error("C Expecting expression like @Column(name::Type = value) or @Column(name = value)")
     end
 end
+
+similar_type{C<:AbstractCell}(::C, ::Type{AbstractColumn}) = Column{name(C), eltype(C)} # default AbstractColumn type

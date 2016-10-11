@@ -44,8 +44,15 @@ import Base: @pure, @_inline_meta, @_pure_meta, ==
 #      and @filter (BitArray)
 # TODO Use @pure functions where beneficial
 
+abstract TableElement
+
 include("AbstractCell.jl")
 include("AbstractColumn.jl")
+include("AbstractRow.jl")
+include("AbstractTable.jl")
+
+include("similar.jl")
+include("name_util.jl")
 
 include("Cell.jl")
 include("Column.jl")
@@ -53,10 +60,10 @@ include("Row.jl")
 include("Table.jl")
 
 include("show.jl")
-include("datamacros.jl")
-include("setalgorithms.jl")
-include("join.jl")
-include("IO.jl")
+#include("datamacros.jl")
+#include("setalgorithms.jl")
+#include("join.jl")
+#include("IO.jl")
 
 
 end # module

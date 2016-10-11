@@ -12,7 +12,7 @@ immutable Cell{Name, ElType} <: AbstractCell
         new(convert(ElType,x))
     end
 end
-@compat @inline (::Type{Cell{Name}}){Name, ElType}(x::ElType) = Cell{Name,ElType}(x)
+@inline (::Type{Cell{Name}}){Name, ElType}(x::ElType) = Cell{Name,ElType}(x)
 
 @generated function check_Cell{Name, ElType}(::Type{Val{Name}}, ::Type{ElType})
     if !isa(Name, Symbol)
@@ -26,13 +26,9 @@ end
     end
 end
 
-Base.convert{Name, T1, T2}(::Type{Cell{Name, T2}}, x::Cell{Name,T1}) = Cell{Name,T2}(x.data)
-@inline rename{Name1, Name2, ElType}(x::Cell{Name1, ElType}, ::Type{Val{Name2}}) = Cell{Name2, ElType}(x.data)
-
 @inline Base.get(c::Cell) = c.data
 @inline name{Name}(::Type{Cell{Name}}) = Name
 @inline name{Name,ElType}(::Type{Cell{Name,ElType}}) = Name
-@inline Base.eltype{Name,ElType}(::Type{Cell{Name,ElType}}) = ElType
 
 # @Column and @Cell are very similar
 macro Cell(expr)
@@ -55,5 +51,3 @@ macro Cell(expr)
         error("C Expecting expression like @Cell(name::Type = value) or @Cell(name = value)")
     end
 end
-
-similar_type{C<:AbstractColumn}(::C, AbstractCell) = Cell{name(C), eltype(C)} # default AbstractCell type

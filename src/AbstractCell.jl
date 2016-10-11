@@ -10,12 +10,12 @@ Required methods are:
 
     get(::Cell)
     name(::Type{Cell}) (should be `@pure`)
-    eltype(::Type{Cell})
 """
 abstract AbstractCell
 
 @inline name{C<:AbstractCell}(::C) = name(C)
 @inline Base.eltype{C<:AbstractCell}(::C) = eltype(C)
+@inline Base.eltype{C<:AbstractCell}(::Type{C}) = Core.Inference.return_type(get, Tuple{C})
 
 @inline nrow{C<:AbstractCell}(::C) = nrow(C)
 @inline ncol{C<:AbstractCell}(::C) = ncol(C)
@@ -75,5 +75,5 @@ end
 
 Base.copy{C<:AbstractCell}(c::C) = C(copy(get(c)))
 
-similar_type{C<:AbstractCell}(::C) = C
-similar_type{C<:AbstractCell}(::C, ::Type{AbstractCell}) = C
+@inline Base.convert{C1<:AbstractCell, C2<:AbstractCell}(::Type{C1}, cell::C2) = C1(get(cell))
+@inline rename{C<:AbstractCell, Name}(x::C, ::Type{Val{Name}}) = cell_type(C, Name)(get(x))

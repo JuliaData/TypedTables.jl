@@ -9,16 +9,18 @@ Required methods are:
 
     get(::Column)
     name(::Type{Column}) (should be `@pure`)
-    eltype(::Type{Column})
 """
 abstract AbstractColumn
 
 @inline name{C<:AbstractColumn}(::C) = name(C)
 @inline Base.eltype{C<:AbstractColumn}(::C) = eltype(C)
+@inline Base.eltype{C<:AbstractColumn}(::Type{C}) = eltype(Core.Inference.return_type(get, Tuple{C}))
+@inline storagetype{C<:AbstractColumn}(::C) = storagetype(C)
+@inline storagetype{C<:AbstractColumn}(::Type{C}) = Core.Inference.return_type(get, Tuple{C})
 
 @inline nrow{C<:AbstractColumn}(c::C) = length(get(c))
 @inline ncol{C<:AbstractColumn}(::C) = ncol(C)
-@inline Base.length{C<:AbstractColumn}(::C) = length(get(c))
+@inline Base.length{C<:AbstractColumn}(c::C) = length(get(c))
 
 @pure ncol{C<:AbstractColumn}(::Type{C}) = 1
 
@@ -135,7 +137,7 @@ Base.deleteat!(col::AbstractColumn, i) = (deleteat!(get(col), i); col)
 
 Base.splice!(col::AbstractColumn, i::Integer) = splice!(get(col), i)
 Base.splice!(col::AbstractColumn, i::Integer, r) = splice!(get(col), i, r)
-generated function Base.splice!(col::AbstractColumn, i::Integer, val::Union{AbstractCell, AbstractColumn})
+@generated function Base.splice!(col::AbstractColumn, i::Integer, val::Union{AbstractCell, AbstractColumn})
     if name(col) == name(val)
         return quote
             @_inline_meta
@@ -147,7 +149,7 @@ generated function Base.splice!(col::AbstractColumn, i::Integer, val::Union{Abst
 end
 
 Base.splice!{C<:AbstractColumn}(col::C, i) = C(splice!(get(col), i))
-generated function Base.splice!{C<:AbstractColumn}(col::C, i::Integer, val::Union{AbstractCell, AbstractColumn})
+@generated function Base.splice!{C<:AbstractColumn}(col::C, i::Integer, val::Union{AbstractCell, AbstractColumn})
     if name(col) == name(val)
         return quote
             @_inline_meta
@@ -165,19 +167,27 @@ Base.empty!(col::AbstractColumn) = (empty!(get(col)); col)
 @inline Base.sort{C<:AbstractColumn}(col::C; kwargs...) = C(sort(get(col); kwargs...))
 @inline Base.sort!(col::AbstractColumn; kwargs...) = (sort!(get(col); kwargs...); col)
 
-# Concatenate cells and columns into colums
-@generated function Base.vcat(cs::Union{AbstractCell, AbstractColumn})
-
-
-
-Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(get(c1)))
-Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}, c2::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(get(c1), get(c2)))
-@generated function Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}, c2::Union{Cell{Name}, Column{Name}}, cs::Union{Cell{Name}, Column{Name}}...)
+# Concatenate cells and columns into columns
+Base.vcat(col::AbstractColumn) = col
+Base.vcat(c::AbstractCell) = column_type(typeof(c))(vcat(get(c)))
+function Base.vcat(c1::Union{AbstractCell, AbstractColumn}, c2::Union{AbstractCell, AbstractColumn})
+    column_type(typeof(c1), promote_type(eltype(c1), eltype(c2)))(vcat(get(c1), get(c2)))
+end
+@generated function Base.vcat(c1::Union{AbstractCell, AbstractColumn}, c2::Union{AbstractCell, AbstractColumn}, cs::Union{AbstractCell, AbstractColumn}...)
     # Do our best to help inference here
     exprs = [:(cs[$j].data) for j = 1:length(cs)]
     vcat_expr = Expr(:call, :vcat, :(get(c1)), :(get(c2)), exprs...)
-    return Expr(:call, Column{Name}, vcat_expr)
+    return Expr(:call, column_type(typeof(c1)), vcat_expr)
 end
+
+
+#@generated function Base.vcat(cs::AbstractColumn...)
+
+
+
+#Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(get(c1)))
+#Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}, c2::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(get(c1), get(c2)))
+
 
 @generated function Base.:(==){C1<:AbstractColumn, C2<:AbstractColumn}(col1::C1, col2::C2)
     if name(C1) === name(C2)
@@ -208,6 +218,5 @@ end
 end
 
 Base.copy{C<:AbstractColumn}(col::C) = C(copy(get(col)))
-
-similar_type{C<:AbstractColumn}(::C) = C
-similar_type{C<:AbstractColumn}(::C, ::Type{AbstractColumn}) = C
+@inline Base.convert{C1<:AbstractColumn, C2<:AbstractColumn}(::Type{C1}, cell::C2) = C1(get(cell))
+@inline rename{C<:AbstractColumn, Name}(x::C, ::Type{Val{Name}}) = column_type(C, Name)(get(x))
