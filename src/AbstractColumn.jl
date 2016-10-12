@@ -18,6 +18,10 @@ abstract AbstractColumn
 @inline storagetype{C<:AbstractColumn}(::C) = storagetype(C)
 @inline storagetype{C<:AbstractColumn}(::Type{C}) = Core.Inference.return_type(get, Tuple{C})
 
+@inline Base.convert{C<:AbstractColumn}(::Type{C}, col::AbstractColumn) = C(get(col))
+@inline rename{C<:AbstractColumn, Name}(x::C, ::Type{Val{Name}}) = column_type(C, Name)(get(x))
+Base.copy{C<:AbstractColumn}(col::C) = C(copy(get(col)))
+
 @inline nrow{C<:AbstractColumn}(c::C) = length(get(c))
 @inline ncol{C<:AbstractColumn}(::C) = ncol(C)
 @inline Base.length{C<:AbstractColumn}(c::C) = length(get(c))
@@ -171,23 +175,17 @@ Base.empty!(col::AbstractColumn) = (empty!(get(col)); col)
 Base.vcat(col::AbstractColumn) = col
 Base.vcat(c::AbstractCell) = column_type(typeof(c))(vcat(get(c)))
 function Base.vcat(c1::Union{AbstractCell, AbstractColumn}, c2::Union{AbstractCell, AbstractColumn})
-    column_type(typeof(c1), promote_type(eltype(c1), eltype(c2)))(vcat(get(c1), get(c2)))
+    column_type(typeof(c1))(vcat(get(c1), get(c2)))
 end
 @generated function Base.vcat(c1::Union{AbstractCell, AbstractColumn}, c2::Union{AbstractCell, AbstractColumn}, cs::Union{AbstractCell, AbstractColumn}...)
     # Do our best to help inference here
     exprs = [:(cs[$j].data) for j = 1:length(cs)]
     vcat_expr = Expr(:call, :vcat, :(get(c1)), :(get(c2)), exprs...)
-    return Expr(:call, column_type(typeof(c1)), vcat_expr)
+    return quote
+        $(Expr(:meta, :inline))
+        $(Expr(:call, column_type(c1), vcat_expr))
+    end
 end
-
-
-#@generated function Base.vcat(cs::AbstractColumn...)
-
-
-
-#Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(get(c1)))
-#Base.vcat{Name}(c1::Union{Cell{Name}, Column{Name}}, c2::Union{Cell{Name}, Column{Name}}) = Column{Name}(vcat(get(c1), get(c2)))
-
 
 @generated function Base.:(==){C1<:AbstractColumn, C2<:AbstractColumn}(col1::C1, col2::C2)
     if name(C1) === name(C2)
@@ -216,7 +214,3 @@ end
         end
     end
 end
-
-Base.copy{C<:AbstractColumn}(col::C) = C(copy(get(col)))
-@inline Base.convert{C1<:AbstractColumn, C2<:AbstractColumn}(::Type{C1}, cell::C2) = C1(get(cell))
-@inline rename{C<:AbstractColumn, Name}(x::C, ::Type{Val{Name}}) = column_type(C, Name)(get(x))

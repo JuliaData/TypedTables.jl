@@ -13,7 +13,7 @@ export readtable, readtable!, writetable
 export @Cell, @Row, @Column, @Table
 export @col, @select, @filter, @filter!, @filter_mask
 
-import Base: @pure, @_inline_meta, @_pure_meta, ==
+import Base: @pure, @_inline_meta, @_pure_meta, ==, get
 
 # TODO Do we need a unique table? It could keep a persistent hash. (Perhaps a multi-column key table with no value columns?)
 # TODO union!, intersect! and setdiff!
@@ -60,10 +60,10 @@ include("Row.jl")
 include("Table.jl")
 
 include("show.jl")
-#include("datamacros.jl")
-#include("setalgorithms.jl")
-#include("join.jl")
-#include("IO.jl")
+include("datamacros.jl")
+include("setalgorithms.jl")
+include("join.jl")
+include("IO.jl")
 
 
 end # module

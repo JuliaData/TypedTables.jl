@@ -31,8 +31,8 @@ end
     @test length(t) == 3
     @test ncol(t) == 2
     @test nrow(t) == 3
-    @test size(t) == (3,)
-    @test size(t,1) == 3
+    #@test size(t) == (3,)
+    #@test size(t,1) == 3
     @test ndims(t) == 1
     @test isempty(t) == false
     @test endof(t) == 3

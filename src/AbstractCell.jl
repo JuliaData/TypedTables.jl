@@ -1,4 +1,3 @@
-
 """
     abstract AbstractCell
 
@@ -8,14 +7,24 @@ necessary for a type to be a valid *TypedTables* cell object.
 
 Required methods are:
 
-    get(::Cell)
-    name(::Type{Cell}) (should be `@pure`)
+    get(::MyCell)
+    name(::Type{MyCell}) (should be `@pure`)
+
+and a constructor that takes a single piece of data. You may also wish to define
+a pure function for
+
+    TypedTables.cell_type{C<:MyCell}(::Type{MyCell}, name::Symbol)
 """
 abstract AbstractCell
 
 @inline name{C<:AbstractCell}(::C) = name(C)
 @inline Base.eltype{C<:AbstractCell}(::C) = eltype(C)
 @inline Base.eltype{C<:AbstractCell}(::Type{C}) = Core.Inference.return_type(get, Tuple{C})
+
+@inline Base.convert{C<:AbstractCell}(::Type{C}, cell::AbstractCell) = C(get(cell))
+@inline rename{C<:AbstractCell, Name}(x::C, ::Type{Val{Name}}) = cell_type(C, Name)(get(x))
+# TODO: 3 argument rename?
+Base.copy{C<:AbstractCell}(c::C) = C(copy(get(c)))
 
 @inline nrow{C<:AbstractCell}(::C) = nrow(C)
 @inline ncol{C<:AbstractCell}(::C) = ncol(C)
@@ -72,8 +81,3 @@ end
         end
     end
 end
-
-Base.copy{C<:AbstractCell}(c::C) = C(copy(get(c)))
-
-@inline Base.convert{C1<:AbstractCell, C2<:AbstractCell}(::Type{C1}, cell::C2) = C1(get(cell))
-@inline rename{C<:AbstractCell, Name}(x::C, ::Type{Val{Name}}) = cell_type(C, Name)(get(x))

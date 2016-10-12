@@ -5,7 +5,7 @@
 """
 A `Row` stores multiple elements of data referenced by their column names.
 """
-immutable Row{Names, Types <: Tuple}
+immutable Row{Names, Types <: Tuple} <: AbstractRow
     data::Types
 
     function Row{T <: Tuple}(data_in::T)
@@ -31,7 +31,7 @@ end
     return nothing
 end
 
-@compat @generated function (::Type{Row{Names}}){Names}(data::Tuple)
+@generated function (::Type{Row{Names}}){Names}(data::Tuple)
     if !isa(Names, Tuple) || eltype(Names) != Symbol || length(Names) != length(unique(Names))
         str = "Row parameter 1 (Names) is expected to be a tuple of unique symbols, got $Names" # TODO: reinsert colons in symbols?
         return :(error($str))
@@ -47,7 +47,8 @@ end
     end
 end
 
-@compat (::Type{Row{Names,Types_new}}){Names, Types, Types_new}(r::Row{Names,Types}) = convert(Row{Names,Types_new}, r)
+#=
+(::Type{Row{Names,Types_new}}){Names, Types, Types_new}(r::Row{Names,Types}) = convert(Row{Names,Types_new}, r)
 
 @generated function Base.convert{Names, Names_new, Types, Types_new <: Tuple}(::Type{Row{Names_new,Types_new}}, r::Row{Names,Types})
     if !isa(Names_new, Tuple) || eltype(Names_new) != Symbol || length(Names_new) != length(Names) || length(Names_new) != length(unique(Names_new))
@@ -61,6 +62,7 @@ end
     exprs = [:(convert(Types_new.parameters[$j], r.data[$j])) for j = 1:length(Names)]
     return Expr(:call, Row{Names_new,Types_new}, Expr(:tuple, exprs...))
 end
+
 
 @compat Base.:(==){Names, Types1, Types2}(row1::Row{Names, Types1}, row2::Row{Names, Types2}) = (row1.data == row2.data)
 @compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(row1::Row{Names1,Types1}, row2::Row{Names2,Types2})
@@ -100,18 +102,15 @@ end
 function columnindex{N, M}(names::NTuple{N,Symbol}, searchnames::NTuple{M,Symbol})
     return ntuple(i->columnindex(names, searchnames[i]), M)
 end
+=#
 
-@inline Base.names{Names}(::Row{Names}) = Names
-@inline Base.names{Names, Types <: Tuple}(::Type{Row{Names,Types}}) = Names
-@inline Base.names{Names}(::Type{Row{Names}}) = Names
-@inline eltypes{Names, Types <: Tuple}(::Row{Names,Types}) = Types
-@inline eltypes{Names, Types <: Tuple}(::Type{Row{Names,Types}}) = Types
+@pure Base.names{Names, Types <: Tuple}(::Type{Row{Names,Types}}) = Names
+@pure Base.names{Names}(::Type{Row{Names}}) = Names
+#@inline eltypes{Names, Types <: Tuple}(::Type{Row{Names,Types}}) = Types
 
-@inline nrow(::Row) = 1
-@inline ncol{Names}(::Row{Names}) = length(Names)
-@inline ncol{Names,Types}(::Type{Row{Names,Types}}) = length(Names)
-@inline ncol{Names}(::Type{Row{Names}}) = length(Names)
+@inline Base.get(r::Row) = r.data
 
+#=
 @generated function Base.getindex{Names, GetName}(row::Row{Names}, ::Type{Val{GetName}})
     if isa(GetName, Symbol)
         j = columnindex(Names, GetName)
@@ -184,7 +183,8 @@ function permutator{N}(names1::NTuple{N,Symbol}, names2::NTuple{N,Symbol})
 
     return order
 end
-
+=#
+#=
 # Horizontally concatenate cells and rows into rows
 @generated Base.hcat{Name}(c::Cell{Name}) = :( Row{$((Name,))}((c.data,)) )
 Base.hcat(r::Row) = r
@@ -205,12 +205,12 @@ Base.hcat(r::Row) = r
 end
 
 Base.hcat(r1::Union{Cell,Row}, r2::Union{Cell,Row}, rs::Union{Cell,Row}...) = hcat(hcat(r1, r2), rs...)
-
+=#
 # copy
-@generated function Base.copy{Names}(r::Row{Names})
-    exprs = [:(copy(r.data[$j])) for j = 1:length(Names)]
-    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
-end
+#@generated function Base.copy{Names}(r::Row{Names})
+#    exprs = [:(copy(r.data[$j])) for j = 1:length(Names)]
+#    return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
+#end
 
 macro Row(exprs...)
     N = length(exprs)
