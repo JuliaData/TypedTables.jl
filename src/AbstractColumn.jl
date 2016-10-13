@@ -20,6 +20,7 @@ abstract AbstractColumn
 
 @inline Base.convert{C<:AbstractColumn}(::Type{C}, col::AbstractColumn) = C(get(col))
 @inline rename{C<:AbstractColumn, Name}(x::C, ::Type{Val{Name}}) = column_type(C, Name)(get(x))
+# TODO: 3 argument rename?
 Base.copy{C<:AbstractColumn}(col::C) = C(copy(get(col)))
 
 @inline nrow{C<:AbstractColumn}(c::C) = length(get(c))
@@ -188,7 +189,7 @@ end
 end
 
 @generated function Base.:(==){C1<:AbstractColumn, C2<:AbstractColumn}(col1::C1, col2::C2)
-    if name(C1) === name(C2)
+    if name(C1) == name(C2)
         return quote
             @_inline_meta
             get(col1) == get(col2)
@@ -202,10 +203,10 @@ end
 end
 
 @generated function Base.isapprox{C1<:AbstractColumn, C2<:AbstractColumn}(col1::C1, col2::C2; kwargs...)
-    if name(C1) === name(C2)
-        return quote
+    if name(C1) == name(C2)
+        return quote # Do elementwise approximation not linear-algebra style
             @_inline_meta
-            isapprox(get(col1), get(col2); kwargs...)
+            all(map((val1,val2)->isapprox(val1, val2; kwargs...), get(col1), get(col2)))
         end
     else
         return quote

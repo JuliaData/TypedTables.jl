@@ -15,24 +15,14 @@
 #@inline Base.keytype{Index,Key}(::AbstractTable{Index,Key}) = eltype(Key)
 #@inline keyname{Index,Key}(::AbstractTable{Index,Key}) = name(Key)
 
+
 """
 A table stores columns of data accessible by their field names.
 """
-immutable Table{Names, StorageTypes <: Tuple} #<: AbstractTable{Index,DefaultKey()}
+immutable Table{Names, StorageTypes <: Tuple} <: AbstractTable
     data::StorageTypes
 
-    function Table(data_in::Tuple, check_sizes::Type{Val{true}} = Val{true})
-        check_table(Val{Names}, StorageTypes)
-        ls = map(length, data_in)
-        for i in 2:length(data_in)
-            if ls[i] != ls[1]
-                error("Column inputs must be same length.")
-            end
-        end
-        new(data_in)
-    end
-
-    function Table(data_in::Tuple, check_sizes::Type{Val{false}})
+    function Table(data_in::Tuple)
         check_table(Val{Names}, StorageTypes)
         new(data_in)
     end
@@ -60,25 +50,40 @@ end
     return nothing
 end
 
-@compat @generated function (::Type{Table{Names}}){Names, CheckSizes}(data::Tuple, ::Type{Val{CheckSizes}} = Val{true})
-    if !isa(Names, Tuple) || eltype(Names) != Symbol || length(Names) != length(unique(Names))
-        str = "Table parameter 1 (Names) is expected to be a tuple of unique symbols, got $Names"
-        return :(error($str))
-    end
+# Convenience constructors
 
-    if length(Names) == length(data.parameters)
-        return quote
-            $(Expr(:meta,:inline))
-            Table{Names, $data}(data, Val{CheckSizes})
-        end
-    else
-        return :(error("Can't construct Table with $(length(Names)) columns with input $data"))
+(::Type{Table{Names}}){Names}(data::Tuple) = Table{Names, typeof(data)}(data)
+
+@generated function (::Type{Table{Names,StorageTypes}}){Names, StorageTypes <: Tuple}()
+    exprs = [:($(StorageTypes.parameters[j])()) for j = 1:length(StorageTypes.parameters)]
+    return quote
+        $(Expr(:meta, :inline))
+        $(Expr(:call, Table{Names, StorageTypes}, Expr(:tuple, exprs...)))
     end
 end
 
-@compat @generated function (::Type{Table{Names,StorageTypes}}){Names, StorageTypes <: Tuple}()
-    exprs = [:($(StorageTypes.parameters[j])()) for j = 1:length(Names)]
-    return Expr(:call, Table{Names, StorageTypes}, Expr(:tuple, exprs...))
+@generated function (::Type{Table{Names,StorageTypes}}){Names, StorageTypes <: Tuple}(len::Integer)
+    exprs = [:($(StorageTypes.parameters[j])(len)) for j = 1:length(StorageTypes.parameters)]
+    return quote
+        $(Expr(:meta, :inline))
+        $(Expr(:call, Table{Names, StorageTypes}, Expr(:tuple, exprs...)))
+    end
+end
+
+@generated function (::Type{Table{Names}}){Names, ElTypes <: Tuple}(::Type{ElTypes})
+    exprs = [:($(storage_type(ElTypes.parameters[j]))()) for j = 1:length(ElTypes.parameters)]
+    return quote
+        $(Expr(:meta, :inline))
+        $(Expr(:call, Table{Names}, Expr(:tuple, exprs...)))
+    end
+end
+
+@generated function (::Type{Table{Names}}){Names, ElTypes <: Tuple}(::Type{ElTypes}, len::Integer)
+    exprs = [:($(storage_type(ElTypes.parameters[j]))(len)) for j = 1:length(ElTypes.parameters)]
+    return quote
+        $(Expr(:meta, :inline))
+        $(Expr(:call, Table{Names}, Expr(:tuple, exprs...)))
+    end
 end
 
 

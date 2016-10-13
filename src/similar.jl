@@ -67,29 +67,11 @@ undefined.
 
 
 #
-# Default to sensible storage for large amounts of data
+# Some sensible defaults for compact storage for large amounts of data
 #
 
-@inline makestorage{T}(::Type{T}) = Vector{T}()
-@inline makestorage{N<:Nullable}(::Type{N}) = NullableVector{eltype(N)}()
-@inline makestorage(::Type{Bool}) = BitVector()
+storage_type{T}(::Type{T}) = Vector{T}
+storage_type{N<:Nullable}(::Type{N}) = NullableVector{eltype(N)}
+storage_type(::Type{Bool}) = BitVector
 
-@inline makestorage{T}(::Type{T}, len::Integer) = Vector{T}(len)
-@inline makestorage{N<:Nullable}(::Type{N}, len::Integer) = NullableVector{eltype(N)}(len)
-@inline makestorage(::Type{Bool}, len::Integer) = BitVector(len)
-
-@generated function makestorages{Types<:Tuple}(::Type{Types})
-    exprs = [t -> :($t()) for t ∈ Types.parameters]
-    return quote
-        $(Expr(:meta, :inline))
-        $(Expr(:tuple, exprs...))
-    end
-end
-
-@generated function makestorages{Types<:Tuple}(::Type{Types}, len::Integer)
-    exprs = [t -> :($t(len)) for t ∈ Types.parameters]
-    return quote
-        $(Expr(:meta, :inline))
-        $(Expr(:tuple, exprs...))
-    end
-end
+@pure storage_types{Types<:Tuple}(::Type{Types}) = Tuple{map(storage_type, Types.parameters)...}

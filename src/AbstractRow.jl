@@ -31,7 +31,7 @@ abstract AbstractRow
     new_names[j] = NewName
     new_names = (new_names...)
 
-    return :(row_type($row, $new_names)(get(row)))
+    return :($(row_type(row, new_names))(get(row)))
 end
 
 @inline nrow{R<:AbstractRow}(::R) = nrow(R)

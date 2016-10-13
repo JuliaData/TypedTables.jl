@@ -16,8 +16,8 @@ end
 @inline (::Type{Column{Name,StorageType}}){Name, StorageType}() = Column{Name, StorageType}(StorageType())
 @inline (::Type{Column{Name,StorageType}}){Name, StorageType}(len::Integer) = Column{Name, StorageType}(StorageType(len))
 
-@inline (::Type{Column{Name}}){Name, T}(::Type{T}) = Column{Name}(makestoragetype(T)())
-@inline (::Type{Column{Name}}){Name, T}(::Type{T}, len::Integer) = Column{Name}(makestoragetype(T)(len))
+@inline (::Type{Column{Name}}){Name, T}(::Type{T}) = Column{Name}(storage_type(T)())
+@inline (::Type{Column{Name}}){Name, T}(::Type{T}, len::Integer) = Column{Name}(storage_type(T)(len))
 
 @generated function check_Column{Name, StorageType}(::Type{Val{Name}}, ::Type{StorageType})
     if !isa(Name, Symbol)

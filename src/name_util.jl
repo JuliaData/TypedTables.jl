@@ -75,9 +75,9 @@ end
 end
 
 @pure function nameindex{T<:Union{AbstractTable,AbstractRow}}(::Type{T}, searchnames::Tuple{Vararg{Symbol}})
-    ntuple(i -> nameindex(T, searchnames[i]), length(searchnames))
+    map(n -> nameindex(T, n), searchnames)
 end
 
 @pure function nameindex(ns::Tuple{Vararg{Symbol}}, searchnames::Tuple{Vararg{Symbol}})
-    ntuple(i -> nameindex(ns, searchnames[i]), length(searchnames))
+    map(n -> nameindex(ns, n), searchnames)
 end
