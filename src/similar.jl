@@ -58,7 +58,7 @@ with modified fieldname `names = (name1, name2, ...)`. The storage types remain
 undefined.
 """
 @pure table_type{C<:Union{AbstractCell, AbstractColumn}}(::Type{C}) = table_type(C, (name(C),))
-@pure table_type{Tbl<:Union{AbstractRow, AbstractTable}}(::Type{Tbl}) = table_type(R, names(R))
+@pure table_type{Tbl<:Union{AbstractRow, AbstractTable}}(::Type{Tbl}) = table_type(Tbl, names(Tbl))
 
 # Defaults to `Table`
 @pure table_type{C<:Union{AbstractCell, AbstractColumn}}(::Type{C}, newnames::Tuple{Vararg{Symbol}}) = Table{newnames}

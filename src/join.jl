@@ -5,7 +5,7 @@
 # Our initial implementation will use a simple hashing algorithm
 @generated function Base.join{Names1, Names2}(t1::Table{Names1}, t2::Table{Names2})
     int_names = (intersect(Names1, Names2)...)
-    int_indices = collect(columnindex(Names1, int_names))
+    int_indices = collect(nameindex(Names1, int_names))
     int_types = Expr(:curly, :Tuple, eltypes(t1).parameters[int_indices]...)
 
     quote
@@ -44,15 +44,15 @@ end
 
 @generated function jointype{Names1,Types1,Names2,Types2}(t1::Table{Names1,Types1}, t2::Table{Names2,Types2})
     names_ab = (intersect(Names1, Names2)...)
-    indices_ab = collect(columnindex(Names1, names_ab))
+    indices_ab = collect(nameindex(Names1, names_ab))
     types_ab = storagetypes(t1).parameters[indices_ab]
 
     names_a = (setdiff(Names1, Names2)...)
-    indices_a = collect(columnindex(Names1, names_a))
+    indices_a = collect(nameindex(Names1, names_a))
     types_a = storagetypes(t1).parameters[indices_a]
 
     names_b = (setdiff(Names2, Names1)...)
-    indices_b = collect(columnindex(Names2, names_b))
+    indices_b = collect(nameindex(Names2, names_b))
     types_b = storagetypes(t2).parameters[indices_b]
 
     new_names = (names_ab..., names_a..., names_b...)
@@ -64,15 +64,15 @@ end
 
 @generated function joinrow{Names1,Types1,Names2,Types2}(r1::Row{Names1,Types1}, r2::Row{Names2,Types2})
     names_ab = (intersect(Names1, Names2)...)
-    indices_ab = collect(columnindex(Names1, names_ab))
+    indices_ab = collect(nameindex(Names1, names_ab))
     types_ab = eltypes(r1).parameters[indices_ab]
 
     names_a = (setdiff(Names1, Names2)...)
-    indices_a = collect(columnindex(Names1, names_a))
+    indices_a = collect(nameindex(Names1, names_a))
     types_a = eltypes(r1).parameters[indices_a]
 
     names_b = (setdiff(Names2, Names1)...)
-    indices_b = collect(columnindex(Names2, names_b))
+    indices_b = collect(nameindex(Names2, names_b))
     types_b = eltypes(r2).parameters[indices_b]
 
     new_names = (names_ab..., names_a..., names_b...)
@@ -168,9 +168,9 @@ end
     idx_b = (setdiff(names(b), names(a))...)
     idx_out = (idx_ab..., idx_a..., idx_b...)
 
-    t_a  = eltypes(a).parameters[columnindex(names(a), idx_a)]
-    t_ab = eltypes(a).parameters[columnindex(names(a), idx_ab)]
-    t_b  = eltypes(b).parameters[columnindex(names(b), idx_b)]
+    t_a  = eltypes(a).parameters[nameindex(names(a), idx_a)]
+    t_ab = eltypes(a).parameters[nameindex(names(a), idx_ab)]
+    t_b  = eltypes(b).parameters[nameindex(names(b), idx_b)]
 
     types = Expr(:curly, :Tuple, t_ab..., t_a..., t_b...)
 

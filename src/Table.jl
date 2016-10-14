@@ -86,9 +86,12 @@ end
     end
 end
 
+@inline get(t::Table) = t.data
+
 
 # TODO think about conversions...
-@compat (::Type{Table{Names,Types_new}}){Names, Types, Types_new}(t::Table{Names,Types}) = convert(Table{Names,Types_new}, t)
+#=
+(::Type{Table{Names,Types_new}}){Names, Types, Types_new}(t::Table{Names,Types}) = convert(Table{Names,Types_new}, t)
 
 @generated function Base.convert{Names, Names_new, Types, Types_new <: Tuple}(::Type{Table{Names_new,Types_new}}, t::Table{Names,Types})
     if !isa(Names_new, Tuple) || eltype(Names_new) != Symbol || length(Names_new) != length(Names) || length(Names_new) != length(unique(Names_new))
@@ -102,6 +105,7 @@ end
     exprs = [:(convert(Types_new.parameters[$j], t.data[$j])) for j = 1:length(Names)]
     return Expr(:call, Table{Names_new,Types_new}, Expr(:tuple, exprs...), Val{false})
 end
+
 
 @compat Base.:(==){Names, Types1, Types2}(table1::Table{Names, Types1}, table2::Table{Names, Types2}) = (table1.data == table2.data)
 @compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(table1::Table{Names1,Types1}, table2::Table{Names2,Types2})
@@ -128,25 +132,26 @@ rename{Names, NewNames}(table::Table{Names}, ::Type{Val{NewNames}}) = Table{NewN
 
     return :(Table{$NewNames}(t.data, Val{false}))
 end
+=#
 
-@inline Base.names{Names}(::Table{Names}) = Names
-@inline Base.names{Names, Types <: Tuple}(::Type{Table{Names,Types}}) = Names
+@inline Base.names{Names, Types}(::Type{Table{Names,Types}}) = Names
 @inline Base.names{Names}(::Type{Table{Names}}) = Names
-@generated function eltypes{Names, Types}(::Union{Table{Names,Types}, Type{Table{Names,Types}}})
-    elem_types = map(eltype, Types.parameters)
-    quote
-        $(Expr(:meta, :inline))
-        $(Expr(:curly, :Tuple, elem_types...))
-    end
-end
-@inline storagetypes{Names, Types <: Tuple}(::Table{Names,Types}) = Types
-@inline storagetypes{Names, Types <: Tuple}(::Type{Table{Names,Types}}) = Types
+#@generated function eltypes{Names, Types}(::Union{Table{Names,Types}, Type{Table{Names,Types}}})
+#    elem_types = map(eltype, Types.parameters)
+#    quote
+#        $(Expr(:meta, :inline))
+#        $(Expr(:curly, :Tuple, elem_types...))
+#    end
+#end
+#@inline storagetypes{Names, Types <: Tuple}(::Table{Names,Types}) = Types
+#@inline storagetypes{Names, Types <: Tuple}(::Type{Table{Names,Types}}) = Types
 
-@inline nrow(t::Table) = length(t.data[1])
-@inline ncol{Names}(::Table{Names}) = length(Names)
-@inline ncol{Names,Types}(::Type{Table{Names,Types}}) = length(Names)
-@inline ncol{Names}(::Type{Table{Names}}) = length(Names)
 
+#@inline nrow(t::Table) = length(t.data[1])
+#@inline ncol{Names}(::Table{Names}) = length(Names)
+#@inline ncol{Names,Types}(::Type{Table{Names,Types}}) = length(Names)
+#@inline ncol{Names}(::Type{Table{Names}}) = length(Names)
+#=
 #############################################################################
 # Indexing columns
 #############################################################################
@@ -326,12 +331,12 @@ end
         return Expr(:block, exprs...)
     end
 end
-
+=#
 
 #############################################################################
 # Indexing with two variables
 #############################################################################
-
+#=
 @generated function Base.getindex{Names, GetName}(t::Table{Names}, rowinds, ::Type{Val{GetName}})
     if isa(GetName, Symbol)
         if GetName == :Row
@@ -472,11 +477,11 @@ Base.setindex!{Names}(t::Table{Names}, value, inds, ::Colon) = Base.setindex!(t,
 Base.unsafe_setindex!{Names}(t::Table{Names}, value, inds, ::Colon) = Base.unsafe_setindex!(t, value, inds)
 
 
-
+=#
 #############################################################################
 # push, pop, etc
 #############################################################################
-
+#=
 @generated function Base.pop!{Names}(t::Table{Names})
     exprs = [:(pop!(t.data[$c])) for c = 1:length(Names)]
     return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
@@ -496,7 +501,7 @@ end
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.push!{Names1,Names2}(t::Table{Names1}, r::Row{Names2})
-    order = permutator(Names1, Names2)
+    order = nameindex(Names1, Names2)
     exprs = [:(push!(t.data[$(order[c])], r.data[$c])) for c = 1:length(Names1)]
     return Expr(:block, exprs..., :t)
 end
@@ -510,7 +515,7 @@ end
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.unshift!{Names1,Names2}(t::Table{Names1}, r::Row{Names2})
-    order = permutator(Names1, Names2)
+    order = nameindex(Names1, Names2)
     exprs = [:(unshift!(t.data[$(order[c])], r.data[$c])) for c = 1:length(Names1)]
     return Expr(:block, exprs..., :t)
 end
@@ -524,7 +529,7 @@ end
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.append!{Names1,Names2}(t::Table{Names1}, t2::Table{Names2})
-    order = permutator(Names1, Names2)
+    order = nameindex(Names1, Names2)
     exprs = [:(append!(t.data[$(order[c])], t2.data[$c])) for c = 1:length(Names1)]
     return Expr(:block, exprs..., :t)
 end
@@ -538,7 +543,7 @@ end
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.prepend!{Names1,Names2}(t::Table{Names1}, t2::Table{Names2})
-    order = permutator(Names1, Names2)
+    order = nameindex(Names1, Names2)
     exprs = [:(prepend!(t.data[$(order[c])], t2.data[$c])) for c = 1:length(Names1)]
     return Expr(:block, exprs..., :t)
 end
@@ -552,7 +557,7 @@ end
     return Expr(:block, exprs..., :t)
 end
 @generated function Base.insert!{Names1,Names2}(t::Table{Names1}, i::Integer, r::Row{Names2})
-    order = permutator(Names1, Names2)
+    order = nameindex(Names1, Names2)
     exprs = [:(insert!(t.data[$(order[c])], i, r.data[$c])) for c = 1:length(Names1)]
     return Expr(:block, exprs..., :t)
 end
@@ -576,7 +581,7 @@ end
     return Expr(:call, Row{Names}, Expr(:tuple, exprs...))
 end
 @generated function Base.splice!{Names1,Names2}(t::Table{Names1}, i::Integer, v::Union{Row{Names2},Table{Names2}})
-    order = permutator(Names2, Names1)
+    order = nameindex(Names2, Names1)
     exprs = [:(splice!(t.data[$c], i, v.data[$(order[c])])) for c = 1:length(Names1)]
     return Expr(:call, Row{Names1}, Expr(:tuple, exprs...))
 end
@@ -589,10 +594,12 @@ end
     return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
 end
 @generated function Base.splice!{Names1,Names2}(t::Table{Names1}, i, v::Union{Row{Names2},Table{Names2}})
-    order = permutator(Names2, Names1)
+    order = nameindex(Names2, Names1)
     exprs = [:(splice!(t.data[$c], i, v.data[$(order[c])])) for c = 1:length(Names1)]
     return Expr(:call, Table{Names1}, Expr(:tuple, exprs...))
 end
+
+
 
 # Vertically concatenate rows and tables into tables
 @generated function Base.vcat{Names}(t1::Union{Row{Names}, Table{Names}})
@@ -610,14 +617,15 @@ end
             str = "Cannot match $(length(v.parameters)) columns to $(length(Names)) columns"
         end
 
-        order = permutator(Names1, Names2)
+        order = nameindex(Names1, Names2)
         exprs = [:(vcat(t1.data[$c], t2.data[$(order[c])])) for c = 1:length(Names1)]
         return Expr(:call, Table{Names1}, Expr(:tuple, exprs...))
     end
 end
 
 Base.vcat{Names1, Names2}(t1::Union{Row{Names1}, Table{Names1}}, t2::Union{Row{Names2}, Table{Names2}}, ts::Union{Row, Table}...) = vcat(vcat(t1, t2), ts...)
-
+=#
+#=
 # Horizontally concatenate columns and tables into tables
 @generated Base.hcat{Name}(c::Column{Name}) = :( Table{$((Name,))}((c.data,)) )
 Base.hcat(t::Table) = t
@@ -640,12 +648,12 @@ Base.hcat(t::Table) = t
 end
 
 Base.hcat(t1::Union{Column,Table}, t2::Union{Column,Table}, ts::Union{Column,Table}...) = hcat(hcat(t1, t2), ts...)
-
+=#
 # copy
-@generated function Base.copy{Names}(t::Table{Names})
-    exprs = [:(copy(t.data[$j])) for j = 1:length(Names)]
-    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
-end
+#@generated function Base.copy{Names}(t::Table{Names})
+#    exprs = [:(copy(t.data[$j])) for j = 1:length(Names)]
+#    return Expr(:call, Table{Names}, Expr(:tuple, exprs...))
+#end
 
 macro Table(exprs...)
     N = length(exprs)

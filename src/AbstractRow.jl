@@ -37,6 +37,7 @@ end
 @inline nrow{R<:AbstractRow}(::R) = nrow(R)
 @inline ncol{R<:AbstractRow}(::R) = ncol(R)
 @inline Base.length{R<:AbstractRow}(::R) = length(R)
+@inline Base.endof(::AbstractRow) = 1
 
 @pure nrow{R<:AbstractRow}(::Type{R}) = 1
 @pure ncol{R<:AbstractRow}(::Type{R}) = length(names(R))
@@ -53,10 +54,9 @@ end
         end
     elseif isa(Name, Tuple{Vararg{Symbol}})
         inds = nameindex(ns, Name)
-        exprs = [:(data[$(inds[j])]) for j = 1:length(inds)]
+        exprs = [:(get(row)[$(inds[j])]) for j = 1:length(inds)]
         return quote
             $(Expr(:meta, :inline))
-            data = get(row)
             $(Expr(:call, row_type(row, Name), Expr(:tuple, exprs...)))
         end
     else
@@ -109,7 +109,6 @@ end
 end
 
 
-@inline Base.endof(::AbstractRow) = 1
 
 Base.start(r::AbstractRow) = false
 Base.next(r::AbstractRow, state) = (r, true)
@@ -131,10 +130,9 @@ Base.getindex(r::AbstractRow, ::Colon) = r
 
         order = names_perm(ns, Names)
 
-        exprs = [:(data[$(order[j])]) for j = 1:length(Names)]
+        exprs = [:(get(r)[$(order[j])]) for j = 1:length(Names)]
         return quote
             $(Expr(:meta, :inline))
-            data = get(r)
             $(Expr(:call, row_type(r, Names), Expr(:tuple, exprs...)))
         end
     end
@@ -168,10 +166,9 @@ end
 @inline Base.hcat(r1::Union{AbstractCell,AbstractRow}, r2::Union{AbstractCell,AbstractRow}, rs::Union{AbstractCell,AbstractRow}...) = hcat(hcat(r1, r2), rs...)
 
 @generated function Base.copy(r::AbstractRow)
-    exprs = [:(copy(data[$j])) for j = 1:ncol(r)]
+    exprs = [:(copy(get(r)[$j])) for j = 1:ncol(r)]
     return quote
         $(Expr(:meta, :inline))
-        data = get(r)
         $(Expr(:call, row_type(r), Expr(:tuple, exprs...)))
     end
 end

@@ -60,7 +60,6 @@ end
 end
 
 
-
 nameindex(names::Union{AbstractCell,AbstractColumn}, name) = error("Can't search for columns $name")
 @pure function nameindex{T<:Union{AbstractTable,AbstractRow}}(::Type{T}, name::Symbol)
     nameindex(names(T), name)

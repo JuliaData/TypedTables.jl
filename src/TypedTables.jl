@@ -13,7 +13,7 @@ export readtable, readtable!, writetable
 export @Cell, @Row, @Column, @Table
 export @col, @select, @filter, @filter!, @filter_mask
 
-import Base: @pure, @_inline_meta, @_pure_meta, ==, get
+import Base: @pure, @_inline_meta, @_pure_meta, ==, get, @propagate_inbounds, @_propagate_inbounds_meta
 
 # TODO Do we need a unique table? It could keep a persistent hash. (Perhaps a multi-column key table with no value columns?)
 # TODO union!, intersect! and setdiff!
