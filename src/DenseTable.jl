@@ -1,3 +1,6 @@
+# WIP
+
+#=
 """
 A dense table stores the data as a vector of row-tuples.
 """
@@ -38,3 +41,4 @@ function Base.show{Index,DataTypes}(io::IO,table::DenseTable{Index,DataTypes})
     summary(io,table)
     show(io,table.data)
 end
+=#

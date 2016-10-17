@@ -13,10 +13,10 @@ export readtable, readtable!, writetable
 export @Cell, @Row, @Column, @Table
 export @col, @select, @filter, @filter!, @filter_mask
 
-import Base.(==)
+import Base: @pure, @_inline_meta, @_pure_meta, ==, get, @propagate_inbounds, @_propagate_inbounds_meta
 
 # TODO Do we need a unique table? It could keep a persistent hash. (Perhaps a multi-column key table with no value columns?)
-# TODO union!, intersect! and setdiff!
+# TODO intersect! and setdiff!
 # TODO dplyr funcitons (should we use same names or julia interfaces or both??)
 #      - arrange (sorting)
 #      - select/rename (combination of rename with indexing)
@@ -42,8 +42,16 @@ import Base.(==)
 # Julia 0.5 agenda:
 # TODO Use generalized comprehensions in @select (user specified data structure)
 #      and @filter (BitArray)
-# TODO Use @pure functions where beneficial
 
+abstract TableElement
+
+include("AbstractCell.jl")
+include("AbstractColumn.jl")
+include("AbstractRow.jl")
+include("AbstractTable.jl")
+
+include("similar.jl")
+include("name_util.jl")
 
 include("Cell.jl")
 include("Column.jl")

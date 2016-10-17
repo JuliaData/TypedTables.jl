@@ -2,6 +2,18 @@
 
 Note: minor changes and bug fixes may be omitted from this document.
 
+### 0.2.0 (WIP October 2016)
+
+- Rewritten to conform to an `AbstractTable` interface. It is now much easier to
+  implement custom table types by defining a small number of functions, such as
+  `names()` and `get()`.
+- Removed Julia 0.4 support (to use `@pure` and higher-order functions).
+
+### 0.1.2 (17 August 2016)
+
+- Slightly faster `join`.
+- Julia 0.5 compatible.
+
 ### 0.1.1 (6 July 2016)
 
 - New `@col` convenience macro for extracting one or more columns from a table

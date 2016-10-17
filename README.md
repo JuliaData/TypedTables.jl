@@ -11,19 +11,19 @@ data frames, from R) in Julia.
 Julia's dynamic-yet-statically-compilable type system is extremely powerful, but
 presents some challenges to creating generic storage containers, like tables of
 data where each column of the table might have different types. This package
-attempts to present a fully-typed `Table` container, where elements (rows,
-columns, cells, etc) can be extracted with their correct type annotation at zero
+attempts to present a fully-typed `Table` container, where elements (`Row`s,
+`Column`s and `Cell`s) can be extracted with their correct type annotation at zero
 additional run-time overhead. The resulting data can then be manipulated without
 any unboxing penalty, or the need to introduce unseemly function barriers,
-unlike existing approaches like the popular DataFrames.jl package. Conformance
-to the interface presented by DataFrames.jl as well as existing Julia standards,
-like indexing and iteration has been maintained.
+unlike existing approaches like the popular *DataFrames.jl* package.
 
-The main caveat of this approach is that it involves an extra layer of
-complication for the package maintainers and compiler. While convenience of the
-end-user has been taken into consideration, there is no getting around that the
-approach relies heavily on generated functions and does involve additional
-compile-time overhead.
+This package makes heavy use of Julia's dynamic compiler, where every operation
+is specialized on both the data types *and* the name and number of columns in
+a table. For example, specialized machine code will be generated for each `join`
+operation, depending on the column names of the input tables (and which names
+match for the natural join). This approach requires that the user maintains
+the column names as a part of the data type. Convenience macros and a functional
+approach to data operations help to make this easy and user-friendly.
 
 ## Quick usage
 
@@ -43,24 +43,26 @@ Row ║ A │ B      ║
     ╚═══╧════════╝
 ```
 
-This object stores a tuple of the two vectors as the `data` field, so that
-`t.data == ([1,2,3], [2.0,4.0,6.0])`. One could access the data directly, or
-one can get each row, column, or cell via indexing. One convenient way of
+This object stores a tuple of the two vectors internally, which can be accessed
+by `get()` so that `get(t) == ([1,2,3], [2.0,4.0,6.0])`. Besides this direct
+access, one can get each row, column, or cell via indexing. One convenient way of
 getting a column is with the `@col` macro, for example `@col(t, A)`
 
 ## Structure
 
 A `Table` is a two-dimensional array of data with a header, or "index", defining
 the names and types of the columns. Each column is constrained to contain only
-one (possibly abstract) data-type and is stored in its own (user-definable) data
-structure, like a `Vector` or `NullableVector`, and the columns making up a
-table must have identical lengths.
+one (possibly abstract) data type and is stored in its own (user-definable) data
+structure, like a `Vector` or `NullableVector`. The columns making up a
+table should have identical lengths.
 
-The name of each column (sometimes called the field name) is a `Symbol`, stored
-as a type parameter of the `Table` (as a tuple of `Symbol`s). The name `Symbol`s
-are then used for things like indexing. However, so that Julia can determine the
-type of the column(s) you wish yo extract, you need to index with a `Val` type.
-Returning to our earlier example, we can extract the `:A`
+The name of each column (sometimes called the field name) is represented as a
+Julia `Symbol`, which can be written literally with colon as `:A`.
+These names are attached as a type parameter of the `Table` (as a tuple of
+`Symbol`s, e.g. `Table{(:A, :B)}`). The column names can be used for
+indexing (extracting or selecting) individual columns — however, so that Julia
+can determine the return type of the column(s) you wish yo extract, you need to
+index with a `Val` type. Returning to our earlier example, we can extract the `:A`
 column from `t` via `t[Val{:A}] == [1,2,3]`. For convenience, we recommend using
 the `@col` macro, such as `@col(t, A)`, which is a nicer shortcut for the above.
 Another possible workaround to avoid this notation is to define field name
@@ -77,23 +79,21 @@ By default, indexing the columns of a table this way will return a view, not a
 copy, of the data. If you don't want to modify your original table when you
 mutate your extracted column, it is better to call `copy(t[Val{:A}])`
 
-Indexing a table by an integer (or range, etc) will return a single `Row` of the
-table (or a `Table` containing the indicated rows). The `Row` type retains the
-information of the names and types of the fields.
-You can access the row's data via the `row.data` field or via indexing with the
-corresponding `Val{:name}`.
+Indexing a table by an integer (or range, etc) will return a copy of a single
+`Row` of the table (or a `Table` containing the indicated rows). Like a `Table`,
+the `Row` type retains the information of the names and types of the fields.
+You can access the row's data via the `get(row)` or via indexing with the
+corresponding `Val{:name}`. There is a convenience macro `@Row(A=1, B=2.0)` for
+constructing `Row`s.
 
 A single element of a table is called a `Cell`, and is essentially a decorated,
-single piece of data, and can be constructed by the macro `@Cell`:
-```julia
-@Cell(A=1)
-```
-
-`Cell`s can be concatenated into `Column`s via `vcat` and `Row`s via `hcat`, and
+single piece of data, and can be constructed by the macro `@Cell(A=1)`, and
+similarly `Column`s of data can be constructed by `@Column(A=[1,2,3])`. `Cell`s
+can be concatenated into `Column`s via `vcat` and into `Row`s via `hcat`, and
 similarly for building `Table`s out of `Column`s and/or `Row`s.
 
 An empty table could be created with just it's names and types, e.g.
-`t = Table{(:A,:B), Tuple{Vector{Int},Vector{Float64}}}()`. For example, you
+`t = Table{(:A,:B), Tuple{Vector{Int},Vector{Float64}}}()`. You
 might want to use `Vector`s for most data types to store the columns, or you
 might choose to use `NullableVector`s for efficiency storage of columns which
 may contain missing values. The user can build a table using any data storage
@@ -111,9 +111,8 @@ for usage.
 This package makes extensive use of Julia's type system to annotate a collection
 with field names and types.
 `Column`s and `Cell`s are annotated by a single `Symbol` and data type, so that
-`@Cell(A::Int=1)` generates `Cell{:A,Int}(1)`.
-Similarly, `@Column(A=[1,2,3])` will generate
-`Column{:A, Vector{Int}}([1,2,3])`.
+`@Cell(A::Int=1)` generates `Cell{:A,Int}(1)`. Similarly, `@Column(A=[1,2,3])`
+will generate `Column{:A, Vector{Int}}([1,2,3])`.
 
 On the other hand, `Row`s and `Table`s are annotated by a tuple of `Symbol`s -
 even in the case that there is a single column. The second type parameter of
@@ -124,6 +123,13 @@ etc.
 
 Finally, both `Column`s and `Table`s provide an extra field name called `:Row`
 which corresponds to the row number of each field. We have that `table[Val{:Row}] = 1:nrow(table)`.
+
+The above built-in datatypes are all subtypes of `AbstractTable`, `AbstractRow`,
+`AbstractColumn` or `AbstractCell`, where the vast majority of the methods
+provided by this package are defined on these abstract types. The concrete types
+are very simple implementations that define their constructors, the `name` or
+`names` function, and the `get` function. This design makes it relatively
+simple for users to introduce their own `AbstractTable` types.
 
 ## Relational algebra
 
@@ -216,7 +222,7 @@ then comparing them with `table2`.
 ### Set operations
 
 Operations for dealing with tables as sets are defined, including `unique` (and
-it's mutating version `unique!`), `union`, `intersect` and `setdiff`.
+it's mutating version `unique!`), `union`/`union!`, `intersect` and `setdiff`.
 
 ## Input/Output
 
@@ -304,9 +310,10 @@ including `DataFrame`s.
 - [x] I/O from files and `DataFrame`s (`readtable` and `writetable`)
 - [x] `@select` for dplyr-like `select` and `mutate`
 - [x] `@filter` for dplyr-like `filter`.
-- [ ] inherit from `AbstractTable` in *AbstractTables.jl*
-- [ ] support *DataStreams.jl*
-- [ ] sort/arrange (probably also *a la* dplyr)
+- [x] Use an abstract type system to make it easier to implement new tables.
+- [ ] Inherit from `AbstractTable` in *AbstractTables.jl*
+- [ ] Support *DataStreams.jl*
+- [ ] Sort/arrange (probably also *a la* dplyr)
 - [ ] Other types of joins
 - [ ] More support for views, `slice` and `sub` (or `view`)
 - [ ] Make `Table` and `Column` inherit from `AbstractVector{Row{...}}}` (maybe?)

@@ -4,7 +4,7 @@
     @test @inferred(Table{(:A, :B)}(([1,2,3], [2.0,4.0,6.0]))) == Table{(:A, :B), Tuple{Vector{Int},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]))
     @test @inferred(Table{(:A, :B), Tuple{Vector{Int}, Vector{Float64}}}()) == Table{(:A, :B), Tuple{Vector{Int},Vector{Float64}}}((Int[],Float64[]))
 
-    @test @inferred(Table{(:A, :B)}(([1,2,3],[2.0,4.0,6.0]), Val{false})) == Table{(:A, :B), Tuple{Vector{Int},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]), Val{true})
+    #@test @inferred(Table{(:A, :B)}(([1,2,3],[2.0,4.0,6.0]), Val{false})) == Table{(:A, :B), Tuple{Vector{Int},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]), Val{true})
 
     @test @Table(A=[1,2,3], B=[2.0,4.0,6.0])  == Table{(:A, :B), Tuple{Vector{Int},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]))
     @test (@Table A=[1,2,3] B=[2.0,4.0,6.0]) == Table{(:A, :B), Tuple{Vector{Int},Vector{Float64}}}(([1,2,3],[2.0,4.0,6.0]))
@@ -31,9 +31,9 @@ end
     @test length(t) == 3
     @test ncol(t) == 2
     @test nrow(t) == 3
-    @test size(t) == (3,)
-    @test size(t,1) == 3
-    @test ndims(t) == 1
+    #@test size(t) == (3,)
+    #@test size(t,1) == 3
+    #@test ndims(t) == 1
     @test isempty(t) == false
     @test endof(t) == 3
 
@@ -84,8 +84,14 @@ end
     @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, :, Val{:A})) == [1,2,3] )
     @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, :, Val{(:A,)})) == @Table(A=[1,2,3]) )
 
-    @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, 1, :)) == @Row(A=1,B=2.0) )
-    @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, :, :)) == @Table(A=[1,2,3],B=[2.0,4.0,6.0]) )
+    # Symmetric form
+    @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, Val{:A}, 1)) == 1 )
+    @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, Val{(:A,)}, 1)) == @Row(A=1) )
+    @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, Val{:A}, :)) == [1,2,3] )
+    @test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, Val{(:A,)}, :)) == @Table(A=[1,2,3]) )
+
+    #@test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, 1, :)) == @Row(A=1,B=2.0) )
+    #@test (t=@Table(A=[1,2,3],B=[2.0,4.0,6.0]); @inferred(getindex(t, :, :)) == @Table(A=[1,2,3],B=[2.0,4.0,6.0]) )
 
 end
 

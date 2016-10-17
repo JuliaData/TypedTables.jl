@@ -1,4 +1,6 @@
+# WIP
 
+#=
 """
 A dense key table stores the data as a single dictionary of row-tuples.
 """
@@ -11,3 +13,4 @@ immutable DenseKeyTable{Index,DataTypes,Key,KeyType} <: AbstractTable{Index,Key}
         new(data_in)
     end
 end
+=#
