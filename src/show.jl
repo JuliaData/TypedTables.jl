@@ -348,27 +348,27 @@ end
 
 _displaysize(io) = haskey(io, :displaysize) ? io[:displaysize] : _displaysize(io.io)
 
-function printtable(io::IO, header_str::Vector{Compat.UTF8String}, data_str::Vector{Vector{Compat.UTF8String}}, row_header_str::Compat.UTF8String = Compat.UTF8String(""), row_str::Vector{Compat.UTF8String} = (length(data_str) > 0 ? fill(Compat.UTF8String(""), length(data_str[1])) : Vector{Compat.UTF8String}(""));
-                    dotsbreak = -1, # Insert some dots after this row (set to 0 for at top)
-                    max_width = 255,
-                    tl = "┌─",
-                    t = "─", # length 1
-                    tr = "─┐",
-                    tsep = "─┬─",
-                    hl = "├─",
-                    h = "─", # length 1
-                    hsep = "─┼─",
-                    hr = "─┤",
-                    l = "│ ",
-                    sep = " │ ",
-                    r = " │",
-                    bl = "└─",
-                    b = "─", # length 1
-                    br = "─┘",
-                    bsep = "─┴─",
-                    pad = " ", # length 1
-                    vdots = "⋮",# length 1
-                    hdots = "…") # length 1)
+function printtable(io::IO, header_str::Vector{String}, data_str::Vector{Vector{String}}, row_header_str::String = "", row_str::Vector{String} = (length(data_str) > 0 ? ["" for _ = 1:length(data_str[1])] : Vector{String}());
+                    dotsbreak::Int = -1, # Insert some dots after this row (set to 0 for at top)
+                    max_width::Int = 255,
+                    tl::String = "┌─",
+                    t::String = "─", # length 1
+                    tr::String = "─┐",
+                    tsep::String = "─┬─",
+                    hl::String = "├─",
+                    h::String = "─", # length 1
+                    hsep::String = "─┼─",
+                    hr::String = "─┤",
+                    l::String = "│ ",
+                    sep::String = " │ ",
+                    r::String = " │",
+                    bl::String = "└─",
+                    b::String = "─", # length 1
+                    br::String = "─┘",
+                    bsep::String = "─┴─",
+                    pad::String = " ", # length 1
+                    vdots::String = "⋮",# length 1
+                    hdots::String = "…") # length 1)
 
     ncols = length(data_str)
     nrows = length(data_str) > 0 ? length(data_str[1]) : 0
@@ -522,7 +522,7 @@ function printtable(io::IO, header_str::Vector{Compat.UTF8String}, data_str::Vec
 end
 
 function make_strings(data; maxl::Int = 5, width_suggestion::Int = 20)
-    data_str = Vector{Compat.UTF8String}()
+    data_str = Vector{String}()
     nrows = length(data)
 
     if nrows > 2*maxl
@@ -544,36 +544,36 @@ function make_strings(data; maxl::Int = 5, width_suggestion::Int = 20)
 end
 
 
-function Base.show(io::IO, table::Table)
+function Base.show(io::IO, table::AbstractTable)
     if ncol(table) == 0
-        print(io,"Empty Table")
+        print(io,"Empty ", typeof(table).name.name)
         return
     else
         ncols = ncol(table)
         nrows = length(table)
 
-        println(io, "$nrows-row × $ncols-column Table:")
+        println(io, "$nrows-row × $ncols-column ", typeof(table).name.name, ":")
     end
 
-    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize(io) # [height, width] in characters
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = Compat.UTF8String("Row")
+    row_header_str = String("Row")
     if nrows > 2*maxl
-        row_str = Compat.UTF8String[string(i) for i = vcat(1:maxl, nrows-maxl+1:nrows)]
+        row_str = String[string(i) for i = vcat(1:maxl, nrows-maxl+1:nrows)]
         dotsbreak = maxl
     else
-        row_str = Compat.UTF8String[string(i) for i = 1:nrows]
+        row_str = String[string(i) for i = 1:nrows]
         dotsbreak = -1
     end
 
     # header....
     col_names = names(table)
-    header_str = [Compat.UTF8String(string(col_names[i])) for i = 1:ncols]
+    header_str = [String(string(col_names[i])) for i = 1:ncols]
 
-    data_str = [Vector{Compat.UTF8String}() for i = 1:ncols]
+    data_str = [Vector{String}() for i = 1:ncols]
     for c = 1:ncols
         width_suggestion = 20
         if eltype(table.data[c]) <: Union{Bool,Nullable{Bool},Float64,Float32} && length(header_str[c]) < width_suggestion
@@ -601,30 +601,30 @@ function Base.show(io::IO, table::Table)
 end
 
 
-function Base.showall(io::IO,table::Table)
+function Base.showall(io::IO,table::AbstractTable)
     if ncol(table) == 0
-        print(io,"Empty Table")
+        print(io,"Empty ", typeof(table).name.name)
         return
     else
         ncols = ncol(table)
         nrows = length(table)
 
-        println(io, "$nrows-row × $ncols-column Table:")
+        println(io, "$nrows-row × $ncols-column ", typeof(table).name.name, ":")
     end
 
-    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize(io) # [height, width] in characters
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = Compat.UTF8String("Row")
-    row_str = Compat.UTF8String[string(i) for i = 1:nrows]
+    row_header_str = String("Row")
+    row_str = String[string(i) for i = 1:nrows]
 
     # header....
     col_names = names(table)
-    header_str = [Compat.UTF8String(string(col_names[i])) for i = 1:ncols]
+    header_str = [String(string(col_names[i])) for i = 1:ncols]
 
-    data_str = [Vector{Compat.UTF8String}() for i = 1:ncols]
+    data_str = [Vector{String}() for i = 1:ncols]
     for c = 1:ncols
         width_suggestion = 20
         if eltype(table.data[c]) <: Union{Bool,Nullable{Bool},Float64,Float32} && length(header_str[c]) < width_suggestion
@@ -650,28 +650,28 @@ function Base.showall(io::IO,table::Table)
                                                                   bsep = "═╧═")
 end
 
-function Base.show(io::IO, col::Column)
-    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
+function Base.show(io::IO, col::AbstractColumn)
+    s = displaysize(io) # [height, width] in characters
     maxl = max(5,div(s[1],5)) # Maximum number of lines to show (head, then tail)
     nrows = length(col)
 
-    println(io, "$nrows-row Column:")
+    println(io, "$nrows-row ", typeof(col).name.name, ":")
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = Compat.UTF8String("Row")
+    row_header_str = String("Row")
     if nrows > 2*maxl
-        row_str = Compat.UTF8String[string(i) for i = vcat(1:maxl, nrows-maxl+1:nrows)]
+        row_str = String[string(i) for i = vcat(1:maxl, nrows-maxl+1:nrows)]
         dotsbreak = maxl
     else
-        row_str = Compat.UTF8String[string(i) for i = 1:nrows]
+        row_str = String[string(i) for i = 1:nrows]
         dotsbreak = -1
     end
 
     # header....
-    header_str = [Compat.UTF8String(string(name(col)))]
+    header_str = [String(string(name(col)))]
 
-    data_str = Vector{Compat.UTF8String}[make_strings(col.data; maxl = maxl, width_suggestion=60),]
+    data_str = Vector{String}[make_strings(col.data; maxl = maxl, width_suggestion=60),]
 
     # Now we show the table using computed widths for decorations
     printtable(io, header_str, data_str, row_header_str, row_str; max_width = s[2],
@@ -686,21 +686,21 @@ function Base.show(io::IO, col::Column)
                                                                   bsep = "═╧═")
 end
 
-function Base.showall(io::IO, col::Column)
-    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
+function Base.showall(io::IO, col::AbstractColumn)
+    s = displaysize(io) # [height, width] in characters
     nrows = length(col)
 
-    println(io, "$nrows-row Column:")
+    println(io, "$nrows-row ", typeof(col).name.name, ":")
 
     # First we format all of our output and determine its size
     # Rows (on side)
-    row_header_str = Compat.UTF8String("Row")
-    row_str = Compat.UTF8String[string(i) for i = 1:nrows]
+    row_header_str = String("Row")
+    row_str = String[string(i) for i = 1:nrows]
 
     # header....
-    header_str = [Compat.UTF8String(string(name(col)))]
+    header_str = [String(string(name(col)))]
 
-    data_str = Vector{Compat.UTF8String}[make_strings(col.data; maxl = nrows, width_suggestion=60),]
+    data_str = Vector{String}[make_strings(col.data; maxl = nrows, width_suggestion=60),]
 
 
     # Now we show the table using computed widths for decorations
@@ -715,24 +715,24 @@ function Base.showall(io::IO, col::Column)
                                                                   bsep = "═╧═")
 end
 
-function Base.show(io::IO,row::Row)
+function Base.show(io::IO,row::AbstractRow)
     if ncol(row) == 0
-        print(io,"Empty Row")
+        print(io,"Empty ", typeof(row).name.name)
         return
     end
 
-    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize(io) # [height, width] in characters
     ncols = ncol(row)
 
-    println(io, "$ncols-column Row:")
+    println(io, "$ncols-column ", typeof(row).name.name, ":")
 
     # First we format all of our output and determine its size
 
     # header....
     col_names = names(row)
-    header_str = [Compat.UTF8String(string(col_names[i])) for i = 1:ncols]
+    header_str = [String(string(col_names[i])) for i = 1:ncols]
 
-    data_str = [Vector{Compat.UTF8String}() for i = 1:ncols]
+    data_str = [Vector{String}() for i = 1:ncols]
     for c = 1:ncols
         width_suggestion = 20
         if eltype(row.data[c]) <: Union{Bool,Nullable{Bool},Float64,Float32} && length(header_str[c]) < width_suggestion
@@ -754,22 +754,22 @@ function Base.show(io::IO,row::Row)
                                          br = "─╜")
 end
 
-showall(io::IO, row::Row) = show(io, row) # TODO fix this (row can be too wide)
+showall(io::IO, row::AbstractRow) = show(io, row) # TODO fix this (row can be too wide)
 
-function Base.show(io::IO, cell::Cell)
-    println(io, "Cell:")
+function Base.show(io::IO, cell::AbstractCell)
+    println(io, typeof(cell).name.name, ":")
 
-    s = displaysize() # [height, width] in characters TODO fix for Julia 0.5
+    s = displaysize(io) # [height, width] in characters
 
     # First we format all of our output and determine its size
 
     # header....
-    header_str = [Compat.UTF8String(string(name(cell)))]
+    header_str = [String(string(name(cell)))]
 
-    data_str = Vector{Compat.UTF8String}[make_strings([cell.data]; width_suggestion=60),]
+    data_str = Vector{String}[make_strings([cell.data]; width_suggestion=60),]
 
     # Now we show the table using computed widths for decorations
     printtable(io, header_str, data_str; max_width = s[2])
 end
 
-showall(io::IO, cell::Cell) = show(io, cell)
+showall(io::IO, cell::AbstractCell) = show(io, cell)

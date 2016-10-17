@@ -1,4 +1,6 @@
+# WIP
 
+#=
 """
 A key table stores the data as a set of dictionaries for each field.
 """
@@ -13,3 +15,5 @@ immutable KeyTable{Index,StorageTypes,Key,KeyType} <: AbstractTable{Index,Key}
 end
 
 @generated check_key{Key,KeyType}(::Key,::Type{KeyType}) = (eltype(Key()) == KeyType) ? (return nothing) : (str = "KeyType $KeyType doesn't match Key $Key"; return :(error(str)))
+
+=#

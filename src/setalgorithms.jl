@@ -8,14 +8,14 @@
 Return a vector of vectors indicating the indices of identical values in a
 `Column` or identical rows of a `Table` using a hashing algorithm.
 """
-function groupinds(C::Union{Column,Table}; kwargs...) # TODO this method name might be added to Base in 0.5 (https://github.com/JuliaLang/julia/pull/15503/)
+function groupinds(C::Union{AbstractColumn,AbstractTable}; kwargs...) # See also https://github.com/JuliaLang/julia/pull/15503/, https://github.com/AndyGreenwell/GroupSlices.jl
     out = Dict{eltype(C),Vector{Int}}()
     i = 1
     for i = 1:length(C)
-        if !in(C.data[i], keys(out))
-            out[C.data[i]] = [i]
+        if !in(get(C)[i], keys(out))
+            out[get(C)[i]] = [i]
         else
-            push!(out[C.data[i]],i)
+            push!(out[get(C)[i]],i)
         end
     end
     collect(values(out))
@@ -24,7 +24,7 @@ end
 """
 Return the indices of the first unique elements in a `Column` or a `Table`.
 """
-function uniqueind(x::Column)
+function uniqueind(x::AbstractColumn)
     out = Vector{Int}()
     seen = Set{eltype(x)}()
     i = 1
@@ -38,13 +38,13 @@ function uniqueind(x::Column)
     out
 end
 
-function uniqueind(x::Table)
+function uniqueind(x::AbstractTable)
     out = Vector{Int}()
     seen = Set{eltype(x)}()
     i = 1
     for y in x
-        if !in(y.data, seen)
-            push!(seen, y.data)
+        if !in(get(y), seen)
+            push!(seen, get(y))
             push!(out, i)
         end
         i += 1
@@ -52,118 +52,118 @@ function uniqueind(x::Table)
     out
 end
 
-function Base.unique(x::Union{Column,Table})
+function Base.unique(x::Union{AbstractColumn,AbstractTable})
     x[uniqueind(x)]
 end
 
 """
 Mutating form of `unique`.
 """
-function unique!(x::Column)
+function unique!(x::AbstractColumn)
     idx = uniqueind(x)
-    x.data[1:length(idx)] == x.data[idx]
-    resize!(x.data, length(idx))
+    get(x)[1:length(idx)] == get(x)[idx]
+    resize!(get(x), length(idx))
 end
 
-function unique!(x::Table)
+function unique!(x::AbstractTable)
     idx = uniqueind(x)
     for i = 1:ncol(x)
-        x.data[i][1:length(idx)] == x.data[i][idx]
-        resize!(x.data[i], length(idx))
+        get(x)[i][1:length(idx)] == get(x)[i][idx]
+        resize!(get(x)[i], length(idx))
     end
 end
 
-Base.union(cell::Cell) = Column(cell)
-Base.union(col::Column) = unique(col)
-Base.union{Name}(col1::Union{Cell{Name},Column{Name}}, col2::Union{Cell{Name},Column{Name}}) =
-    Column{Name}(union(col1.data, col2.data))
-Base.union{Name}(col1::Union{Cell{Name},Column{Name}}, col2::Union{Cell{Name},Column{Name}}, cols::Union{Cell,Column}...) =
+Base.union(cell::AbstractCell) = column_type(typeof(cell))(union(get(cell)))
+Base.union(col::AbstractColumn) = unique(col)
+Base.union(col1::Union{AbstractCell,AbstractColumn}, col2::Union{AbstractCell,AbstractColumn}) =
+    column_type(typeof(col1))(union(get(col1), get(col2)))
+@inline Base.union(col1::Union{AbstractCell,AbstractColumn}, col2::Union{AbstractCell,AbstractColumn}, cols::Union{AbstractCell,AbstractColumn}...) =
     union(union(col1, col2), cols...)
 
-Base.intersect{Name}(col1::Union{Cell{Name},Column{Name}}, col2::Union{Cell{Name},Column{Name}}) =
-    Column{Name}(intersect(col1.data, col2.data))
+Base.intersect(col1::Union{AbstractCell,AbstractColumn}, col2::Union{AbstractCell,AbstractColumn}) =
+    column_type(typeof(col1))(intersect(get(col1), get(col2)))
 
-Base.setdiff{Name}(col1::Union{Cell{Name},Column{Name}}, col2::Union{Cell{Name},Column{Name}}) =
-    Column{Name}(setdiff(col1.data, col2.data))
+Base.setdiff(col1::Union{AbstractCell,AbstractColumn}, col2::Union{AbstractCell,AbstractColumn}) =
+    column_type(typeof(col1))(setdiff(get(col1), get(col2)))
 
-Base.union(row::Row) = vcat(row)
-Base.union(table::Table) = unique(table)
-function Base.union{Names}(table1::Union{Row{Names},Table{Names}}, table2::Union{Row{Names},Table{Names}})
+Base.union(row::AbstractRow) = vcat(row)
+Base.union(table::AbstractTable) = unique(table)
+function Base.union(table1::Union{AbstractRow,AbstractTable}, table2::Union{AbstractRow,AbstractTable})
     seen = Set{eltypes(typeof(table1))}()
     idx1 = Vector{Int}()
     for i = 1:length(table1)
-        if !in(table1[i].data, seen)
-            push!(seen, table1[i].data)
+        if !in(get(table1[i]), seen)
+            push!(seen, get(table1[i]))
             push!(idx1, i)
         end
     end
     idx2 = Vector{Int}()
     for i = 1:length(table2)
-        if !in(table2[i].data, seen)
-            push!(seen, table2[i].data)
+        if !in(get(table2[i]), seen)
+            push!(seen, get(table2[i]))
             push!(idx2, i)
         end
     end
 
     vcat(table1[idx1], table2[idx2])
 end
-function Base.union(table1::Union{Row,Table}, table2::Union{Row,Table}, tables::Union{Row,Table}...)
+@inline function Base.union(table1::Union{AbstractRow,AbstractTable}, table2::Union{AbstractRow,AbstractTable}, tables::Union{AbstractRow,AbstractTable}...)
     union(union(table1, table2), tables...) # TODO a bit inefficient to build the hash multiple times...
 end
 
-function Base.union!{Names}(table1::Table{Names}, table2::Union{Row{Names},Table{Names}})
+function Base.union!(table1::AbstractTable, table2::Union{AbstractRow,AbstractTable})
     seen = Set{eltypes(typeof(table1))}()
     repeats = Vector{Int}()
     for i = 1:length(table1)
-        if !in(table1[i].data, seen)
-            push!(seen, table1[i].data)
+        if !in(get(table1[i]), seen)
+            push!(seen, get(table1[i]))
         else
             push!(repeats, i)
         end
     end
     deleteat!(table1, repeats)
     for i = 1:length(table2)
-        if !in(table2[i].data, seen)
-            push!(seen, table2[i].data)
+        if !in(get(table2[i]), seen)
+            push!(seen, get(table2[i]))
             push!(table1, table2[i])
         end
     end
 end
-function Base.union!(table1::Union{Row,Table}, table2::Union{Row,Table}, tables::Union{Row,Table}...)
+@inline function Base.union!(table1::AbstractTable, table2::Union{AbstractRow,AbstractTable}, tables::Union{AbstractRow,AbstractTable}...)
     union!(union!(table1, table2), tables...) # TODO a bit inefficient to build the hash multiple times...
 end
 
-function Base.intersect{Names}(table1::Union{Row{Names},Table{Names}}, table2::Union{Row{Names},Table{Names}})
+function Base.intersect(table1::Union{AbstractRow,AbstractTable}, table2::Union{AbstractRow,AbstractTable})
     seen1 = Set{eltypes(typeof(table1))}()
     for i = 1:length(table1)
-        if !in(table1[i].data, seen1)
-            push!(seen1, table1[i].data)
+        if !in(get(table1[i]), seen1)
+            push!(seen1, get(table1[i]))
         end
     end
     seen2 = Set{eltypes(typeof(table2))}()
     idx2 = Vector{Int}()
     for i = 1:length(table2)
-        if in(table2[i].data, seen1)
-            if !in(table2[i].data, seen2)
-                push!(seen2, table2[i].data)
+        if in(get(table2[i]), seen1)
+            if !in(get(table2[i]), seen2)
+                push!(seen2, get(table2[i]))
                 push!(idx2, i)
             end
         end
     end
 
-    table2[idx2]
+    table2[idx2] # This is a strange return if table2 <: AbstractRow
 end
 
-function Base.setdiff{Names}(table1::Union{Row{Names},Table{Names}}, table2::Union{Row{Names},Table{Names}})
+function Base.setdiff(table1::Union{AbstractRow,AbstractTable}, table2::Union{AbstractRow,AbstractTable})
     idx1 = Dict{eltypes(typeof(table1)),Int}()
     for i = 1:length(table1)
-        if !in(table1[i].data, keys(idx1))
-            idx1[table1[i].data] = i
+        if !in(get(table1[i]), keys(idx1))
+            idx1[get(table1[i])] = i
         end
     end
     for i = 1:length(table2)
-        if in(table2[i].data, keys(idx1))
-            delete!(idx1,table2[i].data)
+        if in(get(table2[i]), keys(idx1))
+            delete!(idx1,get(table2[i]))
         end
     end
 

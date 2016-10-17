@@ -4,7 +4,7 @@ symbols, such as a DataFrame. Requires a `Val{Names}` where `Names` is a
 tuple of Symbols.
 
 The reverse transformation (to DataFrames) can be acheived by:
-   DataFrame(collect(table.data), collect(names(table)))
+   DataFrame(collect(get(table)), collect(names(table)))
 """
 @generated function readtable{Names}(::Type{Val{Names}}, x)
     exprs = ntuple(i->:(x[$(Expr(:quote,Names[i]))]), length(Names))
@@ -17,13 +17,13 @@ Read a table from a file in DLM (delimited) or CSV (comma-sereperated values,
 default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
 instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
-function readtable{Names,Types}(::Type{Table{Names,Types}}, file::Union{AbstractString,IO}; kwargs...)
-    table = Table{Names,Types}()
+function readtable{Tbl<:AbstractTable}(::Type{Tbl}, file::Union{String,IO}; kwargs...)
+    table = Tbl()
     readtable!(table, file; kwargs...)
     return table
 end
 
-function readtable!(table::Table, filename::AbstractString; kwargs...)
+function readtable!(table::AbstractTable, filename::String; kwargs...)
     open(filename) do fio
         readtable!(table, fio; kwargs...)
     end
@@ -34,7 +34,9 @@ Append data to a table from a file in DLM (delimited) or CSV (comma-sereperated
 values, default) text-based formats, using Julia's inbuilt readdlm. Set `multiplespaces = true`
 instead of `delim = ' '` for files with arbitrarily many spaces between fields.
 """
-function readtable!{Names, Types}(table::Table{Names, Types}, file::IO; delim::Char = ',', eol::Char = '\n', header::Bool = false, multiplespaces = false, kwargs...)
+function readtable!(table::AbstractTable, file::IO; delim::Char = ',', eol::Char = '\n', header::Bool = false, multiplespaces = false, kwargs...)
+    Names = names(table)
+    Types = storagetypes(table)
     if multiplespaces == true
         delim = Base.DataFmt.invalid_dlm(Char)
     end
@@ -78,7 +80,7 @@ function readtable!{Names, Types}(table::Table{Names, Types}, file::IO; delim::C
     end
 end
 
-function writetable(filename::AbstractString, table::Table; kwargs...)
+function writetable(filename::String, table::AbstractTable; kwargs...)
     fio = open(filename, false, true, true, true, false)
     writetable(fio, table; kwargs...)
     close(fio)
@@ -96,7 +98,10 @@ Write a table to disk using delimeted text format. Optional arguments include:
   char_delim = '\''
   char_delim_right = char_delim
 """
-function writetable{Names,Types}(fileio::IO, table::Table{Names,Types}; header::Bool = false, delim = ',', eol = '\n', string_delim = '\"', string_delim_right = string_delim, char_delim = '\'', char_delim_right = char_delim, null = "NA")
+function writetable(fileio::IO, table::AbstractTable; header::Bool = false, delim = ',', eol = '\n', string_delim = '\"', string_delim_right = string_delim, char_delim = '\'', char_delim_right = char_delim, null = "NA")
+    Names = names(typeof(table))
+    Types = storagetypes(typeof(table))
+
     if header == true
         for j = 1:ncol(table)
             write(fileio, Names[j])
@@ -117,7 +122,7 @@ function writetable{Names,Types}(fileio::IO, table::Table{Names,Types}; header::
             isnullable[i] = true
             typ = eltype(typ)
         end
-        isstring[i] = typ <: AbstractString
+        isstring[i] = typ <: String
         ischar[i] = typ <: Char
     end
 
@@ -125,7 +130,7 @@ function writetable{Names,Types}(fileio::IO, table::Table{Names,Types}; header::
     for i = 1:nrow(table)
         for j = 1:ncol(table)
             if isnullable[j]
-                if isnull(table.data[j][i])
+                if isnull(get(table)[j][i])
                     write(fileio, null)
 
                     if j == ncol(table)
@@ -139,7 +144,7 @@ function writetable{Names,Types}(fileio::IO, table::Table{Names,Types}; header::
                     elseif ischar[j]
                         write(fileio, char_delim)
                     end
-                    write(fileio, string(get(table.data[j][i])))
+                    write(fileio, string(get(get(table)[j][i])))
                     if isstring[j]
                         write(fileio, string_delim_right)
                     elseif ischar[j]
@@ -158,7 +163,7 @@ function writetable{Names,Types}(fileio::IO, table::Table{Names,Types}; header::
                 elseif ischar[j]
                     write(fileio, char_delim)
                 end
-                write(fileio, string(table.data[j][i]))
+                write(fileio, string(get(table)[j][i]))
                 if isstring[j]
                     write(fileio, string_delim_right)
                 elseif ischar[j]
