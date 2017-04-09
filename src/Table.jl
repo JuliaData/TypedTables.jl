@@ -21,7 +21,7 @@ A table stores columns of data accessible by their field names.
 immutable Table{Names, StorageTypes <: Tuple} #<: AbstractTable{Index,DefaultKey()}
     data::StorageTypes
 
-    function Table(data_in::Tuple, check_sizes::Type{Val{true}} = Val{true})
+    function (::Type{Table{Names, StorageTypes}}){Names, StorageTypes <: Tuple}(data_in::Tuple, check_sizes::Type{Val{true}} = Val{true})
         check_table(Val{Names}, StorageTypes)
         ls = map(length, data_in)
         for i in 2:length(data_in)
@@ -29,12 +29,12 @@ immutable Table{Names, StorageTypes <: Tuple} #<: AbstractTable{Index,DefaultKey
                 error("Column inputs must be same length.")
             end
         end
-        new(data_in)
+        new{Names, StorageTypes}(data_in)
     end
 
-    function Table(data_in::Tuple, check_sizes::Type{Val{false}})
+    function (::Type{Table{Names, StorageTypes}}){Names, StorageTypes}(data_in::Tuple, check_sizes::Type{Val{false}})
         check_table(Val{Names}, StorageTypes)
-        new(data_in)
+        new{Names, StorageTypes}(data_in)
     end
 end
 

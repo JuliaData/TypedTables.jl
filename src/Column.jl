@@ -4,9 +4,9 @@ A Column is a vector (or similar store) of data annotated by a column name
 """
 immutable Column{Name, StorageType}
     data::StorageType
-    function Column{T}(x::T)
+    function (::Type{Column{Name, StorageType}}){Name, StorageType, T}(x::T)
         check_Column(Val{Name}, StorageType)
-        new(convert(StorageType, x))
+        new{Name, StorageType}(convert(StorageType, x))
     end
 end
 

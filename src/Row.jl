@@ -8,9 +8,9 @@ A `Row` stores multiple elements of data referenced by their column names.
 immutable Row{Names, Types <: Tuple}
     data::Types
 
-    function Row{T <: Tuple}(data_in::T)
+    function (::Type{Row{Names, Types}}){Names, Types, T <: Tuple}(data_in::T)
         check_row(Val{Names}, Types)
-        new(convert(Types, data_in))
+        new{Names, Types}(convert(Types, data_in))
     end
 end
 

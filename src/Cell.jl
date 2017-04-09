@@ -7,9 +7,9 @@ A `Cell` is a single piece of data annotated by a column name
 """
 immutable Cell{Name, ElType}
     data::ElType
-    function Cell{T}(x::T)
+    function (::Type{Cell{Name, ElType}}){Name, ElType, T}(x::T)
         check_Cell(Val{Name},ElType)
-        new(convert(ElType,x))
+        new{Name, ElType}(convert(ElType,x))
     end
 end
 @compat @inline (::Type{Cell{Name}}){Name, ElType}(x::ElType) = Cell{Name,ElType}(x)
