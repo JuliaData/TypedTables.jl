@@ -147,23 +147,6 @@ Base.getindex(r::Row) = r
 Base.getindex(r::Row, i::Integer) = i == 1 ? r : error("Cannot index Row at $i")
 Base.getindex(r::Row, ::Colon) = r
 
-# reordering
-@generated function permutecols{Names1,Names2,Types}(r::Row{Names1,Types}, ::Type{Val{Names2}})
-    if Names1 == Names2
-        return :(r)
-    else
-        if !(isa(Names2, Tuple)) || eltype(Names2) != Symbol || length(Names2) != length(Names1) || length(Names2) != length(unique(Names2))
-            str = "New column names $Names2 do not match existing names $Names1"
-            return :(error($str))
-        end
-
-        order = permutator(Names1, Names2)
-
-        exprs = [:(r.data[$(order[j])]) for j = 1:length(Names1)]
-        return Expr(:call, Row{Names2}, Expr(:tuple, exprs...))
-    end
-end
-
 function permutator{N}(names1::NTuple{N,Symbol}, names2::NTuple{N,Symbol})
     order = zeros(Int, N)
     for i = 1:N
@@ -183,6 +166,23 @@ function permutator{N}(names1::NTuple{N,Symbol}, names2::NTuple{N,Symbol})
     end
 
     return order
+end
+
+# reordering
+@generated function permutecols{Names1,Names2,Types}(r::Row{Names1,Types}, ::Type{Val{Names2}})
+    if Names1 == Names2
+        return :(r)
+    else
+        if !(isa(Names2, Tuple)) || eltype(Names2) != Symbol || length(Names2) != length(Names1) || length(Names2) != length(unique(Names2))
+            str = "New column names $Names2 do not match existing names $Names1"
+            return :(error($str))
+        end
+
+        order = permutator(Names1, Names2)
+
+        exprs = [:(r.data[$(order[j])]) for j = 1:length(Names1)]
+        return Expr(:call, Row{Names2}, Expr(:tuple, exprs...))
+    end
 end
 
 # Horizontally concatenate cells and rows into rows
