@@ -78,16 +78,6 @@ end
 
 rename{Names, NewNames}(row::Row{Names}, ::Type{Val{NewNames}}) = Row{NewNames}(row.data)
 
-@generated function rename{Names, OldName, NewName}(row::Row{Names}, ::Type{Val{OldName}}, ::Type{Val{NewName}})
-    j = columnindex(Names, OldName)
-
-    NewNames = [Names...]
-    NewNames[j] = NewName
-    NewNames = (NewNames...)
-
-    return :(Row{$NewNames}(row.data))
-end
-
 columnindex{N}(names::NTuple{N,Symbol}, name) = error("Can't search for columns $name")
 function columnindex{N}(names::NTuple{N,Symbol}, name::Symbol)
     for i = 1:length(names)
@@ -111,6 +101,16 @@ end
 @inline ncol{Names}(::Row{Names}) = length(Names)
 @inline ncol{Names,Types}(::Type{Row{Names,Types}}) = length(Names)
 @inline ncol{Names}(::Type{Row{Names}}) = length(Names)
+
+@generated function rename{Names, OldName, NewName}(row::Row{Names}, ::Type{Val{OldName}}, ::Type{Val{NewName}})
+    j = columnindex(Names, OldName)
+
+    NewNames = [Names...]
+    NewNames[j] = NewName
+    NewNames = (NewNames...)
+
+    return :(Row{$NewNames}(row.data))
+end
 
 @generated function Base.getindex{Names, GetName}(row::Row{Names}, ::Type{Val{GetName}})
     if isa(GetName, Symbol)
