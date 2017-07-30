@@ -62,20 +62,6 @@ end
     return Expr(:call, Row{Names_new,Types_new}, Expr(:tuple, exprs...))
 end
 
-@compat Base.:(==){Names, Types1, Types2}(row1::Row{Names, Types1}, row2::Row{Names, Types2}) = (row1.data == row2.data)
-@compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(row1::Row{Names1,Types1}, row2::Row{Names2,Types2})
-    try
-        order = permutator(Names1, Names2)
-        expr = :( row1.data[$(order[1])] == row2.data[1] )
-        for j = 2:length(Names1)
-            expr = Expr(:call, :(&), expr, :( row1.data[$(order[j])] == row2.data[$j] ))
-        end
-        return expr
-    catch
-        return false
-    end
-end
-
 rename{Names, NewNames}(row::Row{Names}, ::Type{Val{NewNames}}) = Row{NewNames}(row.data)
 
 columnindex{N}(names::NTuple{N,Symbol}, name) = error("Can't search for columns $name")
@@ -182,6 +168,21 @@ end
 
         exprs = [:(r.data[$(order[j])]) for j = 1:length(Names1)]
         return Expr(:call, Row{Names2}, Expr(:tuple, exprs...))
+    end
+end
+
+@compat Base.:(==){Names, Types1, Types2}(row1::Row{Names, Types1}, row2::Row{Names, Types2}) = (row1.data == row2.data)
+@compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(row1::Row{Names1,Types1}, row2::Row{Names2,Types2})
+    # This definition has to be below permutator. See #20326
+    try
+        order = permutator(Names1, Names2)
+        expr = :( row1.data[$(order[1])] == row2.data[1] )
+        for j = 2:length(Names1)
+            expr = Expr(:call, :(&), expr, :( row1.data[$(order[j])] == row2.data[$j] ))
+        end
+        return expr
+    catch
+        return false
     end
 end
 
