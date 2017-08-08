@@ -62,31 +62,7 @@ end
     return Expr(:call, Row{Names_new,Types_new}, Expr(:tuple, exprs...))
 end
 
-@compat Base.:(==){Names, Types1, Types2}(row1::Row{Names, Types1}, row2::Row{Names, Types2}) = (row1.data == row2.data)
-@compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(row1::Row{Names1,Types1}, row2::Row{Names2,Types2})
-    try
-        order = permutator(Names1, Names2)
-        expr = :( row1.data[$(order[1])] == row2.data[1] )
-        for j = 2:length(Names1)
-            expr = Expr(:call, :(&), expr, :( row1.data[$(order[j])] == row2.data[$j] ))
-        end
-        return expr
-    catch
-        return false
-    end
-end
-
 rename{Names, NewNames}(row::Row{Names}, ::Type{Val{NewNames}}) = Row{NewNames}(row.data)
-
-@generated function rename{Names, OldName, NewName}(row::Row{Names}, ::Type{Val{OldName}}, ::Type{Val{NewName}})
-    j = columnindex(Names, OldName)
-
-    NewNames = [Names...]
-    NewNames[j] = NewName
-    NewNames = (NewNames...)
-
-    return :(Row{$NewNames}(row.data))
-end
 
 columnindex{N}(names::NTuple{N,Symbol}, name) = error("Can't search for columns $name")
 function columnindex{N}(names::NTuple{N,Symbol}, name::Symbol)
@@ -111,6 +87,16 @@ end
 @inline ncol{Names}(::Row{Names}) = length(Names)
 @inline ncol{Names,Types}(::Type{Row{Names,Types}}) = length(Names)
 @inline ncol{Names}(::Type{Row{Names}}) = length(Names)
+
+@generated function rename{Names, OldName, NewName}(row::Row{Names}, ::Type{Val{OldName}}, ::Type{Val{NewName}})
+    j = columnindex(Names, OldName)
+
+    NewNames = [Names...]
+    NewNames[j] = NewName
+    NewNames = (NewNames...)
+
+    return :(Row{$NewNames}(row.data))
+end
 
 @generated function Base.getindex{Names, GetName}(row::Row{Names}, ::Type{Val{GetName}})
     if isa(GetName, Symbol)
@@ -147,23 +133,6 @@ Base.getindex(r::Row) = r
 Base.getindex(r::Row, i::Integer) = i == 1 ? r : error("Cannot index Row at $i")
 Base.getindex(r::Row, ::Colon) = r
 
-# reordering
-@generated function permutecols{Names1,Names2,Types}(r::Row{Names1,Types}, ::Type{Val{Names2}})
-    if Names1 == Names2
-        return :(r)
-    else
-        if !(isa(Names2, Tuple)) || eltype(Names2) != Symbol || length(Names2) != length(Names1) || length(Names2) != length(unique(Names2))
-            str = "New column names $Names2 do not match existing names $Names1"
-            return :(error($str))
-        end
-
-        order = permutator(Names1, Names2)
-
-        exprs = [:(r.data[$(order[j])]) for j = 1:length(Names1)]
-        return Expr(:call, Row{Names2}, Expr(:tuple, exprs...))
-    end
-end
-
 function permutator{N}(names1::NTuple{N,Symbol}, names2::NTuple{N,Symbol})
     order = zeros(Int, N)
     for i = 1:N
@@ -183,6 +152,38 @@ function permutator{N}(names1::NTuple{N,Symbol}, names2::NTuple{N,Symbol})
     end
 
     return order
+end
+
+# reordering
+@generated function permutecols{Names1,Names2,Types}(r::Row{Names1,Types}, ::Type{Val{Names2}})
+    if Names1 == Names2
+        return :(r)
+    else
+        if !(isa(Names2, Tuple)) || eltype(Names2) != Symbol || length(Names2) != length(Names1) || length(Names2) != length(unique(Names2))
+            str = "New column names $Names2 do not match existing names $Names1"
+            return :(error($str))
+        end
+
+        order = permutator(Names1, Names2)
+
+        exprs = [:(r.data[$(order[j])]) for j = 1:length(Names1)]
+        return Expr(:call, Row{Names2}, Expr(:tuple, exprs...))
+    end
+end
+
+@compat Base.:(==){Names, Types1, Types2}(row1::Row{Names, Types1}, row2::Row{Names, Types2}) = (row1.data == row2.data)
+@compat @generated function Base.:(==){Names1, Types1, Names2, Types2}(row1::Row{Names1,Types1}, row2::Row{Names2,Types2})
+    # This definition has to be below permutator. See #20326
+    try
+        order = permutator(Names1, Names2)
+        expr = :( row1.data[$(order[1])] == row2.data[1] )
+        for j = 2:length(Names1)
+            expr = Expr(:call, :(&), expr, :( row1.data[$(order[j])] == row2.data[$j] ))
+        end
+        return expr
+    catch
+        return false
+    end
 end
 
 # Horizontally concatenate cells and rows into rows
