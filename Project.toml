@@ -1,0 +1,7 @@
+authors = ["Andy Ferris <ferris.andy@gmail.com>"]
+name = "TypedTables"
+uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
+version = "1.0.0-dev"
+
+[deps]
+SplitApplyCombine = "03a91e81-4c3e-53e1-a0a4-9c0c8f19dd66"
