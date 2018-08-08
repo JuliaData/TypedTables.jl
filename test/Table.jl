@@ -14,6 +14,10 @@
     @test similar(t) isa typeof(t)
     @test axes(similar(t)) === axes(t)
 
+    @test @inferred(vcat(t, t))::Table == Table(a = [1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
+    @test @inferred(hcat(t, t))::Table == Table(a = [1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0])
+    # TODO hvcat
+
     t2 = empty(t)
     @test t2 isa typeof(t)
     @test isempty(t2)
@@ -63,5 +67,9 @@
     @test popfirst!(t3) === (a = -10, b = -10.0)
     @test t3 == Table(a = [4, 5], b = [4.0, 5.0])
 
+    append!(t3, Table(a = [6], b = [6.0]))
+    @test t3 == Table(a = [4,5,6], b = [4.0, 5.0, 6.0])
 
+    prepend!(t3, Table(a = [3], b = [3.0]))
+    @test t3 == Table(a = [3,4,5,6], b = [3.0, 4.0, 5.0, 6.0])
 end
