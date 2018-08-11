@@ -3,10 +3,10 @@ module TypedTables
 using Tables
 using SplitApplyCombine
 
-using Base: @propagate_inbounds, OneTo, Fix2
+using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
-export Table, columns, rows, columnames
+export Table, FlexTable, columns, rows, columnames
 
 # GetProperty
 struct GetProperty{name}
@@ -32,6 +32,7 @@ _ndims(a::NamedTuple{<:Any, T}) where {T} = _ndims(T)
 _ndims(::Type{<:Tuple{Vararg{AbstractArray{<:Any, n}}}}) where {n} = n
 
 include("Table.jl")
+include("FlexTable.jl")
 include("columnops.jl")
 
 end # module
