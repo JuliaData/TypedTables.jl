@@ -5,3 +5,4 @@ version = "1.0.0-dev"
 
 [deps]
 SplitApplyCombine = "03a91e81-4c3e-53e1-a0a4-9c0c8f19dd66"
+Tables = "f31cc48a-97c4-11e8-115d-f1beebab189a"

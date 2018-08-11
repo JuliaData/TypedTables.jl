@@ -19,12 +19,17 @@ end
 Table(;kwargs...) = Table(kwargs.data)
 Table(nt::NamedTuple) = Table{_eltypes(nt), _ndims(nt), typeof(nt)}(nt)
 
+Tables.AccessStyle(::Table) = Tables.ColumnAccess()
+Tables.schema(::Table{T}) = T
+
 """
     columns(table)
 
 Convert a `Table` into a `NamedTuple` of it's columns.
 """
 @inline columns(t::Table) = Core.getfield(t, :data)
+
+@inline rows(t::Table) = t
 
 # Simple column access via `table.columnname`
 @inline Base.getproperty(t::Table, name::Symbol) = getproperty(columns(t), name)

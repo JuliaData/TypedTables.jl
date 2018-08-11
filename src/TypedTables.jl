@@ -1,10 +1,12 @@
 module TypedTables
 
+using Tables
 using SplitApplyCombine
 
 using Base: @propagate_inbounds, OneTo, Fix2
+import Tables.columns, Tables.rows
 
-export Table, columns, columnames
+export Table, columns, rows, columnames
 
 # GetProperty
 struct GetProperty{name}
