@@ -72,4 +72,23 @@
 
     prepend!(t3, FlexTable(a = [3], b = [3.0]))
     @test t3 == FlexTable(a = [3,4,5,6], b = [3.0, 4.0, 5.0, 6.0])
+
+    @testset "Merging FlexTables" begin
+        t1 = FlexTable(a = [1,2,3],)
+        t2 = FlexTable(b = [2.0, 4.0, 6.0],)
+        t3 = FlexTable(a = [1,2,3], b = [2.0, 4.0, 6.0])
+
+        @test @inferred(map(merge, t1, t2))::FlexTable == t3
+        @test @inferred(mapview(merge, t1, t2))::FlexTable == t3
+        @test @inferred(broadcast(merge, t1, t2))::FlexTable == t3
+    end
+
+    @testset "GetProperty on FlexTables" begin
+        t = FlexTable(a = [1,2,3], b = [2.0, 4.0, 6.0])
+
+        @test map(getproperty(:a), t)::Vector == [1,2,3]
+        @test mapview(getproperty(:a), t)::Vector == [1,2,3]
+        @test broadcast(getproperty(:a), t)::Vector == [1,2,3]
+    end
+
 end

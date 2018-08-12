@@ -33,178 +33,178 @@ function FlexTable(x)
     end
 end
 FlexTable(t::Table) = FlexTable(columns(t))
-Table(df::FlexTable) = Table(columns(df))
+Table(t::FlexTable) = Table(columns(t))
 
 FlexTable{N}(t::Table{<:Any, N}) where {N} = FlexTable{N}(columns(t))
 
 Tables.AccessStyle(::FlexTable) = Tables.ColumnAccess()
-Tables.schema(df::FlexTable) = _eltypes(columns(df))
+Tables.schema(t::FlexTable) = _eltypes(columns(t))
 
 """
     columns(dataframe::FlexTable)
 
 Convert a `FlexTable` into a `NamedTuple` of it's columns.
 """
-@inline columns(df::FlexTable) = Core.getfield(df, :data)
+@inline columns(t::FlexTable) = Core.getfield(t, :data)
 
-@inline rows(df::FlexTable) = Table(columns(df))
+@inline rows(t::FlexTable) = Table(columns(t))
 
 # Simple column access via `table.columnname`
-@inline Base.getproperty(df::FlexTable, name::Symbol) = getproperty(columns(t), name)
+@inline Base.getproperty(t::FlexTable, name::Symbol) = getproperty(columns(t), name)
 
 """
     columnnames(table)
 
 Return a tuple of the column names of a `Table`.
 """
-columnnames(df::FlexTable) = keys(columns(df))
+columnnames(t::FlexTable) = keys(columns(t))
 
 
 # Basic AbstractArray interface
 
-@inline Base.size(df::FlexTable{N}) where {N} = size(first(columns(df)))::NTuple{N, Integer}
-@inline Base.axes(df::FlexTable{N}) where {N} = axes(first(columns(df)))::NTuple{N, Any}
-@inline Base.IndexStyle(df::FlexTable) = IndexStyle(first(columns(df)))
+@inline Base.size(t::FlexTable{N}) where {N} = size(first(columns(t)))::NTuple{N, Integer}
+@inline Base.axes(t::FlexTable{N}) where {N} = axes(first(columns(t)))::NTuple{N, Any}
+@inline Base.IndexStyle(t::FlexTable) = IndexStyle(first(columns(t)))
 
-function Base.checkbounds(::Type{Bool}, df::FlexTable, i...)
+function Base.checkbounds(::Type{Bool}, t::FlexTable, i...)
     # Make sure we are in bounds for *every* column. Only safe to do
     # here because each column might mutate size independently of the others!
-    all(col -> checkbounds(Bool, col, i...), columns(df))
+    all(col -> checkbounds(Bool, col, i...), columns(t))
 end
 
-@inline function Base.getindex(df::FlexTable, i::Int)
-    @boundscheck checkbounds(df, i)
-    map(col -> @inbounds(getindex(col, i)), columns(df))::NamedTuple
+@inline function Base.getindex(t::FlexTable, i::Int)
+    @boundscheck checkbounds(t, i)
+    map(col -> @inbounds(getindex(col, i)), columns(t))::NamedTuple
 end
 
-@inline function Base.getindex(df::FlexTable, i::Int...)
-    @boundscheck checkbounds(df, i...)
-    map(col -> @inbounds(getindex(col, i...)), columns(df))::NamedTuple
+@inline function Base.getindex(t::FlexTable, i::Int...)
+    @boundscheck checkbounds(t, i...)
+    map(col -> @inbounds(getindex(col, i...)), columns(t))::NamedTuple
 end
 
-@inline function Base.setindex!(df::FlexTable, v::NamedTuple, i::Int)
+@inline function Base.setindex!(t::FlexTable, v::NamedTuple, i::Int)
     @boundscheck begin
-        checkbounds(df, i)
-        @assert keys(v) === keys(columns(df))
+        checkbounds(t, i)
+        @assert keys(v) === keys(columns(t))
     end
-    map((val, col) -> @inbounds(setindex!(col, val, i)), v, columns(df))
-    return df
+    map((val, col) -> @inbounds(setindex!(col, val, i)), v, columns(t))
+    return t
 end
 
-@inline function Base.setindex!(df::FlexTable, v::NamedTuple, i::Int...)
+@inline function Base.setindex!(t::FlexTable, v::NamedTuple, i::Int...)
     @boundscheck begin
-        checkbounds(df, i)
-        @assert keys(v) === keys(columns(df))
+        checkbounds(t, i)
+        @assert keys(v) === keys(columns(t))
     end
-    map((val, col) -> @inbounds(setindex!(col, val, i...)), v, columns(df))
-    return df
+    map((val, col) -> @inbounds(setindex!(col, val, i...)), v, columns(t))
+    return t
 end
 
 # similar
-@inline Base.similar(df::FlexTable{N}) where {N} = FlexTable{N}(similar(Table(df)))::FlexTable{N}
-@inline Base.similar(df::FlexTable{N}, ::Type{NamedTuple}) where {N} = FlexTable{N}(similar(Table(df)))
-@inline Base.similar(df::FlexTable{N}, ::Type{NamedTuple{names,T}}) where {N, names, T} = FlexTable{N}(similar(Table(df, NamedTuple{names, T})))
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple}, dims) = FlexTable{__ndims(dims)}(similar(Table(df), _eltypes(columns(df)), dims))
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple{names,T}}, dims) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(df), NamedTuple{names, T}, dims))
+@inline Base.similar(t::FlexTable{N}) where {N} = FlexTable{N}(similar(Table(t)))::FlexTable{N}
+@inline Base.similar(t::FlexTable{N}, ::Type{NamedTuple}) where {N} = FlexTable{N}(similar(Table(t)))
+@inline Base.similar(t::FlexTable{N}, ::Type{NamedTuple{names,T}}) where {N, names, T} = FlexTable{N}(similar(Table(t, NamedTuple{names, T})))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims) = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple{names,T}}, dims) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
 
 # Ambiguities...
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple}, dims::Union{Integer, AbstractUnitRange}...) = FlexTable{__ndims(dims)}(similar(Table(df), _eltypes(columns(df)), dims))
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple}, dims::Tuple{Vararg{Int64,N}}) where {N} = FlexTable{__ndims(dims)}(similar(Table(df), _eltypes(columns(df)), dims))
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple}, dims::Tuple{Union{Integer, OneTo},Vararg{Union{Integer, OneTo}}}) = FlexTable{__ndims(dims)}(similar(Table(df), _eltypes(columns(df)), dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims::Union{Integer, AbstractUnitRange}...) = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims::Tuple{Vararg{Int64,N}}) where {N} = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims::Tuple{Union{Integer, OneTo},Vararg{Union{Integer, OneTo}}}) = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
 
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple{names, T}}, dims::Union{Integer, AbstractUnitRange}...) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(df), NamedTuple{names, T}, dims))
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple{names, T}}, dims::Tuple{Vararg{Int64,N}}) where {N, names, T} = FlexTable{__ndims(dims)}(similar(Table(df), NamedTuple{names, T}, dims))
-@inline Base.similar(df::FlexTable, ::Type{NamedTuple{names, T}}, dims::Tuple{Union{Integer, OneTo},Vararg{Union{Integer, OneTo}}}) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(df), NamedTuple{names, T}, dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple{names, T}}, dims::Union{Integer, AbstractUnitRange}...) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple{names, T}}, dims::Tuple{Vararg{Int64,N}}) where {N, names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple{names, T}}, dims::Tuple{Union{Integer, OneTo},Vararg{Union{Integer, OneTo}}}) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
 
 @inline __ndims(::Integer) = 1
 @inline __ndims(::AbstractUnitRange) = 1
 @inline __ndims(::NTuple{N, Any}) where {N} = N
 
 # empty
-Base.empty(df::FlexTable) = empty(df, _eltypes(columns(df)))
-function Base.empty(df::FlexTable, ::Type{NamedTuple{names, T}}) where {names, T <: Tuple}
-    FlexTable(empty(Table(df)))
+Base.empty(t::FlexTable) = empty(t, _eltypes(columns(t)))
+function Base.empty(t::FlexTable, ::Type{NamedTuple{names, T}}) where {names, T <: Tuple}
+    FlexTable(empty(Table(t)))
 end
 
 # Support Vector / deque interface (mutable-length vectors)
 
-function Base.empty!(df::FlexTable)
-    map(empty!, columns(df))
-    return df
+function Base.empty!(t::FlexTable)
+    map(empty!, columns(t))
+    return t
 end
 
-function Base.pop!(df::FlexTable)
-    return map(pop!, columns(df))::NamedTuple
+function Base.pop!(t::FlexTable)
+    return map(pop!, columns(t))::NamedTuple
 end
 
-function Base.push!(df::FlexTable, v::NamedTuple)
-    map(push!, columns(df), v)
-    return df
+function Base.push!(t::FlexTable, v::NamedTuple)
+    map(push!, columns(t), v)
+    return t
 end
 
-function Base.append!(df::Union{FlexTable, Table}, df2::Union{FlexTable, Table})
-    map(append!, columns(df), columns(df2))
-    return df
+function Base.append!(t::Union{FlexTable, Table}, t2::Union{FlexTable, Table})
+    map(append!, columns(t), columns(t2))
+    return t
 end
 
-function Base.popfirst!(df::FlexTable)
-    return map(popfirst!, columns(df))::NamedTuple
+function Base.popfirst!(t::FlexTable)
+    return map(popfirst!, columns(t))::NamedTuple
 end
 
-function Base.pushfirst!(df::FlexTable, v::NamedTuple)
-    map(pushfirst!, columns(df), v)
-    return df
+function Base.pushfirst!(t::FlexTable, v::NamedTuple)
+    map(pushfirst!, columns(t), v)
+    return t
 end
 
-function Base.prepend!(df::Union{FlexTable, Table}, df2::Union{FlexTable, Table})
-    map(prepend!, columns(df), columns(df2))
-    return df
+function Base.prepend!(t::Union{FlexTable, Table}, t2::Union{FlexTable, Table})
+    map(prepend!, columns(t), columns(t2))
+    return t
 end
 
-function Base.deleteat!(df::FlexTable, i)
-    map(col -> deleteat!(col, i), columns(df))
-    return df
+function Base.deleteat!(t::FlexTable, i)
+    map(col -> deleteat!(col, i), columns(t))
+    return t
 end
 
-function Base.insert!(df::FlexTable, i::Integer, v::NamedTuple)
-    map((col, val) -> insert!(col, i, val), columns(df), v)
-    return df
+function Base.insert!(t::FlexTable, i::Integer, v::NamedTuple)
+    map((col, val) -> insert!(col, i, val), columns(t), v)
+    return t
 end
 
-function Base.splice!(df::FlexTable, inds::Integer)
-    return map(col -> splice!(col, inds), columns(df))::NamedTuple
+function Base.splice!(t::FlexTable, inds::Integer)
+    return map(col -> splice!(col, inds), columns(t))::NamedTuple
 end
 
-function Base.splice!(df::FlexTable, inds::AbstractVector)
-    return FlexTable{1}(map(col -> splice!(col, inds), columns(df)))
+function Base.splice!(t::FlexTable, inds::AbstractVector)
+    return FlexTable{1}(map(col -> splice!(col, inds), columns(t)))
 end
 
-function Base.splice!(df::FlexTable, inds::Integer, ins::NamedTuple)
-    return map((col, vals) -> splice!(col, inds, vals), columns(df), ins)::NamedTuple
+function Base.splice!(t::FlexTable, inds::Integer, ins::NamedTuple)
+    return map((col, vals) -> splice!(col, inds, vals), columns(t), ins)::NamedTuple
 end
 
-function Base.splice!(df::FlexTable, inds::AbstractVector, ins::NamedTuple)
-    return FlexTable{1}(map((col, vals) -> splice!(col, inds, vals), columns(df), ins))
+function Base.splice!(t::FlexTable, inds::AbstractVector, ins::NamedTuple)
+    return FlexTable{1}(map((col, vals) -> splice!(col, inds, vals), columns(t), ins))
 end
 
-function Base.splice!(df::Union{FlexTable, Table}, inds::Integer, ins::Union{FlexTable, Table})
-    return map((col, vals) -> splice!(col, inds, vals), columns(df), columns(ins))::NamedTuple
+function Base.splice!(t::Union{FlexTable, Table}, inds::Integer, ins::Union{FlexTable, Table})
+    return map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins))::NamedTuple
 end
 
-function Base.splice!(df::Union{FlexTable, Table}, inds::AbstractVector, ins::Union{FlexTable, Table})
-    return FlexTable{1}(map((col, vals) -> splice!(col, inds, vals), columns(df), columns(ins)))
+function Base.splice!(t::Union{FlexTable, Table}, inds::AbstractVector, ins::Union{FlexTable, Table})
+    return FlexTable{1}(map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins)))
 end
 
 # TODO splicing in an `AbstractArray{<:NamedTuple}` should be possible...
 
 # Speedups for column-based storage
 
-function Base.getindex(df::FlexTable, inds::Union{AbstractArray, Colon}...)
-    return FlexTable{_getindex_dims(inds)}(map(col -> getindex(col, inds...), columns(df)))
+function Base.getindex(t::FlexTable, inds::Union{AbstractArray, Colon}...)
+    return FlexTable{_getindex_dims(inds)}(map(col -> getindex(col, inds...), columns(t)))
 end
 
-function Base.view(df::FlexTable, inds::Union{AbstractArray, Colon}...)
-    return FlexTable{_getindex_dims(inds)}(map(col -> view(col, inds...), columns(df)))
+function Base.view(t::FlexTable, inds::Union{AbstractArray, Colon}...)
+    return FlexTable{_getindex_dims(inds)}(map(col -> view(col, inds...), columns(t)))
 end
 
 @inline _getindex_dims(inds) = __getindex_dims(0, inds...)
@@ -215,26 +215,26 @@ end
 
 # Deprecated for .= syntax (via Base.Broadcast.materialize!)
 # It seems `Ref` might be the new cool here. Could also consider `AbstractArray{<:NamedTuple, 0}`?
-#function Base.setindex!(df::Table{<:NamedTuple{names}}, v::NamedTuple{names}, inds::Union{AbstractArray, Colon}...) where {names}
-#    map((col, val) -> setindex!(col, val, inds...), columns(df), v)
-#    return df
+#function Base.setindex!(t::Table{<:NamedTuple{names}}, v::NamedTuple{names}, inds::Union{AbstractArray, Colon}...) where {names}
+#    map((col, val) -> setindex!(col, val, inds...), columns(t), v)
+#    return t
 #end
 
-function Base.setindex!(df::FlexTable, df2::Union{FlexTable, Table}, inds::Union{AbstractArray, Colon}...)
-    map((col, col2) -> setindex!(col, col2, inds...), columns(df), columns(df2))
-    return df
+function Base.setindex!(t::FlexTable, t2::Union{FlexTable, Table}, inds::Union{AbstractArray, Colon}...)
+    map((col, col2) -> setindex!(col, col2, inds...), columns(t), columns(t2))
+    return t
 end
 
-function Base.vcat(df::Union{FlexTable, Table}, df2::Union{FlexTable, Table})
-    return FlexTable{_vcat_ndims(ndims(df), ndims(df2))}(map(vcat, columns(df), columns(df2)))
+function Base.vcat(t::Union{FlexTable, Table}, t2::Union{FlexTable, Table})
+    return FlexTable{_vcat_ndims(ndims(t), ndims(t2))}(map(vcat, columns(t), columns(t2)))
 end
 
-function Base.hcat(df::Union{FlexTable, Table}, df2::Union{FlexTable, Table})
-    return FlexTable{_hcat_ndims(ndims(df), ndims(df2))}(map(hcat, columns(df), columns(df2)))
+function Base.hcat(t::Union{FlexTable, Table}, t2::Union{FlexTable, Table})
+    return FlexTable{_hcat_ndims(ndims(t), ndims(t2))}(map(hcat, columns(t), columns(t2)))
 end
 
-function Base.hvcat(rows::Tuple{Vararg{Int}}, dfs::Union{FlexTable, Table}...)
-    return FlexTable(map((cols...,) -> hvcat(rows, cols...), map(columns, dfs)...))
+function Base.hvcat(rows::Tuple{Vararg{Int}}, ts::Union{FlexTable, Table}...)
+    return FlexTable(map((cols...,) -> hvcat(rows, cols...), map(columns, ts)...))
 end
 
 @pure function _vcat_ndims(i::Int, j::Int)
