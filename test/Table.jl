@@ -90,4 +90,11 @@
         @test @inferred(mapview(getproperty(:a), t))::Vector == [1,2,3]
         @test @inferred(broadcast(getproperty(:a), t))::Vector == [1,2,3]
     end
+
+    @testset "missing in tables" begin
+        t = Table(a = [1, 2, 3], b = [2.0, 4.0, missing])
+
+        @test t[1]::eltype(t) == (a = 1, b = 2.0)
+        @test isequal(t[3]::eltype(t), (a = 3, b = missing))
+    end
 end
