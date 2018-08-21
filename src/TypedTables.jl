@@ -6,7 +6,7 @@ using SplitApplyCombine
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
-export Table, FlexTable, columns, rows, columnames
+export Table, FlexTable, columns, rows, columnnames
 
 # GetProperty
 struct GetProperty{name}
