@@ -226,6 +226,9 @@ function Base.setindex!(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{na
     return t
 end
 
+# Private fields are never exposed since they can conflict with column names
+Base.propertynames(t::Table, private::Bool=false) = columnnames(t)
+
 function Base.vcat(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
     return Table(map(vcat, columns(t), columns(t2)))
 end
