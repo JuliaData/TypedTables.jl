@@ -91,4 +91,8 @@
         @test broadcast(getproperty(:a), t)::Vector == [1,2,3]
     end
 
+    # setproperty!
+    t4 = FlexTable(a = [1,2,3])
+    t4.b = [2.0, 4.0, 6.0]
+    @test t4 == t
 end

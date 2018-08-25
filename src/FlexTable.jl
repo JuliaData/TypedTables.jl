@@ -45,12 +45,17 @@ Tables.schema(t::FlexTable) = _eltypes(columns(t))
 
 Convert a `FlexTable` into a `NamedTuple` of it's columns.
 """
-@inline columns(t::FlexTable) = Core.getfield(t, :data)
+@inline columns(t::FlexTable) = getfield(t, :data)
 
 @inline rows(t::FlexTable) = Table(columns(t))
 
 # Simple column access via `table.columnname`
 @inline Base.getproperty(t::FlexTable, name::Symbol) = getproperty(columns(t), name)
+
+function Base.setproperty!(t::FlexTable, name::Symbol, a::AbstractArray)
+    setfield!(t, :data, merge(columns(t), NamedTuple{(name,)}((a,))))
+    return t
+end
 
 """
     columnnames(table)
