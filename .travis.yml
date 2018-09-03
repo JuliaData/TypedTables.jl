@@ -27,7 +27,7 @@ matrix:
 
 ## uncomment the following lines to override the default test script
 script:
-  - julia -e 'VERSION >= v"0.7-" && import Pkg; if VERSION < v"0.7.0-DEV.5183" ; Pkg.add("https://github.com/JuliaData/Tables.jl") ; Pkg.clone(pwd()) ; else; Pkg.up(); end ; Pkg.test("TypedTables"; coverage=true)'
+  - julia -e 'import Pkg ; Pkg.add("https://github.com/JuliaData/Tables.jl") ; Pkg.clone(pwd()) ; Pkg.test("TypedTables"; coverage=true)'
 after_success:
   # push coverage results to Coveralls
   - julia -e 'import Pkg; cd(Pkg.dir("TypedTables")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
