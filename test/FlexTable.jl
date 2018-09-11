@@ -95,4 +95,16 @@
     t4 = FlexTable(a = [1,2,3])
     t4.b = [2.0, 4.0, 6.0]
     @test t4 == t
+
+    @testset "Tables.jl" begin
+        t = FlexTable(a = [1, 2, 3], b = [2.0, 4.0, missing])
+        @test isequal(t |> columntable, getfield(t, :data))
+        r = t |> rowtable
+        @test length(r) == 3
+        for (a, b) in zip(t, r)
+            @test isequal(a, b)
+        end
+        @test isequal(FlexTable(t |> columntable), t)
+        @test isequal(FlexTable(t |> rowtable), t)
+    end
 end

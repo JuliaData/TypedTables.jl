@@ -37,17 +37,19 @@ Table(t::FlexTable) = Table(columns(t))
 
 FlexTable{N}(t::Table{<:Any, N}) where {N} = FlexTable{N}(columns(t))
 
-Tables.AccessStyle(::FlexTable) = Tables.ColumnAccess()
-Tables.schema(t::FlexTable) = _eltypes(columns(t))
+Tables.istable(::Type{<:FlexTable}) = true
+Tables.rowaccess(::Type{<:FlexTable}) = true
+Tables.columnaccess(::Type{<:FlexTable}) = true
+Tables.schema(t::FlexTable) = Tables.Schema(_eltypes(columns(t)))
 
 """
     columns(dataframe::FlexTable)
 
 Convert a `FlexTable` into a `NamedTuple` of it's columns.
 """
-@inline columns(t::FlexTable) = getfield(t, :data)
+@inline Tables.columns(t::FlexTable) = getfield(t, :data)
 
-@inline rows(t::FlexTable) = Table(columns(t))
+@inline Tables.rows(t::FlexTable) = Table(columns(t))
 
 # Simple column access via `table.columnname`
 @inline Base.getproperty(t::FlexTable, name::Symbol) = getproperty(columns(t), name)
