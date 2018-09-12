@@ -97,4 +97,16 @@
         @test t[1]::eltype(t) == (a = 1, b = 2.0)
         @test isequal(t[3]::eltype(t), (a = 3, b = missing))
     end
+
+    @testset "Tables.jl" begin
+        t = Table(a = [1, 2, 3], b = [2.0, 4.0, missing])
+        @test isequal(t |> columntable, getfield(t, :data))
+        r = t |> rowtable
+        @test length(r) == 3
+        for (a, b) in zip(t, r)
+            @test isequal(a, b)
+        end
+        @test isequal(Table(t |> columntable), t)
+        @test isequal(Table(t |> rowtable), t)
+    end
 end

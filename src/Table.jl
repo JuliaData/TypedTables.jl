@@ -33,17 +33,19 @@ function Table(x)
     end
 end
 
-Tables.AccessStyle(::Table) = Tables.ColumnAccess()
-Tables.schema(::Table{T}) where {T} = T
+Tables.istable(::Type{<:Table}) = true
+Tables.rowaccess(::Type{<:Table}) = true
+Tables.columnaccess(::Type{<:Table}) = true
+Tables.schema(::Table{T}) where {T} = Tables.Schema(T)
 
 """
     columns(table::Table)
 
 Convert a `Table` into a `NamedTuple` of it's columns.
 """
-@inline columns(t::Table) = Core.getfield(t, :data)
+@inline Tables.columns(t::Table) = Core.getfield(t, :data)
 
-@inline rows(t::Table) = t
+@inline Tables.rows(t::Table) = t
 
 # Simple column access via `table.columnname`
 @inline Base.getproperty(t::Table, name::Symbol) = getproperty(columns(t), name)
