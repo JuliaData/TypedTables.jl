@@ -7,7 +7,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/FugroRoames/TypedTables.jl/badge.svg?branch=master)](https://coveralls.io/github/FugroRoames/TypedTables.jl?branch=master)
 [![codecov.io](http://codecov.io/github/FugroRoames/TypedTables.jl/coverage.svg?branch=master)](http://codecov.io/github/FugroRoames/TypedTables.jl?branch=master)
 
-*TypedTables.jl* provides two column-based storage container `Table` and `FlexTable`, which
+*TypedTables.jl* provides two column-based storage containers: `Table` and `FlexTable`, both of which
 represent an array of `NamedTuple`s. This package is designed to be lightweight,
 easy-to-use and fast, and presents a very minimal new interface to learn.
 
@@ -23,11 +23,13 @@ It's simple to get started and create a table!
 ```julia
 julia> using TypedTables
 
-julia> t = Table(a=[1, 2, 3], b = [2.0, 4.0, 6.0])
-3-element Table{NamedTuple{(:a, :b),Tuple{Int64,Float64}},1,NamedTuple{(:a, :b),Tuple{Array{Int64,1},Array{Float64,1}}}}:
- (a = 1, b = 2.0)
- (a = 2, b = 4.0)
- (a = 3, b = 6.0)
+julia> t = Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0])
+Table with 2 columns and 3 rows:
+     a  b
+   ┌───────
+ 1 │ 1  2.0
+ 2 │ 2  4.0
+ 3 │ 3  6.0
 
 julia> t[1]  # Get first row
 (a = 1, b = 2.0)
@@ -53,6 +55,6 @@ still execute at full speed!
 
 ## Notes
 
-This rewrite of *TypedTables.jl* is still quite young, and more functionality will be added
+This rewrite of *TypedTables.jl* is still young, and more functionality will be added
 over time. Be assured that the current provided interface is fully stabilized as it is
 simply the interface provided by an `AbstractVector{<:NamedTuple}`.

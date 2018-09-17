@@ -6,7 +6,7 @@ using SplitApplyCombine
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
-export Table, FlexTable, columns, rows, columnnames
+export Table, FlexTable, columns, rows, columnnames, showtable
 
 # GetProperty
 struct GetProperty{name}
@@ -34,5 +34,6 @@ _ndims(::Type{<:Tuple{Vararg{AbstractArray{<:Any, n}}}}) where {n} = n
 include("Table.jl")
 include("FlexTable.jl")
 include("columnops.jl")
+include("show.jl")
 
 end # module

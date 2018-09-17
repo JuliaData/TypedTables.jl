@@ -61,6 +61,9 @@ Return a tuple of the column names of a `Table`.
 """
 columnnames(::AbstractArray{<:NamedTuple{names}}) where {names} = names
 
+# show
+Base.show(io::IO, ::MIME"text/plain", t::Table) = showtable(io, t)
+Base.show(io::IO, t::Table) = showtable(io, t)
 
 # Basic AbstractArray interface
 

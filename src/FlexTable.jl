@@ -66,6 +66,9 @@ Return a tuple of the column names of a `Table`.
 """
 columnnames(t::FlexTable) = keys(columns(t))
 
+# show
+Base.show(io::IO, ::MIME"text/plain", t::FlexTable) = showtable(io, t)
+Base.show(io::IO, t::FlexTable) = showtable(io, t)
 
 # Basic AbstractArray interface
 
