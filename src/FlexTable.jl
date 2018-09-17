@@ -45,7 +45,7 @@ Tables.schema(t::FlexTable) = Tables.Schema(_eltypes(columns(t)))
 """
     columns(dataframe::FlexTable)
 
-Convert a `FlexTable` into a `NamedTuple` of it's columns.
+Convert a `FlexTable` into a `NamedTuple` of its columns.
 """
 @inline Tables.columns(t::FlexTable) = getfield(t, :data)
 
@@ -54,8 +54,8 @@ Convert a `FlexTable` into a `NamedTuple` of it's columns.
 # Simple column access via `table.columnname`
 @inline Base.getproperty(t::FlexTable, name::Symbol) = getproperty(columns(t), name)
 
-function Base.setproperty!(t::FlexTable, name::Symbol, a::AbstractArray)
-    setfield!(t, :data, merge(columns(t), NamedTuple{(name,)}((a,))))
+function Base.setproperty!(t::FlexTable, name::Symbol, a)
+    setfield!(t, :data, merge(columns(t), NamedTuple{(name,)}((convert(AbstractArray, a),))))
     return t
 end
 

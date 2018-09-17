@@ -41,7 +41,7 @@ Tables.schema(::Table{T}) where {T} = Tables.Schema(T)
 """
     columns(table::Table)
 
-Convert a `Table` into a `NamedTuple` of it's columns.
+Convert a `Table` into a `NamedTuple` of its columns.
 """
 @inline Tables.columns(t::Table) = Core.getfield(t, :data)
 
@@ -49,6 +49,10 @@ Convert a `Table` into a `NamedTuple` of it's columns.
 
 # Simple column access via `table.columnname`
 @inline Base.getproperty(t::Table, name::Symbol) = getproperty(columns(t), name)
+
+function Base.setproperty!(t::Table, name::Symbol, a)
+    error("type Table is immutable. Set the values of an existing column with the `.=` operator, e.g. `table.name .= array`.")
+end
 
 """
     columnnames(table)
