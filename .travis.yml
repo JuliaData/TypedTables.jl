@@ -33,3 +33,6 @@ after_success:
   - julia -e 'import Pkg; cd(Pkg.dir("TypedTables")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
   - julia -e 'import Pkg; cd(Pkg.dir("TypedTables")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  # build and push documentation to gh-pages
+  - julia -e 'import Pkg; Pkg.add("Documenter")'
+  - julia -e 'import TypedTables; cd(joinpath(dirname(pathof(TypedTables)), "..")); include(joinpath("docs", "make.jl"))'
