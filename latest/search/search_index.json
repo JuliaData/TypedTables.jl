@@ -1,0 +1,24 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "TypedTables.jl\n\n\nSimple, column-based storage for data analysis in Julia.\n\n\n\n\nIntroduction\n\n\nTypedTables.jl\n provides two column-based storage containers: \nTable\n and \nFlexTable\n, both of which represent an array of \nNamedTuple\ns. This package is designed to be lightweight, easy-to-use and fast, and presents a very minimal new interface to learn.\n\n\nData manipulation is possible throught the tools built into Julia (such as \nmap\n, \nfilter\n, and \nreduce\n) and those provide by \nSplitApplyCombine.jl\n (like \ngroup\n and \ninnerjoin\n). You can speed up data analysis tasks with acceleration indices, by using the \nAcceleratedArrays.jl\n package. This package is integrated the \nTables.jl\n interface, and therefore the rest of the data ecosystem such as \nQuery.jl\n. This documentation includes examples on how to integrate with these packages for a complete data analysis workflow.\n\n\n\n\nContents", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/#typedtablesjl", 
+            "text": "Simple, column-based storage for data analysis in Julia.", 
+            "title": "TypedTables.jl"
+        }, 
+        {
+            "location": "/#introduction", 
+            "text": "TypedTables.jl  provides two column-based storage containers:  Table  and  FlexTable , both of which represent an array of  NamedTuple s. This package is designed to be lightweight, easy-to-use and fast, and presents a very minimal new interface to learn.  Data manipulation is possible throught the tools built into Julia (such as  map ,  filter , and  reduce ) and those provide by  SplitApplyCombine.jl  (like  group  and  innerjoin ). You can speed up data analysis tasks with acceleration indices, by using the  AcceleratedArrays.jl  package. This package is integrated the  Tables.jl  interface, and therefore the rest of the data ecosystem such as  Query.jl . This documentation includes examples on how to integrate with these packages for a complete data analysis workflow.", 
+            "title": "Introduction"
+        }, 
+        {
+            "location": "/#contents", 
+            "text": "", 
+            "title": "Contents"
+        }
+    ]
+}
