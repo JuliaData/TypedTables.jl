@@ -8,7 +8,7 @@
   
   <meta name="author" content="Andy Ferris">
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>FlexTable - TypedTables.jl</title>
+  <title>Acceleration indices - TypedTables.jl</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "FlexTable";
-    var mkdocs_page_input_path = "man/flextable.md";
-    var mkdocs_page_url = "/man/flextable/";
+    var mkdocs_page_name = "Acceleration indices";
+    var mkdocs_page_input_path = "man/acceleratedarrays.md";
+    var mkdocs_page_url = "/man/acceleratedarrays/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -61,21 +61,9 @@
                     
     <a class="" href="../table/">Table</a>
                 </li>
-                <li class=" current">
+                <li class="">
                     
-    <a class="current" href="./">FlexTable</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#flextable">FlexTable</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l4" href="#adding-or-replacing-columns">Adding or replacing columns</a></li>
-        
-        </ul>
-    
-
-    </ul>
+    <a class="" href="../flextable/">FlexTable</a>
                 </li>
     </ul>
 	    </li>
@@ -122,9 +110,15 @@
                     
     <a class="" href="../data/">Data representation</a>
                 </li>
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
+    <a class="current" href="./">Acceleration indices</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#acceleration-indices-with-acceleratedarrays">Acceleration Indices with AcceleratedArrays</a></li>
+    
+
+    </ul>
                 </li>
                 <li class="">
                     
@@ -155,14 +149,14 @@
     
       
         
-          <li>Table types &raquo;</li>
+          <li>Storing and representing data &raquo;</li>
         
       
     
-    <li>FlexTable</li>
+    <li>Acceleration indices</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/flextable.md"
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/acceleratedarrays.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -172,49 +166,13 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='FlexTable-1'></a></p>
-<h1 id="flextable">FlexTable</h1>
-<p>This package defines a second tabular container type, <code>FlexTable</code>, that is designed to be a more <strong>flex</strong>ible <strong>table</strong>.</p>
-<p>The two primary difference between <code>Table</code> and <code>FlexTable</code> are that</p>
-<ul>
-<li>The columns can be mutated - that is, we can add, replace or delete a column.</li>
-<li>The compiler cannot track the types or names of the columns.</li>
-</ul>
-<p>Thus, a <code>FlexTable</code> provides the same interface as a <code>Table</code> plus some extra operations. However, the fact that the compiler can no longer statically analyse the names and types of the columns at any given moment of the program means that the element type of a <code>FlexTable</code> is no more specific than <code>NamedTuple</code>. Iteration over rows will therefore be slower using <code>for</code> loops than for the equivalent <code>Table</code> - for maximum speed, higher-level functions (like <code>map</code>, <code>filter</code>, <code>reduce</code>, <code>group</code> and <code>innerjoin</code>) or a high-level DSL (like <em>Query.jl</em>) should be utilized.</p>
-<p>Amongst other things, using <code>FlexTable</code> might allow you to more easily port your code from another environment where the columns are mutable, such as <em>DataFrames.jl</em>.</p>
-<p><a id='Adding-or-replacing-columns-1'></a></p>
-<h2 id="adding-or-replacing-columns">Adding or replacing columns</h2>
-<p>A column can be added by using the <code>setproperty!</code> interface (the <code>.</code> operator).</p>
-<pre><code class="julia">julia&gt; ft = FlexTable(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], age = [25, 42, 37])
-FlexTable with 2 columns and 3 rows:
-     name     age
-   ┌─────────────
- 1 │ Alice    25
- 2 │ Bob      42
- 3 │ Charlie  37
-
-julia&gt; ft.sex = [:F, :M, :M];
-
-julia&gt; ft
-FlexTable with 3 columns and 3 rows:
-     name     age  sex
-   ┌──────────────────
- 1 │ Alice    25   F
- 2 │ Bob      42   M
- 3 │ Charlie  37   M
-</code></pre>
-
-<p>The same syntax is used to replace a column.</p>
-<pre><code class="julia">julia&gt; ft.sex = [&quot;female&quot;, &quot;male&quot;, &quot;male&quot;];
-
-julia&gt; ft
-FlexTable with 3 columns and 3 rows:
-     name     age  sex
-   ┌─────────────────────
- 1 │ Alice    25   female
- 2 │ Bob      42   male
- 3 │ Charlie  37   male
-</code></pre>
+                <p><a id='Acceleration-Indices-with-*AcceleratedArrays*-1'></a></p>
+<h1 id="acceleration-indices-with-acceleratedarrays">Acceleration Indices with <em>AcceleratedArrays</em></h1>
+<p>Database systems have evolved many performance tricks over the years to achieve efficiency and scalability. In an environment such as a SQL RDBMS, much effort is put into the creation of an efficient "query planner" that will essentially construct a small computer program, ultimately made up of nested loops, searching, mapping and filtering operations, to perform a query. However, the second "magic" ingredient used by an RDBMS for performance are secondary "acceleration indices", which are pre-calculated views of the data. These views help queries find data that match certain conditions - a hash-map index well let us locate a matching entry in <em>O</em>(1), or a sort-based index will let us quickly locate <em>all</em> the cells less than (or more than) a certain value.</p>
+<p>For at least some of the kinds of data analytics performed in Julia, it may be possible to expect the programmer to write and execute their own query plan - that is, to understand their data model, to predict the "statistics" regarding the size of and other properties of the data, and to come up with their own rough order of operations that may be efficient. Thus, we may not need to implement a complete query planner to make a viable platform for data analytics in Julia - however, we will absolutely need acceleration indices to perform each elementary operation fast. In the worst case, the programmer would have to construct their own hash-maps and sort-indices (and use them in their own hand-written loops) to obtain peak performance.</p>
+<p>The <em>AcceleratedArrays</em> package exists to provide a way of attaching secondary acceleration indices to any array in Julia, to speed up operations such as <code>filter</code>, <code>findall</code>, <code>group</code> and <code>innerjoin</code> in a transparent and generic way. These acceleration indices can be attached to arbitrary columns (or indeed, entire <code>Table</code>s). These indices remain silently attached to their parent array until they encounter an operation they can accelerate. The user is free to write <em>generic</em> code to execute their query, and the presence of the acceleration index will only act to speed up the resulting specialized algorithm constructed by Julia's compiler.</p>
+<p>This system allows for an extensible set of acceleration indices - such as accelerated spatial lookup using a spatial search tree, or an inverted index for searching for words in text fields. </p>
+<p>Note: by default, the <code>innerjoin</code> operation will construct a hash-based index to perform a join on two unindexed data sources, meaning most basic data operations can be achieved at reasonable speeds.</p>
               
             </div>
           </div>
@@ -222,10 +180,10 @@ FlexTable with 3 columns and 3 rows:
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../map/" class="btn btn-neutral float-right" title="Mapping data">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../io/" class="btn btn-neutral float-right" title="Input and output">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../table/" class="btn btn-neutral" title="Table"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../data/" class="btn btn-neutral" title="Data representation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -253,10 +211,10 @@ FlexTable with 3 columns and 3 rows:
           <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../table/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../data/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../map/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../io/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

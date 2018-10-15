@@ -55,7 +55,7 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Manual</span>
+    <span class="caption-text">Table types</span>
     <ul class="subnav">
                 <li class=" current">
                     
@@ -88,6 +88,59 @@
     </ul>
 	    </li>
           
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Basic data manipulation</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../map/">Mapping data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../filter/">Finding data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../reduce/">Reducing data</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Grouping and joining data</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../group/">Groupind data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../group/">Joining data</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Storing and representing data</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../data/">Data representation</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../io/">Input and output</a>
+                </li>
+    </ul>
+	    </li>
+          
         </ul>
       </div>
       &nbsp;
@@ -110,7 +163,7 @@
     
       
         
-          <li>Manual &raquo;</li>
+          <li>Table types &raquo;</li>
         
       
     
@@ -161,16 +214,17 @@ julia&gt; t.a  # Get column `a`
 <p>Two words: productivity and speed.</p>
 <p><em>TypedTables.jl</em> aims to introduce very few concepts, with minimal learning curve to let you manipulate tabular data. The <code>Table</code> type is a simple wrapper over columns and presents the well-known and extremely productive <code>AbstractArray</code> interface. If you are familiar with arrays and named tuples, you should be able to write your data analytics with a <code>Table</code>.</p>
 <p>However, it would be of little use if the data container was inherently slow, or if using the container was subject to traps and pitfalls where performance falls of a cliff if the programmer uses an otherwise-idiomatic pattern. In this case, <code>for</code> loops over the rows of a <code>Table</code> are possible at the speed of hand-written code in a statically compiled language such as C, because the compiler is fully aware of the types of each column. Thus, users can write generic functions using a mixture of hand-written loops, calls to functions such as <code>map</code>, <code>filter</code>, <code>reduce</code>, <code>group</code> and <code>innerjoin</code>, as well as high-level interfaces provided by packages such as <a href="https://github.com/queryverse/Query.jl"><em>Query.jl</em></a> - and still obtain optimal performance.</p>
-<p>Finally, since <code>Table</code> is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties</p>
+<p>Finally, since <code>Table</code> is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties:</p>
 <ul>
 <li>Missing values can be modelled by <code>missing</code> and by having columns of element type <code>Union{T, Missing}</code>.</li>
 <li>Typical <code>Array</code>-based columns represent continugous chunks of memory, and can be <a href="https://docs.julialang.org/en/v1/stdlib/Mmap/index.html">memory-mapped</a> from disk for a simple way of doing out-of-core analytics.</li>
-<li>Acceleration indices can be attached to columns using the <a href="https://github.com/andyferris/AcceleratedArrays.jl">AcceleratedArrays</a> package.</li>
+<li>Acceleration indices can be attached to columns using the <a href="https://github.com/andyferris/AcceleratedArrays.jl">AcceleratedArrays</a> package, speeding up searches and joins.</li>
 <li>Some data can be stored in compressed form using <a href="https://docs.julialang.org/en/v1/stdlib/SparseArrays/index.html">sparse arrays</a>, <a href="http://juliadata.github.io/CategoricalArrays.jl/latest/using.html">categorical arrays</a>, and so-on.</li>
-<li>Tables with a small, fixed number of rows might be most efficient represented with a <a href="https://github.com/JuliaArrays/StaticArrays.jl">statically sized array</a>.</li>
 <li>Columns could be stored and processed on a GPU with <a href="https://github.com/JuliaGPU/GPUArrays.jl">GPU-backed array</a> using <a href="https://github.com/JuliaGPU/CuArrays.jl">CUDA</a>, <a href="https://github.com/JuliaGPU/CLArrays.jl">OpenCL</a>, <a href="https://github.com/JuliaComputing/ArrayFire.jl">ArrayFire</a>, etc.</li>
 <li>Columns might be distributed and processed in parallel over multiple machines with <a href="https://github.com/JuliaParallel/DistributedArrays.jl">DistributedArrays</a> or between multiple processes with <a href="https://docs.julialang.org/en/v1/stdlib/SharedArrays/index.html"><code>SharedArrays</code></a>.</li>
+<li>In extreme cases, tables with a small, fixed number of rows might be most efficient represented with a <a href="https://github.com/JuliaArrays/StaticArrays.jl">statically sized array</a>.</li>
 </ul>
+<p>In each case, the user will be able to use much the same interface (and code) to perform their transformations. In the background, Julia's compiler will create specialized, performant machine code, for whichever backing array you choose.</p>
 <p><a id='Creating-Tables-1'></a></p>
 <h2 id="creating-tables">Creating <code>Table</code>s</h2>
 <p>The easiest way to create a table from columns is with keyword arguments, such as</p>
@@ -271,7 +325,7 @@ julia&gt; t.name[1]
 <h2 id="comparison-with-a-dataframe">Comparison with a <code>DataFrame</code></h2>
 <p>For those with experience using the <a href="https://github.com/JuliaData/DataFrames.jl"><em>DataFrames.jl</em></a> package, this comparison may be useful:</p>
 <ul>
-<li>The columns stored in a <code>Table</code> are immutable - you cannot add, remove or rename a column. However, it is very cheap to create a new table with different columns, encouraging a functional programming style to deal with your outer data structure. (See also <code>FlexTable</code> for a more flexible alternative). For compison, this is a similar approach to [<em>]IndexedTables</em>](https://github.com/JuliaComputing/IndexedTables.jl) and <a href="https://github.com/JuliaComputing/JuliaDB.jl"><em>JuliaDB</em></a>, while <em>DataFrames</em> uses an untyped vector of columns.</li>
+<li>The columns stored in a <code>Table</code> are immutable - you cannot add, remove or rename a column. However, it is very cheap to create a new table with different columns, encouraging a functional programming style to deal with your outer data structure. (See also <code>FlexTable</code> for a more flexible alternative). For compison, this is a similar approach to <a href="https://github.com/JuliaComputing/IndexedTables.jl"><em>IndexedTables</em></a> and <a href="https://github.com/JuliaComputing/JuliaDB.jl"><em>JuliaDB</em></a>, while <em>DataFrames</em> uses an untyped vector of columns.</li>
 <li>The columns themselves may be mutable. You may modify the data in one-or-more columns, and add or remove rows as necessary. Thus, operations on the <em>data</em> (not the data <em>structure</em>) can follow an imperative form, if desired.</li>
 <li>The types of the columns are known to the compiler, making direct operations like iteration of the rows of a <code>Table</code> very fast. The programmer is free to write a combination of low-level <code>for</code> loops, use operations like <code>map</code>, <code>filter</code>, <code>reduce</code>, <code>group</code> or <code>innerjoin</code>, or to use a high-level query interface such as <em>Query.jl</em> - all with the high performance you would expect of a statically compiled language.</li>
 <li>Conversely, the Julia compiler spends effort tracking the names and types of all the columns of the table. If you have a very large number of columns (many hundreds), <code>Table</code> may not be a suitable data structure (here, <code>DataFrame</code>s dynamically sized and typed vector of columns may be more appropriate).</li>

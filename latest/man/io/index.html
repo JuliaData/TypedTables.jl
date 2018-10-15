@@ -7,18 +7,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <meta name="author" content="Andy Ferris">
-  <link rel="shortcut icon" href="/img/favicon.ico">
-  <title>TypedTables.jl</title>
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Input and output - TypedTables.jl</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="/css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="/css/highlight.css">
-  <link href="/assets/Documenter.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  <link href="../../assets/Documenter.css" rel="stylesheet">
   
-  <script src="/js/jquery-2.1.1.min.js"></script>
-  <script src="/js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="/js/highlight.pack.js"></script> 
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Input and output";
+    var mkdocs_page_input_path = "man/io.md";
+    var mkdocs_page_url = "/man/io/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
   
 </head>
 
@@ -29,9 +36,9 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="/" class="icon icon-home"> TypedTables.jl</a>
+        <a href="../.." class="icon icon-home"> TypedTables.jl</a>
         <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="/search.html" method="get">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
   </form>
 </div>
@@ -43,7 +50,7 @@
           
             <li class="toctree-l1">
 		
-    <a class="" href="/">Home</a>
+    <a class="" href="../..">Home</a>
 	    </li>
           
             <li class="toctree-l1">
@@ -52,11 +59,11 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="/man/table/">Table</a>
+    <a class="" href="../table/">Table</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="/man/flextable/">FlexTable</a>
+    <a class="" href="../flextable/">FlexTable</a>
                 </li>
     </ul>
 	    </li>
@@ -67,15 +74,15 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="/man/map/">Mapping data</a>
+    <a class="" href="../map/">Mapping data</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="/man/filter/">Finding data</a>
+    <a class="" href="../filter/">Finding data</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="/man/reduce/">Reducing data</a>
+    <a class="" href="../reduce/">Reducing data</a>
                 </li>
     </ul>
 	    </li>
@@ -86,11 +93,11 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="/man/group/">Groupind data</a>
+    <a class="" href="../group/">Groupind data</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="/man/group/">Joining data</a>
+    <a class="" href="../group/">Joining data</a>
                 </li>
     </ul>
 	    </li>
@@ -101,15 +108,21 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="/man/data/">Data representation</a>
+    <a class="" href="../data/">Data representation</a>
                 </li>
                 <li class="">
                     
-    <a class="" href="/man/acceleratedarrays/">Acceleration indices</a>
+    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
                 </li>
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="/man/io/">Input and output</a>
+    <a class="current" href="./">Input and output</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#input-and-output">Input and output</a></li>
+    
+
+    </ul>
                 </li>
     </ul>
 	    </li>
@@ -124,7 +137,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="/">TypedTables.jl</a>
+        <a href="../..">TypedTables.jl</a>
       </nav>
 
       
@@ -132,10 +145,19 @@
         <div class="rst-content">
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="/">Docs</a> &raquo;</li>
+    <li><a href="../..">Docs</a> &raquo;</li>
     
+      
+        
+          <li>Storing and representing data &raquo;</li>
+        
+      
     
+    <li>Input and output</li>
     <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/io.md"
+          class="icon icon-github"> Edit on GitHub</a>
       
     </li>
   </ul>
@@ -144,15 +166,20 @@
           <div role="main">
             <div class="section">
               
-
-  <h1 id="404-page-not-found">404</h1>
-
-  <p><strong>Page not found</strong></p>
-
-
+                <p><a id='Input-and-output-1'></a></p>
+<h1 id="input-and-output">Input and output</h1>
+<p>Tables.jl interface provides I/O.</p>
+              
             </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../acceleratedarrays/" class="btn btn-neutral" title="Acceleration indices"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -178,15 +205,17 @@
           <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
+        <span><a href="../acceleratedarrays/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
       
     </span>
 </div>
-    <script>var base_url = '';</script>
-    <script src="/js/theme.js"></script>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
-      <script src="/assets/mathjaxhelper.js"></script>
-      <script src="/search/require.js"></script>
-      <script src="/search/search.js"></script>
+      <script src="../../assets/mathjaxhelper.js"></script>
+      <script src="../../search/require.js"></script>
+      <script src="../../search/search.js"></script>
 
 </body>
 </html>
