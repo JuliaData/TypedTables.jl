@@ -5,4 +5,14 @@
      <lastmod>2018-10-15</lastmod>
      <changefreq>daily</changefreq>
     </url>
+    <url>
+     <loc>/man/table/</loc>
+     <lastmod>2018-10-15</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>/man/flextable/</loc>
+     <lastmod>2018-10-15</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
 </urlset>
