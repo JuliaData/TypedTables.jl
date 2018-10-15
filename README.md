@@ -3,6 +3,7 @@
 *Simple, column-based storage*
 
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://FugroRoames.github.io/TypedTables.jl/stable)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://FugroRoames.github.io/TypedTables.jl/latest)
 [![Build Status](https://travis-ci.org/FugroRoames/TypedTables.jl.svg?branch=master)](https://travis-ci.org/FugroRoames/TypedTables.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/t6jor6wh5j8y8urt?svg=true)](https://ci.appveyor.com/project/andyferris/typedtables-jl)
 [![Coverage Status](https://coveralls.io/repos/github/FugroRoames/TypedTables.jl/badge.svg?branch=master)](https://coveralls.io/github/FugroRoames/TypedTables.jl?branch=master)
