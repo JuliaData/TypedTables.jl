@@ -25,3 +25,6 @@ docs_dir: 'build'
 
 pages:
   - Home: index.md
+  - Manual:
+    - Table: man/table.md
+    - FlexTable: man/flextable.md
