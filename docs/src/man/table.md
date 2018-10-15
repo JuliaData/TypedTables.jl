@@ -41,21 +41,23 @@ Two words: productivity and speed.
 
 However, it would be of little use if the data container was inherently slow, or if using the container was subject to traps and pitfalls where performance falls of a cliff if the programmer uses an otherwise-idiomatic pattern. In this case, `for` loops over the rows of a `Table` are possible at the speed of hand-written code in a statically compiled language such as C, because the compiler is fully aware of the types of each column. Thus, users can write generic functions using a mixture of hand-written loops, calls to functions such as `map`, `filter`, `reduce`, `group` and `innerjoin`, as well as high-level interfaces provided by packages such as [*Query.jl*](https://github.com/queryverse/Query.jl) - and still obtain optimal performance.
 
-Finally, since `Table` is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties
+Finally, since `Table` is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties:
 
  * Missing values can be modelled by `missing` and by having columns of element type `Union{T, Missing}`.
 
  * Typical `Array`-based columns represent continugous chunks of memory, and can be [memory-mapped](https://docs.julialang.org/en/v1/stdlib/Mmap/index.html) from disk for a simple way of doing out-of-core analytics.
 
- * Acceleration indices can be attached to columns using the [AcceleratedArrays](https://github.com/andyferris/AcceleratedArrays.jl) package.
+ * Acceleration indices can be attached to columns using the [AcceleratedArrays](https://github.com/andyferris/AcceleratedArrays.jl) package, speeding up searches and joins.
 
  * Some data can be stored in compressed form using [sparse arrays](https://docs.julialang.org/en/v1/stdlib/SparseArrays/index.html), [categorical arrays](http://juliadata.github.io/CategoricalArrays.jl/latest/using.html), and so-on.
-
- * Tables with a small, fixed number of rows might be most efficient represented with a [statically sized array](https://github.com/JuliaArrays/StaticArrays.jl).
 
  * Columns could be stored and processed on a GPU with [GPU-backed array](https://github.com/JuliaGPU/GPUArrays.jl) using [CUDA](https://github.com/JuliaGPU/CuArrays.jl), [OpenCL](https://github.com/JuliaGPU/CLArrays.jl), [ArrayFire](https://github.com/JuliaComputing/ArrayFire.jl), etc.
 
  * Columns might be distributed and processed in parallel over multiple machines with [DistributedArrays](https://github.com/JuliaParallel/DistributedArrays.jl) or between multiple processes with [`SharedArrays`](https://docs.julialang.org/en/v1/stdlib/SharedArrays/index.html).
+
+ * In extreme cases, tables with a small, fixed number of rows might be most efficient represented with a [statically sized array](https://github.com/JuliaArrays/StaticArrays.jl).
+
+In each case, the user will be able to use much the same interface (and code) to perform their transformations. In the background, Julia's compiler will create specialized, performant machine code, for whichever backing array you choose.
 
 ## Creating `Table`s
 
@@ -179,7 +181,7 @@ Similarly, the value of a cell can be updated via `setindex!`, for example using
 
 For those with experience using the [*DataFrames.jl*](https://github.com/JuliaData/DataFrames.jl) package, this comparison may be useful:
 
- * The columns stored in a `Table` are immutable - you cannot add, remove or rename a column. However, it is very cheap to create a new table with different columns, encouraging a functional programming style to deal with your outer data structure. (See also `FlexTable` for a more flexible alternative). For compison, this is a similar approach to [*]IndexedTables*](https://github.com/JuliaComputing/IndexedTables.jl) and [*JuliaDB*](https://github.com/JuliaComputing/JuliaDB.jl), while *DataFrames* uses an untyped vector of columns.
+ * The columns stored in a `Table` are immutable - you cannot add, remove or rename a column. However, it is very cheap to create a new table with different columns, encouraging a functional programming style to deal with your outer data structure. (See also `FlexTable` for a more flexible alternative). For compison, this is a similar approach to [*IndexedTables*](https://github.com/JuliaComputing/IndexedTables.jl) and [*JuliaDB*](https://github.com/JuliaComputing/JuliaDB.jl), while *DataFrames* uses an untyped vector of columns.
 
  * The columns themselves may be mutable. You may modify the data in one-or-more columns, and add or remove rows as necessary. Thus, operations on the *data* (not the data *structure*) can follow an imperative form, if desired.
 

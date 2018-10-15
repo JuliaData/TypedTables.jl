@@ -22,12 +22,51 @@ pkg> add TypedTables
 
 That's it!
 
-## User guide
+## Table Types
 
 ```@contents
 Pages = [
     "man/table.md",
-    "man/flextable.md",
+    "man/flextable.md"
+]
+Depth = 1
+```
+## Basic data manipulation
+
+```@contents
+Pages = [
+    "man/map.md",
+    "man/filter.md",
+    "man/reduce.md"
+]
+Depth = 1
+```
+
+## Grouping and joining data
+
+```@contents
+Pages = [
+    "man/group.md",
+    "man/join.md"
+]
+Depth = 1
+```
+
+## Representing data and acceleration indices
+
+```@contents
+Pages = [
+    "man/acceleratedarrays.md",
+    "man/storage.md"
+]
+Depth = 1
+```
+
+## Input and Output
+
+```@contents
+Pages = [
+    "man/io.md"
 ]
 Depth = 1
 ```

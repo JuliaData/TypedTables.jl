@@ -124,7 +124,7 @@ end
     # Try and be clever - if the name is preserved, we preserve the similar type, otherwise
     # just be similar to the first one.
     exprs = [name ∈ oldnames ? :(similar(getproperty(t, $(QuoteNode(name))), $ElType, newaxes)) :
-                               :(similar(first(columns(t)), $Eltype, newaxes)) for (name, ElType) in zip(names, T.parameters)]
+                               :(similar(first(columns(t)), $ElType, newaxes)) for (name, ElType) in zip(names, T.parameters)]
     return :(Table(NamedTuple{names}(tuple($(exprs...)))))
 end
 
