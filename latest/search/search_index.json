@@ -187,6 +187,11 @@
         }, 
         {
             "location": "/man/data/", 
+            "text": "Data representation", 
+            "title": "Data representation"
+        }, 
+        {
+            "location": "/man/data/#data-representation", 
             "text": "", 
             "title": "Data representation"
         }, 
