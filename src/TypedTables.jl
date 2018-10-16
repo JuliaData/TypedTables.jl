@@ -1,5 +1,6 @@
 module TypedTables
 
+using Unicode
 using Tables
 using SplitApplyCombine
 
