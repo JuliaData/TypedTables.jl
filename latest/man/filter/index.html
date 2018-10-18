@@ -85,6 +85,12 @@
     
         <ul>
         
+            <li><a class="toctree-l4" href="#mappredicate-table">map(predicate, table)</a></li>
+        
+            <li><a class="toctree-l4" href="#findallpredicate-table">findall(predicate, table)</a></li>
+        
+            <li><a class="toctree-l4" href="#filterpredicate-table">filter(predicate, table)</a></li>
+        
             <li><a class="toctree-l4" href="#preselection">Preselection</a></li>
         
         </ul>
@@ -174,18 +180,76 @@
               
                 <p><a id='Finding-data-1'></a></p>
 <h1 id="finding-data">Finding data</h1>
-<p>Frequently, we need to find data that matches certain criteria, and there are multiple mechanisms for achieving this in Julia.</p>
-<p>Imagine we have a predicate function <code>pred</code> that takes a complete row of a table (ie. a <code>NamedTuple</code>) and returns either <code>true</code> or <code>false</code>. We can find indentify the rows using multiple techniques.</p>
-<ul>
-<li>Using <code>result = filter(pred, table)</code> to return a new table with just the rows matching <code>true</code>.</li>
-<li>Using <code>selection = map(pred, table)</code> to return an array of <code>true</code>s and <code>false</code>s. The <code>table</code> can be filtered to just the matching rows via logical indexing, <code>result = table[selection]</code>. (Internally, Julia tends to perform <code>filter</code> with this method).</li>
-<li>Using <code>indices = findall(pred, table)</code> to return an array of the indices for which <code>pred</code> is <code>true</code>.</li>
-</ul>
-<p>Depending on your data (particularly, what fraction of data you expect to retain), either the second or third strategy may be more efficient.</p>
+<p>Frequently, we need to find data (i.e. rows of the table) that matches certain criteria, and there are multiple mechanisms for achieving this in Julia. Here we will briefly review <code>map</code>, <code>findall</code> and <code>filter</code> as options.</p>
+<p><a id='map(predicate,-table)-1'></a></p>
+<h2 id="mappredicate-table"><code>map(predicate, table)</code></h2>
+<p>Following the previous section, we can identify row satisfying an arbitrary predicate using the <code>map</code> function. Note that "predicate" is just a name for function that takes an input and returns either <code>true</code> or <code>false</code>.</p>
+<pre><code class="julia">julia&gt; t = Table(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], age = [25, 42, 37])
+Table with 2 columns and 3 rows:
+     name     age
+   ┌─────────────
+ 1 │ Alice    25
+ 2 │ Bob      42
+ 3 │ Charlie  37
+
+julia&gt; is_old = map(row -&gt; row.age &gt; 40, t)
+3-element Array{Bool,1}:
+ false
+  true
+ false
+</code></pre>
+
+<p>Finally, we can use "logical" (i.e. Boolean) indexing to extract the rows where the predicate is <code>true</code>.</p>
+<pre><code class="julia">julia&gt; t[is_old]
+Table with 2 columns and 1 row:
+     name  age
+   ┌──────────
+ 1 │ Bob   42
+</code></pre>
+
+<p>The <code>map(predicate, table)</code> approach will allocate one <code>Bool</code> for each row in the input table - for a total of <code>length(table)</code> bytes. <em>SplitApplyCombine</em> defines a <code>mapview</code> function to do this lazily.</p>
+<p><a id='findall(predicate,-table)-1'></a></p>
+<h2 id="findallpredicate-table"><code>findall(predicate, table)</code></h2>
+<p>If we wish to locate the indices of the rows where the predicate returns <code>true</code>, we can use Julia's <code>findall</code> function.</p>
+<pre><code class="julia">julia&gt; inds = findall(row -&gt; row.age &gt; 40, t)
+1-element Array{Int64,1}:
+ 2
+
+julia&gt; t[inds]
+Table with 2 columns and 1 row:
+     name  age
+   ┌──────────
+ 1 │ Bob   42
+</code></pre>
+
+<p>This method may be less resource intensive (result in less memory allocated) if you are expecting a small number of matching rows, returing one <code>Int</code> per result.</p>
+<p><a id='filter(predicate,-table)-1'></a></p>
+<h2 id="filterpredicate-table"><code>filter(predicate, table)</code></h2>
+<p>Finally, if we wish to directly <code>filter</code> the table and obtain the rows of interest, we can do that as well.</p>
+<pre><code class="julia">julia&gt; filter(row -&gt; row.age &gt; 40, t)
+Table with 2 columns and 1 row:
+     name  age
+   ┌──────────
+ 1 │ Bob   42
+</code></pre>
+
+<p>Internally, the <code>filter</code> method may rely on one of the implementations above.</p>
 <p><a id='Preselection-1'></a></p>
 <h2 id="preselection">Preselection</h2>
 <p>As mentioned in other sections, it is frequently worthwhile to preselect the columns relating to your search predicate, to avoid any wastage in fetching from memory values in columns that you don't care about.</p>
-<p>One simple example of such a transformation is to first project to the column(s) of interest, followed by using <code>map</code> or <code>findall</code> to identify the indices of the rows where <code>pred</code> is <code>true</code>, and finally to use <code>getindex</code> or <code>view</code> to obtain the result.</p>
+<p>One simple example of such a transformation is to first project to the column(s) of interest, followed by using <code>map</code> or <code>findall</code> to identify the indices of the rows where <code>predicate</code> is <code>true</code>, and finally to use <code>getindex</code> or <code>view</code> to obtain the result of the full table.</p>
+<pre><code class="julia">julia&gt; inds = findall(age -&gt; age &gt; 40, t.age)
+1-element Array{Int64,1}:
+ 2
+
+julia&gt; t[inds]
+Table with 2 columns and 1 row:
+     name  age
+   ┌──────────
+ 1 │ Bob   42
+</code></pre>
+
+<p>Easy, peasy!</p>
               
             </div>
           </div>
