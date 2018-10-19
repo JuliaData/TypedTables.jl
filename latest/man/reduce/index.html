@@ -178,7 +178,7 @@
               
                 <p><a id='Reducing-data-1'></a></p>
 <h1 id="reducing-data">Reducing data</h1>
-<p>Here we demonstrate a few questions with "scalar" answers - like "Does the table contain <em>x</em>?", or "What is the average value of <em>y</em>?"</p>
+<p>Here we demonstrate how to ask a few questions with "scalar" answers - like "Does the table contain <em>x</em>?", or "What is the average value of <em>y</em>?"</p>
 <p><a id='Testing-containment-1'></a></p>
 <h2 id="testing-containment">Testing containment</h2>
 <p>One of the most basic questions to ask is: "Is this element in the table/column?". Julia's <code>in</code> operator is perfect for this.</p>
@@ -211,8 +211,13 @@ false
 <pre><code class="julia">julia&gt; sum(t.age)
 104
 
-julia&gt; using Statistics; mean(t.age)
+julia&gt; using Statistics
+
+julia&gt; mean(t.age)
 34.666666666666664
+
+julia&gt; median(t.age)
+37.0
 
 julia&gt; mapreduce(row -&gt; length(row.name) * row.age, +, t)
 510
