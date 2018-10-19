@@ -87,6 +87,16 @@
             
     <li class="toctree-l3"><a href="#reducing-data">Reducing data</a></li>
     
+        <ul>
+        
+            <li><a class="toctree-l4" href="#testing-containment">Testing containment</a></li>
+        
+            <li><a class="toctree-l4" href="#how-many">"How many?"</a></li>
+        
+            <li><a class="toctree-l4" href="#totals-averages-etc">Totals, averages, etc.</a></li>
+        
+        </ul>
+    
 
     </ul>
                 </li>
@@ -168,7 +178,50 @@
               
                 <p><a id='Reducing-data-1'></a></p>
 <h1 id="reducing-data">Reducing data</h1>
-<p>We can summarize data using Julia's in-built <code>reduce</code> and <code>mapreduce</code>.</p>
+<p>Here we demonstrate a few questions with "scalar" answers - like "Does the table contain <em>x</em>?", or "What is the average value of <em>y</em>?"</p>
+<p><a id='Testing-containment-1'></a></p>
+<h2 id="testing-containment">Testing containment</h2>
+<p>One of the most basic questions to ask is: "Is this element in the table/column?". Julia's <code>in</code> operator is perfect for this.</p>
+<pre><code class="julia">julia&gt; t = Table(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], age = [25, 42, 37])
+Table with 2 columns and 3 rows:
+     name     age
+   ┌─────────────
+ 1 │ Alice    25
+ 2 │ Bob      42
+ 3 │ Charlie  37
+
+julia&gt; in(&quot;Alice&quot;, t.name)
+true
+
+julia&gt; in(&quot;Debbie&quot;, t.name)
+false
+</code></pre>
+
+<p>The <code>in</code> function can also be used as an infix operator, as in <code>"Alice" in t.name</code> or <code>"Alice" ∈ t.name</code>.</p>
+<p><a id='"How-many?"-1'></a></p>
+<h2 id="how-many">"How many?"</h2>
+<p>The <code>count</code> method is useful for asking how many rows satisfy a certain criterion.</p>
+<pre><code class="julia">julia&gt; count(row -&gt; row.age &gt; 40, t)
+1
+</code></pre>
+
+<p><a id='Totals,-averages,-etc.-1'></a></p>
+<h2 id="totals-averages-etc">Totals, averages, etc.</h2>
+<p>Individual columns can be reduced in the typical way for Julia arrays. Some examples.</p>
+<pre><code class="julia">julia&gt; sum(t.age)
+104
+
+julia&gt; using Statistics; mean(t.age)
+34.666666666666664
+
+julia&gt; mapreduce(row -&gt; length(row.name) * row.age, +, t)
+510
+
+julia&gt; join(t.name, &quot;, &quot;, &quot; and &quot;)
+&quot;Alice, Bob and Charlie&quot;
+</code></pre>
+
+<p>Note that <code>join</code> is a string joining function; see <code>innerjoin</code> (from <em>SplitApplyCombine</em>) for the relational operation.</p>
               
             </div>
           </div>

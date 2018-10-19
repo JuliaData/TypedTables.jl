@@ -172,13 +172,28 @@
         }, 
         {
             "location": "/man/reduce/", 
-            "text": "Reducing data\n\n\nWe can summarize data using Julia's in-built \nreduce\n and \nmapreduce\n.", 
+            "text": "Reducing data\n\n\nHere we demonstrate a few questions with \"scalar\" answers - like \"Does the table contain \nx\n?\", or \"What is the average value of \ny\n?\"\n\n\n\n\nTesting containment\n\n\nOne of the most basic questions to ask is: \"Is this element in the table/column?\". Julia's \nin\n operator is perfect for this.\n\n\njulia\n t = Table(name = [\nAlice\n, \nBob\n, \nCharlie\n], age = [25, 42, 37])\nTable with 2 columns and 3 rows:\n     name     age\n   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n 1 \u2502 Alice    25\n 2 \u2502 Bob      42\n 3 \u2502 Charlie  37\n\njulia\n in(\nAlice\n, t.name)\ntrue\n\njulia\n in(\nDebbie\n, t.name)\nfalse\n\n\n\n\nThe \nin\n function can also be used as an infix operator, as in \n\"Alice\" in t.name\n or \n\"Alice\" \u2208 t.name\n.\n\n\n\n\n\"How many?\"\n\n\nThe \ncount\n method is useful for asking how many rows satisfy a certain criterion.\n\n\njulia\n count(row -\n row.age \n 40, t)\n1\n\n\n\n\n\n\nTotals, averages, etc.\n\n\nIndividual columns can be reduced in the typical way for Julia arrays. Some examples.\n\n\njulia\n sum(t.age)\n104\n\njulia\n using Statistics; mean(t.age)\n34.666666666666664\n\njulia\n mapreduce(row -\n length(row.name) * row.age, +, t)\n510\n\njulia\n join(t.name, \n, \n, \n and \n)\n\nAlice, Bob and Charlie\n\n\n\n\n\nNote that \njoin\n is a string joining function; see \ninnerjoin\n (from \nSplitApplyCombine\n) for the relational operation.", 
             "title": "Reducing data"
         }, 
         {
             "location": "/man/reduce/#reducing-data", 
-            "text": "We can summarize data using Julia's in-built  reduce  and  mapreduce .", 
+            "text": "Here we demonstrate a few questions with \"scalar\" answers - like \"Does the table contain  x ?\", or \"What is the average value of  y ?\"", 
             "title": "Reducing data"
+        }, 
+        {
+            "location": "/man/reduce/#testing-containment", 
+            "text": "One of the most basic questions to ask is: \"Is this element in the table/column?\". Julia's  in  operator is perfect for this.  julia  t = Table(name = [ Alice ,  Bob ,  Charlie ], age = [25, 42, 37])\nTable with 2 columns and 3 rows:\n     name     age\n   \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n 1 \u2502 Alice    25\n 2 \u2502 Bob      42\n 3 \u2502 Charlie  37\n\njulia  in( Alice , t.name)\ntrue\n\njulia  in( Debbie , t.name)\nfalse  The  in  function can also be used as an infix operator, as in  \"Alice\" in t.name  or  \"Alice\" \u2208 t.name .", 
+            "title": "Testing containment"
+        }, 
+        {
+            "location": "/man/reduce/#how-many", 
+            "text": "The  count  method is useful for asking how many rows satisfy a certain criterion.  julia  count(row -  row.age   40, t)\n1", 
+            "title": "\"How many?\""
+        }, 
+        {
+            "location": "/man/reduce/#totals-averages-etc", 
+            "text": "Individual columns can be reduced in the typical way for Julia arrays. Some examples.  julia  sum(t.age)\n104\n\njulia  using Statistics; mean(t.age)\n34.666666666666664\n\njulia  mapreduce(row -  length(row.name) * row.age, +, t)\n510\n\njulia  join(t.name,  ,  ,   and  ) Alice, Bob and Charlie   Note that  join  is a string joining function; see  innerjoin  (from  SplitApplyCombine ) for the relational operation.", 
+            "title": "Totals, averages, etc."
         }, 
         {
             "location": "/man/group/", 
