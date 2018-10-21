@@ -253,6 +253,3 @@ end
 function Base.vec(t::Table{<:NamedTuple{names}}) where {names}
     return Table(map(vec, columns(t)))
 end
-
-function SplitApplyCombine.innerjoin(l, r, m, cmp, tl::Table, tr::Table)
-end

@@ -191,8 +191,62 @@ search: innerjoin
 
 Let's examine this. Assume the inputs `left` and `right` are `Table`s. We may want to join the tables via a single column each, in which case `getproperty(:name)` would be suitable for `lkey` and `rkey`. In the simplest case, such as a natural join, for `f` we may want to `merge` all the columns from both input tables, and the `comparison` operator may be equality (it defaults to `isequal`).
 
+As an example, we modify our `customers` table to explicitly include the customer's `id`, similarly to above.
+
+```julia
+julia> customers = Table(id = [1, 2, 3], name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
+Table with 3 columns and 3 rows:
+     id  name     address
+   ┌─────────────────────────────
+ 1 │ 1   Alice    12 Beach Street
+ 2 │ 2   Bob      163 Moon Road
+ 3 │ 3   Charlie  6 George Street
+
+julia> innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+Table with 5 columns and 4 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 2   Bob      163 Moon Road    2            Socks
+ 2 │ 2   Bob      163 Moon Road    2            Tie
+ 3 │ 3   Charlie  6 George Street  3            Shirt
+ 4 │ 3   Charlie  6 George Street  3            Underwear
+```
+
+The `innerjoin` function can be used to join any tables based on any conditions. However, by default only the `isequal` comparison is accelerated via a temporary hash index - all other comparisons will invoke an exhaustive *O*(`n^2`) algorithm.
+
+See the section on *AcceleratedArrays* for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations other than `isequal`. For example, a `SortIndex` can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.
+
 ## Left-group-join
 
-Currently *SplitApplyCombine* and *TypedTables* do not provide what in SQL is called an `(LEFT|RIGHT) OUTER JOIN`.
+Currently *SplitApplyCombine* and *TypedTables* do not provide what in SQL is called an `LEFT OUTER JOIN` (or any of the other `OUTER JOIN` operations).
 
-Such a query can be alternatively modeled as a hyrid group/join operation. *SplitApplyCombine* provides `leftgroupjoin` to perform precisely this.
+Such a query can be alternatively modeled as a hyrid group/join operation. *SplitApplyCombine* provides `leftgroupjoin` to perform precisely this. Let us investigate this query with the same data as for `innerjoin`, above.
+
+```julia
+julia> groups = leftgroupjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+Dict{Int64,Table{NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Int64,String,String,Int64,String}},1,NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Array{Int64,1},Array{String,1},Array{String,1},Array{Int64,1},Array{String,1}}}}} with 3 entries:
+  2 => Table with 5 columns and 2 rows:…
+  3 => Table with 5 columns and 2 rows:…
+  1 => Table with 5 columns and 0 rows:…
+
+julia> groups[1]
+Table with 5 columns and 0 rows:
+     id  name  address  customer_id  items
+   ┌──────────────────────────────────────
+
+julia> groups[2]
+Table with 5 columns and 2 rows:
+     id  name  address        customer_id  items
+   ┌────────────────────────────────────────────
+ 1 │ 2   Bob   163 Moon Road  2            Socks
+ 2 │ 2   Bob   163 Moon Road  2            Tie
+
+julia> groups[3]
+Table with 5 columns and 2 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 3   Charlie  6 George Street  3            Shirt
+ 2 │ 3   Charlie  6 George Street  3            Underwear
+```
+
+As you can see - 3 groups were identified, according to the distinct keys in the `id` column of `customers`. While the first customer had no associated orders, note that an empty group has nonetheless been created. Much like SQL's `LEFT OUTER JOIN` command, `leftgroupjoin` lets us handle the case that no matching data is found. While SQL achieves this by noting there is `missing` data in the columns associated with the right table, here we use a set of nested containers (dictionaries of tables of rows) to denote the relationship.
