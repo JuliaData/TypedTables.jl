@@ -8,7 +8,7 @@
   
   <meta name="author" content="Andy Ferris">
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Reducing data - TypedTables.jl</title>
+  <title>Joining data - TypedTables.jl</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Reducing data";
-    var mkdocs_page_input_path = "man/reduce.md";
-    var mkdocs_page_url = "/man/reduce/";
+    var mkdocs_page_name = "Joining data";
+    var mkdocs_page_input_path = "man/join.md";
+    var mkdocs_page_url = "/man/join/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -80,25 +80,9 @@
                     
     <a class="" href="../filter/">Finding data</a>
                 </li>
-                <li class=" current">
+                <li class="">
                     
-    <a class="current" href="./">Reducing data</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#reducing-data">Reducing data</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l4" href="#testing-containment">Testing containment</a></li>
-        
-            <li><a class="toctree-l4" href="#how-many">"How many?"</a></li>
-        
-            <li><a class="toctree-l4" href="#totals-averages-etc">Totals, averages, etc.</a></li>
-        
-        </ul>
-    
-
-    </ul>
+    <a class="" href="../reduce/">Reducing data</a>
                 </li>
     </ul>
 	    </li>
@@ -111,9 +95,15 @@
                     
     <a class="" href="../group/">Groupind data</a>
                 </li>
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="../join/">Joining data</a>
+    <a class="current" href="./">Joining data</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#joining-data">Joining data</a></li>
+    
+
+    </ul>
                 </li>
     </ul>
 	    </li>
@@ -159,14 +149,14 @@
     
       
         
-          <li>Basic data manipulation &raquo;</li>
+          <li>Grouping and joining data &raquo;</li>
         
       
     
-    <li>Reducing data</li>
+    <li>Joining data</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/reduce.md"
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/join.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -176,57 +166,10 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='Reducing-data-1'></a></p>
-<h1 id="reducing-data">Reducing data</h1>
-<p>Here we demonstrate how to ask a few questions with "scalar" answers - like "Does the table contain <em>x</em>?", or "What is the average value of <em>y</em>?"</p>
-<p><a id='Testing-containment-1'></a></p>
-<h2 id="testing-containment">Testing containment</h2>
-<p>One of the most basic questions to ask is: "Is this element in the table/column?". Julia's <code>in</code> operator is perfect for this.</p>
-<pre><code class="julia">julia&gt; t = Table(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], age = [25, 42, 37])
-Table with 2 columns and 3 rows:
-     name     age
-   ┌─────────────
- 1 │ Alice    25
- 2 │ Bob      42
- 3 │ Charlie  37
-
-julia&gt; in(&quot;Alice&quot;, t.name)
-true
-
-julia&gt; in(&quot;Debbie&quot;, t.name)
-false
-</code></pre>
-
-<p>The <code>in</code> function can also be used as an infix operator, as in <code>"Alice" in t.name</code> or <code>"Alice" ∈ t.name</code>.</p>
-<p><a id='"How-many?"-1'></a></p>
-<h2 id="how-many">"How many?"</h2>
-<p>The <code>count</code> method is useful for asking how many rows satisfy a certain criterion.</p>
-<pre><code class="julia">julia&gt; count(row -&gt; row.age &gt; 40, t)
-1
-</code></pre>
-
-<p><a id='Totals,-averages,-etc.-1'></a></p>
-<h2 id="totals-averages-etc">Totals, averages, etc.</h2>
-<p>Individual columns can be reduced in the typical way for Julia arrays. Some examples.</p>
-<pre><code class="julia">julia&gt; sum(t.age)
-104
-
-julia&gt; using Statistics
-
-julia&gt; mean(t.age)
-34.666666666666664
-
-julia&gt; median(t.age)
-37.0
-
-julia&gt; mapreduce(row -&gt; length(row.name) * row.age, +, t)
-510
-
-julia&gt; join(t.name, &quot;, &quot;, &quot; and &quot;)
-&quot;Alice, Bob and Charlie&quot;
-</code></pre>
-
-<p>Note that <code>join</code> is a string joining function; see <code>innerjoin</code> (from <em>SplitApplyCombine</em>) for the relational operation.</p>
+                <p><a id='Joining-data-1'></a></p>
+<h1 id="joining-data">Joining data</h1>
+<p><em>SplitApplyCombine</em> provides <code>product</code>, <code>innerjoin</code> and <code>leftgroupjoin</code>.</p>
+<p>It is worth pointing out that joining to the primary key (the indices) of an array, such as a <code>Table</code>, is modelled by non-scalar indexing.</p>
               
             </div>
           </div>
@@ -234,10 +177,10 @@ julia&gt; join(t.name, &quot;, &quot;, &quot; and &quot;)
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../group/" class="btn btn-neutral float-right" title="Groupind data">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../data/" class="btn btn-neutral float-right" title="Data representation">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../filter/" class="btn btn-neutral" title="Finding data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../group/" class="btn btn-neutral" title="Groupind data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -265,10 +208,10 @@ julia&gt; join(t.name, &quot;, &quot;, &quot; and &quot;)
           <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../filter/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../group/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../group/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../data/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
