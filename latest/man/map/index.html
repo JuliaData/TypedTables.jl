@@ -87,6 +87,8 @@
         
             <li><a class="toctree-l4" href="#preselection">Preselection</a></li>
         
+            <li><a class="toctree-l4" href="#getproperty-and-map">getproperty and map</a></li>
+        
             <li><a class="toctree-l4" href="#lazy-mapping">Lazy mapping</a></li>
         
         </ul>
@@ -255,6 +257,20 @@ julia&gt; firstletter(t)
 <h2 id="preselection">Preselection</h2>
 <p>Functions like <code>map</code> are not necessarily very intelligent about which columns are required and which are not. The reason is simple: given the operation <code>map(f, t)</code>, the <code>map</code> method has very little insight into what <code>f</code> does.</p>
 <p>Thus, in some cases it might improve performance to preselect the columns of interest. For example, extracting a single column, or constructing a new table with a reduced number of columns, may prevent <code>map</code> from loading unused values as it materializes each full row as it iterates, and lead to performance improvements.</p>
+<p><a id='getproperty-and-map-1'></a></p>
+<h2 id="getproperty-and-map"><code>getproperty</code> and <code>map</code></h2>
+<p>When we want to perform more complex tasks, such as <code>group</code> or <code>innerjoin</code>, we may be interested in extracting data from specific columns.</p>
+<p>Given a <code>row</code>, a field is extracted with the <code>row.name</code> syntax - which Julia transforms to the function call <code>getproperty(row, :name)</code>. This package defines <code>getproperty(:name)</code> as returning a new, single-argument <em>function</em> that takes a <code>row</code> and returns <code>row.name</code>.</p>
+<p>Thus, one way of projecting a table down to a single column is to use the <code>getproperty</code> function, like so:</p>
+<pre><code>julia&gt; map(getproperty(:name), t)
+3-element Array{String,1}:
+ &quot;Alice&quot;
+ &quot;Bob&quot;
+ &quot;Charlie&quot;
+</code></pre>
+
+<p>While this operation may seem pointless (it's a lot less direct than <code>t.name</code>, after all!), projecting to a single column will be a common operation for more complex tasks such as grouping data and performing relational joins.</p>
+<p>A naive implementation of this would be to iterate the rows and <em>then</em> project down to just the column of interest. For efficiency, functions like <code>map</code> (and <code>group</code>, <code>innerjoin</code>, etc) will know they can first project a <code>Table</code> or <code>FlexTable</code> to just that column, before continuing - making the operations significantly faster.</p>
 <p><a id='Lazy-mapping-1'></a></p>
 <h2 id="lazy-mapping">Lazy mapping</h2>
 <p>It is also worth mentioning the possibility of lazily mapping the values. Functions such as <code>mapview</code> from <em>SplitApplyCombine</em> can let you construct a "view" of a new table based on existing data. This way you can avoid using up precious resources, like RAM, yet can still call up data upon demand.</p>
