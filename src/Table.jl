@@ -249,3 +249,10 @@ end
 function Base.hvcat(rows::Tuple{Vararg{Int}}, tables::Table{<:NamedTuple{names}}...) where {names}
     return Table(map((cols...,) -> hvcat(rows, cols...), map(columns, tables)...))
 end
+
+function Base.vec(t::Table{<:NamedTuple{names}}) where {names}
+    return Table(map(vec, columns(t)))
+end
+
+function SplitApplyCombine.innerjoin(l, r, m, cmp, tl::Table, tr::Table)
+end

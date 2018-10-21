@@ -258,4 +258,8 @@ end
     max(i, j, 2)
 end
 
+function Base.vec(t::FlexTable)
+    return FlexTable{1}(map(vec, columns(t)))
+end
+
 SplitApplyCombine.group(by, f, t::FlexTable) = group(by, f, rows(t))
