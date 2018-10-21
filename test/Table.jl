@@ -109,4 +109,12 @@
         @test isequal(Table(t |> columntable), t)
         @test isequal(Table(t |> rowtable), t)
     end
+
+    @testset "group" begin
+        t = Table(a = [1,2,1], b = [2.0, 4.0, 6.0])
+        out = group(getproperty(:a), t)
+        @test typeof(out) <: Dict{Int, <:Table}
+        @test out == Dict(1 => Table(a=[1, 1], b=[2.0, 6.0]),
+                          2 => Table(a=[2],    b=[4.0]))
+    end
 end

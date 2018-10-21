@@ -91,6 +91,24 @@ Functions like `map` are not necessarily very intelligent about which columns ar
 
 Thus, in some cases it might improve performance to preselect the columns of interest. For example, extracting a single column, or constructing a new table with a reduced number of columns, may prevent `map` from loading unused values as it materializes each full row as it iterates, and lead to performance improvements.
 
+## `getproperty` and `map`
+
+When we want to perform more complex tasks, such as `group` or `innerjoin`, we may be interested in extracting data from specific columns.
+
+Given a `row`, a field is extracted with the `row.name` syntax - which Julia transforms to the function call `getproperty(row, :name)`. This package defines `getproperty(:name)` as returning a new, single-argument *function* that takes a `row` and returns `row.name`.
+
+Thus, one way of projecting a table down to a single column is to use the `getproperty` function, like so:
+```
+julia> map(getproperty(:name), t)
+3-element Array{String,1}:
+ "Alice"
+ "Bob"
+ "Charlie"
+```
+While this operation may seem pointless (it's a lot less direct than `t.name`, after all!), projecting to a single column will be a common operation for more complex tasks such as grouping data and performing relational joins.
+
+A naive implementation of this would be to iterate the rows and *then* project down to just the column of interest. For efficiency, functions like `map` (and `group`, `innerjoin`, etc) will know they can first project a `Table` or `FlexTable` to just that column, before continuing - making the operations significantly faster.
+
 ## Lazy mapping
 
 It is also worth mentioning the possibility of lazily mapping the values. Functions such as `mapview` from *SplitApplyCombine* can let you construct a "view" of a new table based on existing data. This way you can avoid using up precious resources, like RAM, yet can still call up data upon demand.

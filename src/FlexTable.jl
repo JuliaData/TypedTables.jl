@@ -257,3 +257,5 @@ end
 @pure function _hcat_ndims(i::Int, j::Int)
     max(i, j, 2)
 end
+
+SplitApplyCombine.group(by, f, t::FlexTable) = group(by, f, rows(t))
