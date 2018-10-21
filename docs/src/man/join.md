@@ -189,7 +189,7 @@ search: innerjoin
    (4, 2)
 ```
 
-Let's examine this. Assume the inputs `left` and `right` are `Table`s. We may want to join the tables via a single column each, in which case `getproperty(:name)` would be suitable for `lkey` and `rkey`. In the simplest case, such as a natural join, for `f` we may want to `merge` all the columns from both input tables, and the `comparison` operator may be equality (it defaults to `isequal`).
+Let's examine this. Assume the inputs `left` and `right` are `Table`s. We may want to join the tables via a single column each, in which case `getproperty(:name)` would be suitable for `lkey` and `rkey`. In the simplest case, such as a natural join, for `f` we may want to `merge` all the columns from both input tables (which is the default for `f`), and the `comparison` operator may be equality (it defaults to `isequal`).
 
 As an example, we modify our `customers` table to explicitly include the customer's `id`, similarly to above.
 
@@ -214,13 +214,13 @@ Table with 5 columns and 4 rows:
 
 The `innerjoin` function can be used to join any tables based on any conditions. However, by default only the `isequal` comparison is accelerated via a temporary hash index - all other comparisons will invoke an exhaustive *O*(`n^2`) algorithm.
 
-See the section on *AcceleratedArrays* for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations other than `isequal`. For example, a `SortIndex` can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.
+See the section on Acceleration Indices for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations using comparisons other than `isequal`. For example, a `SortIndex` can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.
 
 ## Left-group-join
 
 Currently *SplitApplyCombine* and *TypedTables* do not provide what in SQL is called an `LEFT OUTER JOIN` (or any of the other `OUTER JOIN` operations).
 
-Such a query can be alternatively modeled as a hyrid group/join operation. *SplitApplyCombine* provides `leftgroupjoin` to perform precisely this. Let us investigate this query with the same data as for `innerjoin`, above.
+Such a query can be alternatively modeled as a hybrid group/join operation. *SplitApplyCombine* provides `leftgroupjoin` to perform precisely this. This is similar to LINQ's `GroupJoin` method. Let us investigate this query with the same data as for `innerjoin`, above.
 
 ```julia
 julia> groups = leftgroupjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
