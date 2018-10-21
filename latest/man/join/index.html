@@ -340,7 +340,7 @@ search: innerjoin
    (4, 2)
 </code></pre>
 
-<p>Let's examine this. Assume the inputs <code>left</code> and <code>right</code> are <code>Table</code>s. We may want to join the tables via a single column each, in which case <code>getproperty(:name)</code> would be suitable for <code>lkey</code> and <code>rkey</code>. In the simplest case, such as a natural join, for <code>f</code> we may want to <code>merge</code> all the columns from both input tables, and the <code>comparison</code> operator may be equality (it defaults to <code>isequal</code>).</p>
+<p>Let's examine this. Assume the inputs <code>left</code> and <code>right</code> are <code>Table</code>s. We may want to join the tables via a single column each, in which case <code>getproperty(:name)</code> would be suitable for <code>lkey</code> and <code>rkey</code>. In the simplest case, such as a natural join, for <code>f</code> we may want to <code>merge</code> all the columns from both input tables (which is the default for <code>f</code>), and the <code>comparison</code> operator may be equality (it defaults to <code>isequal</code>).</p>
 <p>As an example, we modify our <code>customers</code> table to explicitly include the customer's <code>id</code>, similarly to above.</p>
 <pre><code class="julia">julia&gt; customers = Table(id = [1, 2, 3], name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], address = [&quot;12 Beach Street&quot;, &quot;163 Moon Road&quot;, &quot;6 George Street&quot;])
 Table with 3 columns and 3 rows:
@@ -361,11 +361,11 @@ Table with 5 columns and 4 rows:
 </code></pre>
 
 <p>The <code>innerjoin</code> function can be used to join any tables based on any conditions. However, by default only the <code>isequal</code> comparison is accelerated via a temporary hash index - all other comparisons will invoke an exhaustive <em>O</em>(<code>n^2</code>) algorithm.</p>
-<p>See the section on <em>AcceleratedArrays</em> for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations other than <code>isequal</code>. For example, a <code>SortIndex</code> can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.</p>
+<p>See the section on Acceleration Indices for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations using comparisons other than <code>isequal</code>. For example, a <code>SortIndex</code> can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.</p>
 <p><a id='Left-group-join-1'></a></p>
 <h2 id="left-group-join">Left-group-join</h2>
 <p>Currently <em>SplitApplyCombine</em> and <em>TypedTables</em> do not provide what in SQL is called an <code>LEFT OUTER JOIN</code> (or any of the other <code>OUTER JOIN</code> operations).</p>
-<p>Such a query can be alternatively modeled as a hyrid group/join operation. <em>SplitApplyCombine</em> provides <code>leftgroupjoin</code> to perform precisely this. Let us investigate this query with the same data as for <code>innerjoin</code>, above.</p>
+<p>Such a query can be alternatively modeled as a hybrid group/join operation. <em>SplitApplyCombine</em> provides <code>leftgroupjoin</code> to perform precisely this. This is similar to LINQ's <code>GroupJoin</code> method. Let us investigate this query with the same data as for <code>innerjoin</code>, above.</p>
 <pre><code class="julia">julia&gt; groups = leftgroupjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
 Dict{Int64,Table{NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Int64,String,String,Int64,String}},1,NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Array{Int64,1},Array{String,1},Array{String,1},Array{Int64,1},Array{String,1}}}}} with 3 entries:
   2 =&gt; Table with 5 columns and 2 rows:…
