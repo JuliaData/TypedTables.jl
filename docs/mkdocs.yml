@@ -34,7 +34,7 @@ pages:
     - Reducing data: man/reduce.md
   - Grouping and joining data:
     - Groupind data: man/group.md
-    - Joining data: man/group.md
+    - Joining data: man/join.md
   - Storing and representing data:
     - Data representation: man/data.md
     - Acceleration indices: man/acceleratedarrays.md
