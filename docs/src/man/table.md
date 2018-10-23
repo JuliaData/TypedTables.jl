@@ -25,13 +25,15 @@ julia> t.a  # Get column `a`
 
 ## What is a `Table`?
 
-Internally, a `Table` stores a (named) tuple of arrays, and is a convenient structure for column-based storage of tabular data.
+Table is actually a Julia array type, where each element (row) is a `NamedTuple`. In particular:
 
-Externally. a `Table` presents itself as an array of named tuples. That is, each row of the table is represented as one of Julia's new `NamedTuple`s, which are easy to use and highly efficient.
+ * Externally. a `Table` presents itself as an array of named tuples. That is, each row of the table is represented as one of Julia's new `NamedTuple`s, which are easy to use and highly efficient. In subtype notation, `Table <: AbstractArray{<:NamedTuple}`.
 
-Thus, manipulating data as a `Table` is as easy as manipulating arrays and named tuples - which is something Julia was specifically designed to make simple, efficient and *fun*.
+ * Internally, a `Table` stores a (named) tuple of arrays, and is a convenient structure for column-based storage of tabular data.
 
-`Table`s (and their columns) may be an `AbstractArray` of any dimensionality. This let's you take advantage of Julia's powerful array functionality, such as multidimensional broadcasting. Each column must be an array of the same dimensionality and size of the other columns.
+Thus, manipulating data as a `Table` is as easy as manipulating arrays and named tuples - which is something Julia was specifically designed to make simple, efficient and *fun*. 
+
+`Table`s (and their columns) may be an `AbstractArray` of any dimensionality. This lets you take advantage of Julia's powerful array functionality, such as multidimensional broadcasting. Each column must be an array of the same dimensionality and size of the other columns.
 
 ## Why use a `Table`?
 
@@ -41,23 +43,7 @@ Two words: productivity and speed.
 
 However, it would be of little use if the data container was inherently slow, or if using the container was subject to traps and pitfalls where performance falls of a cliff if the programmer uses an otherwise-idiomatic pattern. In this case, `for` loops over the rows of a `Table` are possible at the speed of hand-written code in a statically compiled language such as C, because the compiler is fully aware of the types of each column. Thus, users can write generic functions using a mixture of hand-written loops, calls to functions such as `map`, `filter`, `reduce`, `group` and `innerjoin`, as well as high-level interfaces provided by packages such as [*Query.jl*](https://github.com/queryverse/Query.jl) - and still obtain optimal performance.
 
-Finally, since `Table` is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties:
-
- * Missing values can be modelled by `missing` and by having columns of element type `Union{T, Missing}`.
-
- * Typical `Array`-based columns represent continugous chunks of memory, and can be [memory-mapped](https://docs.julialang.org/en/v1/stdlib/Mmap/index.html) from disk for a simple way of doing out-of-core analytics.
-
- * Acceleration indices can be attached to columns using the [AcceleratedArrays](https://github.com/andyferris/AcceleratedArrays.jl) package, speeding up searches and joins.
-
- * Some data can be stored in compressed form using [sparse arrays](https://docs.julialang.org/en/v1/stdlib/SparseArrays/index.html), [categorical arrays](http://juliadata.github.io/CategoricalArrays.jl/latest/using.html), and so-on.
-
- * Columns could be stored and processed on a GPU with [GPU-backed array](https://github.com/JuliaGPU/GPUArrays.jl) using [CUDA](https://github.com/JuliaGPU/CuArrays.jl), [OpenCL](https://github.com/JuliaGPU/CLArrays.jl), [ArrayFire](https://github.com/JuliaComputing/ArrayFire.jl), etc.
-
- * Columns might be distributed and processed in parallel over multiple machines with [DistributedArrays](https://github.com/JuliaParallel/DistributedArrays.jl) or between multiple processes with [`SharedArrays`](https://docs.julialang.org/en/v1/stdlib/SharedArrays/index.html).
-
- * In extreme cases, tables with a small, fixed number of rows might be most efficient represented with a [statically sized array](https://github.com/JuliaArrays/StaticArrays.jl).
-
-In each case, the user will be able to use much the same interface (and code) to perform their transformations. In the background, Julia's compiler will create specialized, performant machine code, for whichever backing array you choose.
+Finally, since `Table` is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties - for example, supporting in-memory, out-of-core and distributed workloads (see the section on *Data Representation* for more details).
 
 ## Creating `Table`s
 
@@ -177,7 +163,9 @@ While Julia's compiler will elide a lot of unnecessary code, you may find it fas
 
 Similarly, the value of a cell can be updated via `setindex!`, for example using the syntax `t.name[1] = "Alicia"`. Note that the syntax `t[1].name = "Alicia"` will error because you are trying to mutate `t[1]`, which is an immutable *copy* of the data (completely independent from `t`).
 
-## Comparison with a `DataFrame`
+## Comparison with other packages 
+
+### `DataFrame`
 
 For those with experience using the [*DataFrames.jl*](https://github.com/JuliaData/DataFrames.jl) package, this comparison may be useful:
 

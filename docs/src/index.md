@@ -22,51 +22,25 @@ pkg> add TypedTables
 
 That's it!
 
-## Table Types
+## Quick start
 
-```@contents
-Pages = [
-    "man/table.md",
-    "man/flextable.md"
-]
-Depth = 1
-```
-## Basic data manipulation
+```julia
+julia> using TypedTables
 
-```@contents
-Pages = [
-    "man/map.md",
-    "man/filter.md",
-    "man/reduce.md"
-]
-Depth = 1
-```
+julia> t = Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0])
+Table with 2 columns and 3 rows:
+     a  b
+   ┌───────
+ 1 │ 1  2.0
+ 2 │ 2  4.0
+ 3 │ 3  6.0
 
-## Grouping and joining data
+julia> t[1]  # Get first row
+(a = 1, b = 2.0)
 
-```@contents
-Pages = [
-    "man/group.md",
-    "man/join.md"
-]
-Depth = 1
-```
-
-## Representing data and acceleration indices
-
-```@contents
-Pages = [
-    "man/acceleratedarrays.md",
-    "man/storage.md"
-]
-Depth = 1
-```
-
-## Input and Output
-
-```@contents
-Pages = [
-    "man/io.md"
-]
-Depth = 1
+julia> t.a  # Get column `a`
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
 ```

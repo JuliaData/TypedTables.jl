@@ -28,6 +28,9 @@ pages:
   - Table types:
     - Table: man/table.md
     - FlexTable: man/flextable.md
+  - Data storage:
+    - Data representation: man/data.md
+    - Input and output: man/io.md
   - Basic data manipulation:
     - Mapping data: man/map.md
     - Finding data: man/filter.md
@@ -35,7 +38,5 @@ pages:
   - Grouping and joining data:
     - Groupind data: man/group.md
     - Joining data: man/join.md
-  - Storing and representing data:
-    - Data representation: man/data.md
+  - Accelerations:
     - Acceleration indices: man/acceleratedarrays.md
-    - Input and output: man/io.md

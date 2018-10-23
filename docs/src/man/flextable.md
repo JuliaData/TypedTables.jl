@@ -13,7 +13,7 @@ Amongst other things, using `FlexTable` might allow you to more easily port your
 
 ## Adding or replacing columns
 
-A column can be added by using the `setproperty!` interface (the `.` operator).
+A column can be added by using the `.` operator (also known as `setproperty!`).
 
 ```julia
 julia> ft = FlexTable(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
