@@ -74,7 +74,7 @@
         
             <li><a class="toctree-l4" href="#accessing-data-stored-in-tables">Accessing data stored in Tables</a></li>
         
-            <li><a class="toctree-l4" href="#comparison-with-a-dataframe">Comparison with a DataFrame</a></li>
+            <li><a class="toctree-l4" href="#comparison-with-other-packages">Comparison with other packages</a></li>
         
         </ul>
     
@@ -84,6 +84,21 @@
                 <li class="">
                     
     <a class="" href="../flextable/">FlexTable</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Data storage</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../data/">Data representation</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../io/">Input and output</a>
                 </li>
     </ul>
 	    </li>
@@ -124,19 +139,11 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Storing and representing data</span>
+    <span class="caption-text">Accelerations</span>
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../data/">Data representation</a>
-                </li>
-                <li class="">
-                    
     <a class="" href="../acceleratedarrays/">Acceleration indices</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../io/">Input and output</a>
                 </li>
     </ul>
 	    </li>
@@ -205,26 +212,19 @@ julia&gt; t.a  # Get column `a`
 
 <p><a id='What-is-a-Table?-1'></a></p>
 <h2 id="what-is-a-table">What is a <code>Table</code>?</h2>
-<p>Internally, a <code>Table</code> stores a (named) tuple of arrays, and is a convenient structure for column-based storage of tabular data.</p>
-<p>Externally. a <code>Table</code> presents itself as an array of named tuples. That is, each row of the table is represented as one of Julia's new <code>NamedTuple</code>s, which are easy to use and highly efficient.</p>
-<p>Thus, manipulating data as a <code>Table</code> is as easy as manipulating arrays and named tuples - which is something Julia was specifically designed to make simple, efficient and <em>fun</em>.</p>
-<p><code>Table</code>s (and their columns) may be an <code>AbstractArray</code> of any dimensionality. This let's you take advantage of Julia's powerful array functionality, such as multidimensional broadcasting. Each column must be an array of the same dimensionality and size of the other columns.</p>
+<p>Table is actually a Julia array type, where each element (row) is a <code>NamedTuple</code>. In particular:</p>
+<ul>
+<li>Externally. a <code>Table</code> presents itself as an array of named tuples. That is, each row of the table is represented as one of Julia's new <code>NamedTuple</code>s, which are easy to use and highly efficient. In subtype notation, <code>Table &lt;: AbstractArray{&lt;:NamedTuple}</code>.</li>
+<li>Internally, a <code>Table</code> stores a (named) tuple of arrays, and is a convenient structure for column-based storage of tabular data.</li>
+</ul>
+<p>Thus, manipulating data as a <code>Table</code> is as easy as manipulating arrays and named tuples - which is something Julia was specifically designed to make simple, efficient and <em>fun</em>. </p>
+<p><code>Table</code>s (and their columns) may be an <code>AbstractArray</code> of any dimensionality. This lets you take advantage of Julia's powerful array functionality, such as multidimensional broadcasting. Each column must be an array of the same dimensionality and size of the other columns.</p>
 <p><a id='Why-use-a-Table?-1'></a></p>
 <h2 id="why-use-a-table">Why use a <code>Table</code>?</h2>
 <p>Two words: productivity and speed.</p>
 <p><em>TypedTables.jl</em> aims to introduce very few concepts, with minimal learning curve to let you manipulate tabular data. The <code>Table</code> type is a simple wrapper over columns and presents the well-known and extremely productive <code>AbstractArray</code> interface. If you are familiar with arrays and named tuples, you should be able to write your data analytics with a <code>Table</code>.</p>
 <p>However, it would be of little use if the data container was inherently slow, or if using the container was subject to traps and pitfalls where performance falls of a cliff if the programmer uses an otherwise-idiomatic pattern. In this case, <code>for</code> loops over the rows of a <code>Table</code> are possible at the speed of hand-written code in a statically compiled language such as C, because the compiler is fully aware of the types of each column. Thus, users can write generic functions using a mixture of hand-written loops, calls to functions such as <code>map</code>, <code>filter</code>, <code>reduce</code>, <code>group</code> and <code>innerjoin</code>, as well as high-level interfaces provided by packages such as <a href="https://github.com/queryverse/Query.jl"><em>Query.jl</em></a> - and still obtain optimal performance.</p>
-<p>Finally, since <code>Table</code> is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties:</p>
-<ul>
-<li>Missing values can be modelled by <code>missing</code> and by having columns of element type <code>Union{T, Missing}</code>.</li>
-<li>Typical <code>Array</code>-based columns represent continugous chunks of memory, and can be <a href="https://docs.julialang.org/en/v1/stdlib/Mmap/index.html">memory-mapped</a> from disk for a simple way of doing out-of-core analytics.</li>
-<li>Acceleration indices can be attached to columns using the <a href="https://github.com/andyferris/AcceleratedArrays.jl">AcceleratedArrays</a> package, speeding up searches and joins.</li>
-<li>Some data can be stored in compressed form using <a href="https://docs.julialang.org/en/v1/stdlib/SparseArrays/index.html">sparse arrays</a>, <a href="http://juliadata.github.io/CategoricalArrays.jl/latest/using.html">categorical arrays</a>, and so-on.</li>
-<li>Columns could be stored and processed on a GPU with <a href="https://github.com/JuliaGPU/GPUArrays.jl">GPU-backed array</a> using <a href="https://github.com/JuliaGPU/CuArrays.jl">CUDA</a>, <a href="https://github.com/JuliaGPU/CLArrays.jl">OpenCL</a>, <a href="https://github.com/JuliaComputing/ArrayFire.jl">ArrayFire</a>, etc.</li>
-<li>Columns might be distributed and processed in parallel over multiple machines with <a href="https://github.com/JuliaParallel/DistributedArrays.jl">DistributedArrays</a> or between multiple processes with <a href="https://docs.julialang.org/en/v1/stdlib/SharedArrays/index.html"><code>SharedArrays</code></a>.</li>
-<li>In extreme cases, tables with a small, fixed number of rows might be most efficient represented with a <a href="https://github.com/JuliaArrays/StaticArrays.jl">statically sized array</a>.</li>
-</ul>
-<p>In each case, the user will be able to use much the same interface (and code) to perform their transformations. In the background, Julia's compiler will create specialized, performant machine code, for whichever backing array you choose.</p>
+<p>Finally, since <code>Table</code> is unoppinionated about the underlying array storage (and acts more as a convenient metaprogramming layer), the arrays represent each column might have rather distinct properties - for example, supporting in-memory, out-of-core and distributed workloads (see the section on <em>Data Representation</em> for more details).</p>
 <p><a id='Creating-Tables-1'></a></p>
 <h2 id="creating-tables">Creating <code>Table</code>s</h2>
 <p>The easiest way to create a table from columns is with keyword arguments, such as</p>
@@ -321,8 +321,10 @@ julia&gt; t.name[1]
 
 <p>While Julia's compiler will elide a lot of unnecessary code, you may find it faster to index individual cells of the table using the second option (to avoid fetching and constructing the <em>entire</em> named tuple of a row as an intermediate step).</p>
 <p>Similarly, the value of a cell can be updated via <code>setindex!</code>, for example using the syntax <code>t.name[1] = "Alicia"</code>. Note that the syntax <code>t[1].name = "Alicia"</code> will error because you are trying to mutate <code>t[1]</code>, which is an immutable <em>copy</em> of the data (completely independent from <code>t</code>).</p>
-<p><a id='Comparison-with-a-DataFrame-1'></a></p>
-<h2 id="comparison-with-a-dataframe">Comparison with a <code>DataFrame</code></h2>
+<p><a id='Comparison-with-other-packages-1'></a></p>
+<h2 id="comparison-with-other-packages">Comparison with other packages</h2>
+<p><a id='DataFrame-1'></a></p>
+<h3 id="dataframe"><code>DataFrame</code></h3>
 <p>For those with experience using the <a href="https://github.com/JuliaData/DataFrames.jl"><em>DataFrames.jl</em></a> package, this comparison may be useful:</p>
 <ul>
 <li>The columns stored in a <code>Table</code> are immutable - you cannot add, remove or rename a column. However, it is very cheap to create a new table with different columns, encouraging a functional programming style to deal with your outer data structure. (See also <code>FlexTable</code> for a more flexible alternative). For compison, this is a similar approach to <a href="https://github.com/JuliaComputing/IndexedTables.jl"><em>IndexedTables</em></a> and <a href="https://github.com/JuliaComputing/JuliaDB.jl"><em>JuliaDB</em></a>, while <em>DataFrames</em> uses an untyped vector of columns.</li>

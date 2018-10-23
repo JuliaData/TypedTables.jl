@@ -61,15 +61,7 @@
         
             <li><a class="toctree-l3" href="#installation">Installation</a></li>
         
-            <li><a class="toctree-l3" href="#table-types">Table Types</a></li>
-        
-            <li><a class="toctree-l3" href="#basic-data-manipulation">Basic data manipulation</a></li>
-        
-            <li><a class="toctree-l3" href="#grouping-and-joining-data">Grouping and joining data</a></li>
-        
-            <li><a class="toctree-l3" href="#representing-data-and-acceleration-indices">Representing data and acceleration indices</a></li>
-        
-            <li><a class="toctree-l3" href="#input-and-output">Input and Output</a></li>
+            <li><a class="toctree-l3" href="#quick-start">Quick start</a></li>
         
         </ul>
     
@@ -88,6 +80,21 @@
                 <li class="">
                     
     <a class="" href="man/flextable/">FlexTable</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Data storage</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="man/data/">Data representation</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="man/io/">Input and output</a>
                 </li>
     </ul>
 	    </li>
@@ -128,19 +135,11 @@
           
             <li class="toctree-l1">
 		
-    <span class="caption-text">Storing and representing data</span>
+    <span class="caption-text">Accelerations</span>
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="man/data/">Data representation</a>
-                </li>
-                <li class="">
-                    
     <a class="" href="man/acceleratedarrays/">Acceleration indices</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="man/io/">Input and output</a>
                 </li>
     </ul>
 	    </li>
@@ -194,36 +193,27 @@
 </code></pre>
 
 <p>That's it!</p>
-<p><a id='Table-Types-1'></a></p>
-<h2 id="table-types">Table Types</h2>
-<ul>
-<li><a href="man/table/#Table-1">Table</a></li>
-<li><a href="man/flextable/#FlexTable-1">FlexTable</a></li>
-</ul>
-<p><a id='Basic-data-manipulation-1'></a></p>
-<h2 id="basic-data-manipulation">Basic data manipulation</h2>
-<ul>
-<li><a href="man/map/#Mapping-rows-of-data-1">Mapping rows of data</a></li>
-<li><a href="man/filter/#Finding-data-1">Finding data</a></li>
-<li><a href="man/reduce/#Reducing-data-1">Reducing data</a></li>
-</ul>
-<p><a id='Grouping-and-joining-data-1'></a></p>
-<h2 id="grouping-and-joining-data">Grouping and joining data</h2>
-<ul>
-<li><a href="man/group/#Grouping-data-1">Grouping data</a></li>
-<li><a href="man/join/#Joining-data-1">Joining data</a></li>
-</ul>
-<p><a id='Representing-data-and-acceleration-indices-1'></a></p>
-<h2 id="representing-data-and-acceleration-indices">Representing data and acceleration indices</h2>
-<ul>
-<li><a href="man/acceleratedarrays/#Acceleration-Indices-with-*AcceleratedArrays*-1">Acceleration Indices with <em>AcceleratedArrays</em></a></li>
-<li><a href="man/storage.md#Representing-and-storing-data-1">Representing and storing data</a></li>
-</ul>
-<p><a id='Input-and-Output-1'></a></p>
-<h2 id="input-and-output">Input and Output</h2>
-<ul>
-<li><a href="man/io/#Input-and-output-1">Input and output</a></li>
-</ul>
+<p><a id='Quick-start-1'></a></p>
+<h2 id="quick-start">Quick start</h2>
+<pre><code class="julia">julia&gt; using TypedTables
+
+julia&gt; t = Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0])
+Table with 2 columns and 3 rows:
+     a  b
+   ┌───────
+ 1 │ 1  2.0
+ 2 │ 2  4.0
+ 3 │ 3  6.0
+
+julia&gt; t[1]  # Get first row
+(a = 1, b = 2.0)
+
+julia&gt; t.a  # Get column `a`
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+</code></pre>
               
             </div>
           </div>
@@ -277,5 +267,5 @@
 
 <!--
 MkDocs version : 0.17.5
-Build Date UTC : 2018-10-21 14:01:17
+Build Date UTC : 2018-10-23 13:48:05
 -->
