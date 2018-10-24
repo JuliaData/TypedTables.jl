@@ -49,11 +49,16 @@ julia> mean(t.age)
 julia> median(t.age)
 37.0
 
-julia> mapreduce(row -> length(row.name) * row.age, +, t)
-510
-
 julia> join(t.name, ", ", " and ")
 "Alice, Bob and Charlie"
 ```
 
 Note that `join` is a string joining function; see `innerjoin` (from *SplitApplyCombine*) for the relational operation.
+
+
+It's just as easy to calculate multi-column statistics by reducing over the entire table.
+
+```julia
+julia> mapreduce(row -> length(row.name) * row.age, +, t)
+510
+```

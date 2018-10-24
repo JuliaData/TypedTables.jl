@@ -114,7 +114,7 @@ Dict{String,Int64} with 4 entries:
   "Smith"    => 104
 ```
 
-Split-apply-combine provides related functions `groupsum`, `groupcount`, and so-on. One particularly handy function for summarizing data by giving counts of unique values is `groupcount`.
+*SplitApplyCombine* provides related functions `groupsum`, `groupprod`, and so-on. One particularly handy function for summarizing data by giving counts of unique values is `groupcount`.
 
 ```julia
 julia> groupcount(t.lastname)

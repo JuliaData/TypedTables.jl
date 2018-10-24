@@ -85,6 +85,27 @@ julia> firstletter(t)
 
 Julia will use the type information it knows about `t` to create fast, compiled code. (Pro tip: to make the above loop *optimal*, adding an `@inbounds` annotation on the same line before the `for` loop will remove redundant array bounds checking and make the loop execute faster).
 
+## Generators
+
+Julia syntax provide for compact syntax for generators and comprehensions to define arrays.
+
+ * The syntax `[f(x) for x in y]` is called a "comprehension" and constructs a new `Array`.
+ * The syntax `f(x) for x in y` is called a `Generator` and is a lazy, iterable container called `Base.Generator`.
+
+Tables can be constructed from `Geneartor`s, allowing for some pretty neat syntax.
+
+```julia
+julia> Table((name=row.name, isold=row.age>40) for row in t)
+Table with 2 columns and 3 rows:
+     name     isold
+   ┌───────────────
+ 1 │ Alice    false
+ 2 │ Bob      true
+ 3 │ Charlie  false
+```
+
+Generators and comprehensions also support filtering data and combining multiple datasets, which cover in *Finding Data* and *Joining Data*.
+
 ## Preselection
 
 Functions like `map` are not necessarily very intelligent about which columns are required and which are not. The reason is simple: given the operation `map(f, t)`, the `map` method has very little insight into what `f` does.

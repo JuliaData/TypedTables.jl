@@ -67,6 +67,21 @@ Table with 2 columns and 1 row:
 
 Internally, the `filter` method may rely on one of the implementations above.
 
+## Generators
+
+Julia's "generator" syntax also allows for filtering operations using `if`.
+
+```
+julia> Table(row for row in t if row.age > 40)
+Table with 2 columns and 1 row:
+     name  age
+   ┌──────────
+ 1 │ Bob   42
+
+```
+
+This can be combined with mapping at the same time, as in `Table(f(row) for row in table if predicate(row))`. In *Joining Data* we discuss how to use generator syntax to combine multiple datasets.
+
 ## Preselection
 
 As mentioned in other sections, it is frequently worthwhile to preselect the columns relating to your search predicate, to avoid any wastage in fetching from memory values in columns that you don't care about.

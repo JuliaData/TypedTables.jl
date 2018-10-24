@@ -74,6 +74,29 @@ This is our first example of a `Table` which an array of higher than one-dimensi
 
 Finally, also note that there is a `productview` function for performing this operation lazily. This may be crucial to remember - the size of the output is the *product* of the size of the inputs, which grows very quickly even for very reasonably sized input tables. This operation can be very expensive in both time and memory if appropriate care isn't taken.
 
+### Cartesian product with generators
+
+One can feed in multiple inputs into a generator, and Julia will automatically take the Cartesian product of all inputs. For example:
+
+```julia
+julia> t3 = Table(merge(row1, row2) for row1 in t1, row2 in t2)
+Table with 2 columns and 12 rows:
+      firstname  lastname
+    ┌────────────────────
+ 1  │ Alice      Smith
+ 2  │ Bob        Smith
+ 3  │ Charlie    Smith
+ 4  │ Alice      Williams
+ 5  │ Bob        Williams
+ 6  │ Charlie    Williams
+ 7  │ Alice      Brown
+ 8  │ Bob        Brown
+ 9  │ Charlie    Brown
+ 10 │ Alice      King
+ 11 │ Bob        King
+ 12 │ Charlie    King
+```
+
 ## Relational "join"
 
 In a nutshell: the relational "join" operation is simply the above Cartesian product followed by a filtering operation. Generally, the filtering operation will depend on information coming from *both* input data sets - for example, that the values in a particular column must match exactly. (Any filtering that depends only on information from one input table can be done more efficiently *before* the join operation).
@@ -215,6 +238,23 @@ Table with 5 columns and 4 rows:
 The `innerjoin` function can be used to join any tables based on any conditions. However, by default only the `isequal` comparison is accelerated via a temporary hash index - all other comparisons will invoke an exhaustive *O*(`n^2`) algorithm.
 
 See the section on Acceleration Indices for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations using comparisons other than `isequal`. For example, a `SortIndex` can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.
+
+### Inner joins with generators
+
+As a final example, generators provide a convenient syntax for filtering Cartesian products of collections - that is, to perform an inner join!
+
+```julia
+julia> Table(merge(customer, order) for customer in customers, order in orders if customer.id == order.customer_id)
+Table with 5 columns and 4 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 2   Bob      163 Moon Road    2            Socks
+ 2 │ 2   Bob      163 Moon Road    2            Tie
+ 3 │ 3   Charlie  6 George Street  3            Shirt
+ 4 │ 3   Charlie  6 George Street  3            Underwear
+```
+
+The disadvantage of this technique is that it will perform an exhaustive search by default, costing *O*(`n^2`).
 
 ## Left-group-join
 
