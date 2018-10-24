@@ -161,7 +161,7 @@ julia> t.name[1]
 
 While Julia's compiler will elide a lot of unnecessary code, you may find it faster to index individual cells of the table using the second option (to avoid fetching and constructing the *entire* named tuple of a row as an intermediate step).
 
-Similarly, the value of a cell can be updated via `setindex!`, for example using the syntax `t.name[1] = "Alicia"`. Note that the syntax `t[1].name = "Alicia"` will error because you are trying to mutate `t[1]`, which is an immutable *copy* of the data (completely independent from `t`).
+Similarly, the value of a cell can be updated via `setindex!`, for example using the syntax `t.name[1] = "Alicia"`. Note that the syntax `t[1].name = "Alicia"` will error because you are trying to mutate `t[1]`, which is an immutable *copy* of the row (completely independent from `t`).
 
 ## Comparison with other packages 
 
@@ -169,7 +169,7 @@ Similarly, the value of a cell can be updated via `setindex!`, for example using
 
 For those with experience using the [*DataFrames.jl*](https://github.com/JuliaData/DataFrames.jl) package, this comparison may be useful:
 
- * The columns stored in a `Table` are immutable - you cannot add, remove or rename a column. However, it is very cheap to create a new table with different columns, encouraging a functional programming style to deal with your outer data structure. (See also `FlexTable` for a more flexible alternative). For compison, this is a similar approach to [*IndexedTables*](https://github.com/JuliaComputing/IndexedTables.jl) and [*JuliaDB*](https://github.com/JuliaComputing/JuliaDB.jl), while *DataFrames* uses an untyped vector of columns.
+ * The columns stored in a `Table` are immutable - you cannot add, remove or rename a column. However, it is very cheap to create a new table with different columns, encouraging a functional programming style to deal with your outer data structure. (See also `FlexTable` for a more flexible alternative). For comparison, this is a similar approach to [*IndexedTables*](https://github.com/JuliaComputing/IndexedTables.jl) and [*JuliaDB*](https://github.com/JuliaComputing/JuliaDB.jl), while *DataFrames* uses an untyped vector of columns.
 
  * The columns themselves may be mutable. You may modify the data in one-or-more columns, and add or remove rows as necessary. Thus, operations on the *data* (not the data *structure*) can follow an imperative form, if desired.
 

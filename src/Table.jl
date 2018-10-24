@@ -24,12 +24,20 @@ end
 Table(;kwargs...) = Table(kwargs.data)
 Table(nt::NamedTuple) = Table{_eltypes(nt), _ndims(nt), typeof(nt)}(nt)
 
+function Table{NamedTuple{names,T}}() where {names, T<:Tuple}
+    # TODO we can make this type-stable.
+    Table(NamedTuple{names}(ntuple(i -> Vector{T.parameters[i]}(), length(T.parameters))))
+end
+
 function Table(x)
-    cols = columns(x)
-    if cols isa NamedTuple{<:Any, <:Tuple{Vararg{AbstractArray{N}} where N}}
-        return Table(cols)
+    if Tables.istable(x)
+        if Tables.columnaccess(x)
+            return Table(columntable(x))
+        else
+            return Table(Tables.buildcolumns(Tables.schema(x), x))
+        end
     else
-        return Table(columntable(cols))
+        error("Cannot construct table from $(typeof(x))")
     end
 end
 
