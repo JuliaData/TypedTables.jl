@@ -226,14 +226,15 @@ julia&gt; mean(t.age)
 julia&gt; median(t.age)
 37.0
 
-julia&gt; mapreduce(row -&gt; length(row.name) * row.age, +, t)
-510
-
 julia&gt; join(t.name, &quot;, &quot;, &quot; and &quot;)
 &quot;Alice, Bob and Charlie&quot;
 </code></pre>
 
 <p>Note that <code>join</code> is a string joining function; see <code>innerjoin</code> (from <em>SplitApplyCombine</em>) for the relational operation.</p>
+<p>It's just as easy to calculate multi-column statistics by reducing over the entire table.</p>
+<pre><code class="julia">julia&gt; mapreduce(row -&gt; length(row.name) * row.age, +, t)
+510
+</code></pre>
               
             </div>
           </div>

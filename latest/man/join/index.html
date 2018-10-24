@@ -248,6 +248,27 @@ julia&gt; size(t3)
 <p>Remember that one must be careful that the column names are indeed distinct when using <code>product(merge, ...)</code> this way.</p>
 <p>This is our first example of a <code>Table</code> which an array of higher than one-dimension - it is an <code>AbstractMatrix</code>. The <code>product</code> of many tables may be a <code>3</code>- or higher-dimensional array. Note that higher-dimensional tables do not print as a matrix like other higher-dimensional arrays at the REPL, as this would quickly obscure the columns. Instead, the indices are displayed to the left of each row.</p>
 <p>Finally, also note that there is a <code>productview</code> function for performing this operation lazily. This may be crucial to remember - the size of the output is the <em>product</em> of the size of the inputs, which grows very quickly even for very reasonably sized input tables. This operation can be very expensive in both time and memory if appropriate care isn't taken.</p>
+<p><a id='Cartesian-product-with-generators-1'></a></p>
+<h3 id="cartesian-product-with-generators">Cartesian product with generators</h3>
+<p>One can feed in multiple inputs into a generator, and Julia will automatically take the Cartesian product of all inputs. For example:</p>
+<pre><code class="julia">julia&gt; t3 = Table(merge(row1, row2) for row1 in t1, row2 in t2)
+Table with 2 columns and 12 rows:
+      firstname  lastname
+    ┌────────────────────
+ 1  │ Alice      Smith
+ 2  │ Bob        Smith
+ 3  │ Charlie    Smith
+ 4  │ Alice      Williams
+ 5  │ Bob        Williams
+ 6  │ Charlie    Williams
+ 7  │ Alice      Brown
+ 8  │ Bob        Brown
+ 9  │ Charlie    Brown
+ 10 │ Alice      King
+ 11 │ Bob        King
+ 12 │ Charlie    King
+</code></pre>
+
 <p><a id='Relational-"join"-1'></a></p>
 <h2 id="relational-join">Relational "join"</h2>
 <p>In a nutshell: the relational "join" operation is simply the above Cartesian product followed by a filtering operation. Generally, the filtering operation will depend on information coming from <em>both</em> input data sets - for example, that the values in a particular column must match exactly. (Any filtering that depends only on information from one input table can be done more efficiently <em>before</em> the join operation).</p>
@@ -369,6 +390,20 @@ Table with 5 columns and 4 rows:
 
 <p>The <code>innerjoin</code> function can be used to join any tables based on any conditions. However, by default only the <code>isequal</code> comparison is accelerated via a temporary hash index - all other comparisons will invoke an exhaustive <em>O</em>(<code>n^2</code>) algorithm.</p>
 <p>See the section on Acceleration Indices for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations using comparisons other than <code>isequal</code>. For example, a <code>SortIndex</code> can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.</p>
+<p><a id='Inner-joins-with-generators-1'></a></p>
+<h3 id="inner-joins-with-generators">Inner joins with generators</h3>
+<p>As a final example, generators provide a convenient syntax for filtering Cartesian products of collections - that is, to perform an inner join!</p>
+<pre><code class="julia">julia&gt; Table(merge(customer, order) for customer in customers, order in orders if customer.id == order.customer_id)
+Table with 5 columns and 4 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 2   Bob      163 Moon Road    2            Socks
+ 2 │ 2   Bob      163 Moon Road    2            Tie
+ 3 │ 3   Charlie  6 George Street  3            Shirt
+ 4 │ 3   Charlie  6 George Street  3            Underwear
+</code></pre>
+
+<p>The disadvantage of this technique is that it will perform an exhaustive search by default, costing <em>O</em>(<code>n^2</code>).</p>
 <p><a id='Left-group-join-1'></a></p>
 <h2 id="left-group-join">Left-group-join</h2>
 <p>Currently <em>SplitApplyCombine</em> and <em>TypedTables</em> do not provide what in SQL is called an <code>LEFT OUTER JOIN</code> (or any of the other <code>OUTER JOIN</code> operations).</p>

@@ -106,6 +106,8 @@
         
             <li><a class="toctree-l4" href="#filterpredicate-table">filter(predicate, table)</a></li>
         
+            <li><a class="toctree-l4" href="#generators">Generators</a></li>
+        
             <li><a class="toctree-l4" href="#preselection">Preselection</a></li>
         
         </ul>
@@ -241,6 +243,18 @@ Table with 2 columns and 1 row:
 </code></pre>
 
 <p>Internally, the <code>filter</code> method may rely on one of the implementations above.</p>
+<p><a id='Generators-1'></a></p>
+<h2 id="generators">Generators</h2>
+<p>Julia's "generator" syntax also allows for filtering operations using <code>if</code>.</p>
+<pre><code>julia&gt; Table(row for row in t if row.age &gt; 40)
+Table with 2 columns and 1 row:
+     name  age
+   ┌──────────
+ 1 │ Bob   42
+
+</code></pre>
+
+<p>This can be combined with mapping at the same time, as in <code>Table(f(row) for row in table if predicate(row))</code>. In <em>Joining Data</em> we discuss how to use generator syntax to combine multiple datasets.</p>
 <p><a id='Preselection-1'></a></p>
 <h2 id="preselection">Preselection</h2>
 <p>As mentioned in other sections, it is frequently worthwhile to preselect the columns relating to your search predicate, to avoid any wastage in fetching from memory values in columns that you don't care about.</p>

@@ -100,6 +100,8 @@
         
             <li><a class="toctree-l4" href="#explicit-for-loops">Explicit for loops</a></li>
         
+            <li><a class="toctree-l4" href="#generators">Generators</a></li>
+        
             <li><a class="toctree-l4" href="#preselection">Preselection</a></li>
         
             <li><a class="toctree-l4" href="#getproperty-and-map">getproperty and map</a></li>
@@ -260,6 +262,24 @@ julia&gt; firstletter(t)
 </code></pre>
 
 <p>Julia will use the type information it knows about <code>t</code> to create fast, compiled code. (Pro tip: to make the above loop <em>optimal</em>, adding an <code>@inbounds</code> annotation on the same line before the <code>for</code> loop will remove redundant array bounds checking and make the loop execute faster).</p>
+<p><a id='Generators-1'></a></p>
+<h2 id="generators">Generators</h2>
+<p>Julia syntax provide for compact syntax for generators and comprehensions to define arrays.</p>
+<ul>
+<li>The syntax <code>[f(x) for x in y]</code> is called a "comprehension" and constructs a new <code>Array</code>.</li>
+<li>The syntax <code>f(x) for x in y</code> is called a <code>Generator</code> and is a lazy, iterable container called <code>Base.Generator</code>.</li>
+</ul>
+<p>Tables can be constructed from <code>Geneartor</code>s, allowing for some pretty neat syntax.</p>
+<pre><code class="julia">julia&gt; Table((name=row.name, isold=row.age&gt;40) for row in t)
+Table with 2 columns and 3 rows:
+     name     isold
+   ┌───────────────
+ 1 │ Alice    false
+ 2 │ Bob      true
+ 3 │ Charlie  false
+</code></pre>
+
+<p>Generators and comprehensions also support filtering data and combining multiple datasets, which cover in <em>Finding Data</em> and <em>Joining Data</em>.</p>
 <p><a id='Preselection-1'></a></p>
 <h2 id="preselection">Preselection</h2>
 <p>Functions like <code>map</code> are not necessarily very intelligent about which columns are required and which are not. The reason is simple: given the operation <code>map(f, t)</code>, the <code>map</code> method has very little insight into what <code>f</code> does.</p>
