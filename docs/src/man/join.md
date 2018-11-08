@@ -217,7 +217,7 @@ Let's examine this. Assume the inputs `left` and `right` are `Table`s. We may wa
 As an example, we modify our `customers` table to explicitly include the customer's `id`, similarly to above.
 
 ```julia
-julia> customers = Table(id = [1, 2, 3], name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
+julia> customers = Table(id = 1:3, name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
 Table with 3 columns and 3 rows:
      id  name     address
    ┌─────────────────────────────
