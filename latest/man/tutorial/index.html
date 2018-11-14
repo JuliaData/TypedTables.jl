@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Andy Ferris">
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Quick start tutorial - TypedTables.jl</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  <link href="../../assets/Documenter.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Quick start tutorial";
+    var mkdocs_page_input_path = "man/tutorial.md";
+    var mkdocs_page_url = "/man/tutorial/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> TypedTables.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Quick start tutorial</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#quick-start-tutorial">Quick start tutorial</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#making-and-using-a-table">Making and using a Table</a></li>
+        
+            <li><a class="toctree-l3" href="#flextable">FlexTable</a></li>
+        
+            <li><a class="toctree-l3" href="#missing-data">Missing data</a></li>
+        
+            <li><a class="toctree-l3" href="#loading-and-saving-data-from-files">Loading and saving data from files</a></li>
+        
+            <li><a class="toctree-l3" href="#finding-data">Finding data</a></li>
+        
+            <li><a class="toctree-l3" href="#summarizing-data">Summarizing data</a></li>
+        
+            <li><a class="toctree-l3" href="#mapping-data">Mapping data</a></li>
+        
+            <li><a class="toctree-l3" href="#grouping-data">Grouping data</a></li>
+        
+            <li><a class="toctree-l3" href="#joining-data">Joining data</a></li>
+        
+            <li><a class="toctree-l3" href="#progressing-onwards">Progressing onwards</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Table types</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../table/">Table</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../flextable/">FlexTable</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Data storage</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../data/">Data representation</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../io/">Input and output</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Basic data manipulation</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../map/">Mapping data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../filter/">Finding data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../reduce/">Reducing data</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Grouping and joining data</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../group/">Groupind data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../join/">Joining data</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Accelerations</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Advanced topics</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../design/">Design</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../reference/">API reference</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">TypedTables.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Quick start tutorial</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/tutorial.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <p><a id='Quick-start-tutorial-1'></a></p>
+<h1 id="quick-start-tutorial">Quick start tutorial</h1>
+<p>After reading this tutorial, you should be able to use Julia to perform a range of data analysis tasks. Only basic knowledge of Julia is assumed, such as how to install packages and use an array.</p>
+<p><a id='Making-and-using-a-Table-1'></a></p>
+<h2 id="making-and-using-a-table">Making and using a <code>Table</code></h2>
+<p>It's simple to get started and create a table!</p>
+<p>A <code>Table</code> is a wrapper around column arrays. Suppose you have an array containing names and an array containing ages, then you can create a table with two columns:</p>
+<pre><code class="julia">julia&gt; t = Table(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], age = [25, 42, 37])
+Table with 2 columns and 3 rows:
+     name     age
+   ┌─────────────
+ 1 │ Alice    25
+ 2 │ Bob      42
+ 3 │ Charlie  37
+</code></pre>
+
+<p>A <code>Table</code> behaves as a Julia array that contains named tuples for each row. Each row is a single element - you should consider the above as a one-dimensional container with three elements, rather than as a two-dimensional "matrix" of six cells. Another name for a collection of named tuples is a "relation", and <code>Table</code>s are useful for performing relational algebra.</p>
+<p>You can access elements (rows) exactly like any other Julia array.</p>
+<pre><code class="julia">julia&gt; t[1]
+(name = &quot;Alice&quot;, age = 25)
+
+julia&gt; t[1:2]
+Table with 2 columns and 2 rows:
+     name   age
+   ┌───────────
+ 1 │ Alice  25
+ 2 │ Bob    42
+</code></pre>
+
+<p>A element (row) of the table can be updated with the usual array syntax.</p>
+<pre><code class="julia">julia&gt; t[1] = (name = &quot;Alice&quot;, age = 26);  # Alice had a birthday!
+
+julia&gt; t
+Table with 2 columns and 3 rows:
+     name     age
+   ┌─────────────
+ 1 │ Alice    26
+ 2 │ Bob      42
+ 3 │ Charlie  37
+</code></pre>
+
+<p>You can easily access a column by the tables "properties", use the <code>.</code> operator.</p>
+<pre><code class="julia">julia&gt; t.name
+3-element Array{String,1}:
+ &quot;Alice&quot;  
+ &quot;Bob&quot;    
+ &quot;Charlie&quot;
+</code></pre>
+
+<p>You can ask what the properties (column names) of a <code>Table</code> with the <code>propertynames</code> function (as well as the <code>columnnames</code> function).</p>
+<pre><code class="julia">julia&gt; propertynames(t)
+(:name, :age)
+</code></pre>
+
+<p>Recall that <code>:name</code> is a <code>Symbol</code> - which you can think of a special kind of string that the compiler works with when considering Julia code itself.</p>
+<p>Individual cells can be accessed in two, symmetric ways.</p>
+<pre><code class="julia">julia&gt; t.name[2]
+&quot;Bob&quot;
+
+julia&gt; t[2].name
+&quot;Bob&quot;
+</code></pre>
+
+<p>Note that the first way is more efficient, and recommended, because in the second case the intermediate value <code>t[2]</code> is assembled from the elements of <em>all</em> the columns. The first syntax also supports updating.</p>
+<pre><code class="julia">julia&gt; t.name[2] = &quot;Robert&quot;;  # No nicknames here...
+
+julia&gt; t
+Table with 2 columns and 3 rows:
+     name     age
+   ┌─────────────
+ 1 │ Alice    26
+ 2 │ Robert   42
+ 3 │ Charlie  37
+</code></pre>
+
+<p>The names and number of a <code>Table</code> are fixed and immutable. You cannot add, remove, or delete columns from a <code>Table</code>. Instead, a new table should be formed - you can even call the new table by the old variable name, if you want.</p>
+<p>Multiple tables and additional columns can be created in the one <code>Table</code> constructor. For example, it is easy to add an additional column.</p>
+<pre><code class="julia">julia&gt; Table(t; lastname = [&quot;Smith&quot;, &quot;Smith&quot;, &quot;Smith&quot;])
+Table with 3 columns and 3 rows:
+     name     age  lastname
+   ┌───────────────────────
+ 1 │ Alice    26   Smith
+ 2 │ Robert   42   Smith
+ 3 │ Charlie  37   Smith
+</code></pre>
+
+<p>And we can delete a column by setting it to <code>nothing</code>.</p>
+<pre><code class="julia">julia&gt; Table(t; age = nothing)
+Table with 1 column and 3 rows:
+     name
+   ┌────────
+ 1 │ Alice
+ 2 │ Robert
+ 3 │ Charlie
+</code></pre>
+
+<p>Because the names and types of your columns are fixed on any line of code, Julia's compiler is able to produce lightning fast machine code for processing your data.</p>
+<p><a id='FlexTable-1'></a></p>
+<h2 id="flextable"><code>FlexTable</code></h2>
+<p>Sometimes, it <em>is</em> handy to be able to add, remove and rename columns without create a new <code>Table</code> container. The <code>FlexTable</code> type allows for this.</p>
+<pre><code class="julia">julia&gt; ft = FlexTable(names = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;])
+FlexTable with 1 column and 3 rows:
+     names
+   ┌────────
+ 1 │ Alice
+ 2 │ Bob
+ 3 │ Charlie
+
+julia&gt; ft.age = [25, 42, 37];
+
+julia&gt; ft
+FlexTable with 2 columns and 3 rows:
+     names    age
+   ┌─────────────
+ 1 │ Alice    25
+ 2 │ Bob      42
+ 3 │ Charlie  37
+</code></pre>
+
+<p>A column can be deleted by setting it to <code>nothing</code>.</p>
+<pre><code class="julia">julia&gt; ft.age = nothing;
+
+julia&gt; ft
+FlexTable with 1 column and 3 rows:
+     names
+   ┌────────
+ 1 │ Alice
+ 2 │ Bob
+ 3 │ Charlie
+</code></pre>
+
+<p>A <code>FlexTable</code> will be just as fast as a <code>Table</code> in most contexts. However, Julia's compiler will not be able to predict in advance the names and types of the columns. The main thing to watch is that an explicit <code>for</code> loop over the rows of a <code>FlexTable</code> will be a bit slower than that of a <code>Table</code> - but all the operations demonstrated in this tutorial will be just as speedy!</p>
+<p><a id='Missing-data-1'></a></p>
+<h2 id="missing-data">Missing data</h2>
+<p>The recommended way to handle missing data in Julia is by using <code>missing</code>, which is a value with its very own type <code>Missing</code>. For example, we may create a table where some people haven't specified their age.</p>
+<pre><code class="julia">julia&gt; Table(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], age = [25, missing, 37])
+Table with 2 columns and 3 rows:
+     name     age
+   ┌─────────────────
+ 1 │ Alice    25
+ 2 │ Bob      missing
+ 3 │ Charlie  37
+</code></pre>
+
+<p>In Julia, <code>missing</code> values propagate safely where this is appropriate. For example, <code>missing + 1</code> is also <code>missing</code> - if we didn't know the value before, we still don't after adding <code>1</code>. This makes working with missing data simple and pain-free, and Julia's optimizing compiler also makes it extremely fast.</p>
+<p><a id='Loading-and-saving-data-from-files-1'></a></p>
+<h2 id="loading-and-saving-data-from-files">Loading and saving data from files</h2>
+<p><em>TypedTables.jl</em> integrates seemlessly into an ecosystem of Julia I/O packages. For example, we can use <em>CSV.jl</em> to load and save CSV files. Let's say we have a CSV file called <code>input.csv</code> with the following data.</p>
+<pre><code>name,age
+Alice,25
+Bob,42
+Charlie,37
+</code></pre>
+
+<p>We can load this file from disk using the <code>CSV.read</code> function.</p>
+<pre><code class="julia">julia&gt; using CSV
+
+julia&gt; t = CSV.read(&quot;input.csv&quot;, Table)
+FlexTable with 2 columns and 3 rows:
+     names    age
+   ┌─────────────
+ 1 │ Alice    25
+ 2 │ Bob      42
+ 3 │ Charlie  37
+</code></pre>
+
+<p>Similary, we can write a table to a new file <code>output.csv</code> with the <code>CSV.write</code> function.</p>
+<pre><code class="julia">julia&gt; CSV.write(&quot;output.csv&quot;, t)
+</code></pre>
+
+<p><a id='Finding-data-1'></a></p>
+<h2 id="finding-data">Finding data</h2>
+<p>Julia's broadcasting and indexing syntax can work together to make it easy to find rows of data based on given creteria. Suppose we wanted to find all the "old" people in the  table.</p>
+<pre><code class="julia">julia&gt; t = Table(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], age = [25, 42, 37])
+Table with 2 columns and 3 rows:
+     name     age
+   ┌─────────────
+ 1 │ Alice    25
+ 2 │ Bob      42
+ 3 │ Charlie  37
+
+julia&gt; t.age .&gt; 40
+3-element BitArray{1}:
+ false
+  true
+ false
+</code></pre>
+
+<p>Bob and Alice might disagree about what "old" means, but here we have identified all the people over 40 years of age. Note the difference between the "scalar" operator <code>&gt;</code> and the  "broadcasting" operator <code>.&gt;</code>.</p>
+<p>We can use "logical" indexing to collect the rows for which the above predicate is <code>true</code>.</p>
+<pre><code class="julia">julia&gt; t[t.age .&gt; 40]
+Table with 2 columns and 1 row:
+     name  age
+   ┌──────────
+ 1 │ Bob   42
+</code></pre>
+
+<p>Data can also be found with Julia's built-in <code>filter</code> and <code>findall</code> functions.</p>
+<p><a id='Summarizing-data-1'></a></p>
+<h2 id="summarizing-data">Summarizing data</h2>
+<p>Julia has a range of built-in functions for asking common questions about a set of data.</p>
+<p>For example, we can use the <code>in</code> operator to test if an entry is in a column.</p>
+<pre><code class="julia">julia&gt; &quot;Bob&quot; in t.name
+true
+</code></pre>
+
+<p>Or if a given row is <code>in</code> the table.</p>
+<pre><code class="julia">julia&gt; (name = &quot;Bob&quot;, age = 41) in t
+false
+</code></pre>
+
+<p>(Bob is older than that).</p>
+<p>We can <code>sum</code> columns, and with the <code>Statistics</code> standard library, we can find the <code>mean</code>, <code>median</code>, and so-on.</p>
+<pre><code class="julia">julia&gt; sum(t.age)
+104
+
+julia&gt; using Statistics
+
+julia&gt; mean(t.age)
+34.666666666666664
+
+julia&gt; median(t.age)
+37.0
+</code></pre>
+
+<p>By these metrics, Bob's age <em>is</em> above average!</p>
+<p><a id='Mapping-data-1'></a></p>
+<h2 id="mapping-data">Mapping data</h2>
+<p>Functions which map rows to new rows can be used to create new tables. </p>
+<p>Below, we create an annonymous function which takes a row containing a name and an age, and returns an inital letter and whether the person is old (greater than 40), and use Julia's built-in <code>map</code> function.</p>
+<pre><code class="julia">julia&gt; map(row -&gt; (initial = first(row.name), is_old = row.age &gt; 40), t)
+Table with 2 columns and 3 rows:
+     initial  is_old
+   ┌────────────────
+ 1 │ A        false
+ 2 │ B        true
+ 3 │ C        false
+</code></pre>
+
+<p>It is worth being aware of a special function <code>getproperty</code>, which is Julia's function for the <code>.</code> operator - that is <code>a.b</code> is just convenient shorthand syntax for <code>getproperty(a, :b)</code>. The function <code>getproperty(:b)</code> returns <em>another function</em> such that <code>getproperty(:b)(a)</code> is the same as <code>a.b</code>. If you wish to programmatically select a column of a Table, you can use <code>getproperty</code> to do so.</p>
+<pre><code class="julia">julia&gt; map(getproperty(:name), t)
+3-element Array{String,1}:
+ &quot;Alice&quot;  
+ &quot;Bob&quot;    
+ &quot;Charlie&quot;
+</code></pre>
+
+<p>In fact, <code>Table</code> will know that getting a certain field of every row via <code>map</code> is the same as simply extracting the column <code>name</code>, and this operation will be fast. This will be most useful in the operations below.</p>
+<p><a id='Grouping-data-1'></a></p>
+<h2 id="grouping-data">Grouping data</h2>
+<p>Frequently, one wishes to group and process data using a so-called "split-apply-combine" methodology. <em>TypedTables</em> is a lightweight package and does not provide this functionality directly - but it has been designed carefully to work optimally with external packages.</p>
+<p>One such package is <em>SplitApplyCombine.jl</em>, which provides common operations for grouping and joining data (if you wish, you may view its documentation <a href="https://github.com/JuliaData/SplitApplyCombine.jl">here</a>).</p>
+<p>We will demonstrate grouping data with a slightly more complex dataset.</p>
+<pre><code class="julia">julia&gt; t2 = Table(firstname = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;, &quot;Adam&quot;, &quot;Eve&quot;, &quot;Cindy&quot;, &quot;Arthur&quot;], lastname = [&quot;Smith&quot;, &quot;Smith&quot;, &quot;Smith&quot;, &quot;Williams&quot;, &quot;Williams&quot;, &quot;Brown&quot;, &quot;King&quot;], age = [25, 42, 37, 65, 18, 33, 54])
+Table with 3 columns and 7 rows:
+     firstname  lastname  age
+   ┌─────────────────────────
+ 1 │ Alice      Smith     25
+ 2 │ Bob        Smith     42
+ 3 │ Charlie    Smith     37
+ 4 │ Adam       Williams  65
+ 5 │ Eve        Williams  18
+ 6 │ Cindy      Brown     33
+ 7 │ Arthur     King      54
+</code></pre>
+
+<p>Let us begin with basic usage of the <code>group</code> function from <em>SplitApplyCombine</em>, where we wish to group firstnames by their initial letter.</p>
+<pre><code class="julia">julia&gt; using SplitApplyCombine
+
+julia&gt; group(first, t2.firstname)
+Dict{Char,Array{String,1}} with 4 entries:
+  'C' =&gt; [&quot;Charlie&quot;, &quot;Cindy&quot;]
+  'A' =&gt; [&quot;Alice&quot;, &quot;Adam&quot;, &quot;Arthur&quot;]
+  'E' =&gt; [&quot;Eve&quot;]
+  'B' =&gt; [&quot;Bob&quot;]
+</code></pre>
+
+<p>The <code>group</code> function returns a dictionary (<code>Dict</code>) where the grouping key is calculated on each row by the function passed as the first argument - in this case <code>first</code>. We can see the firstnames starting with the letter <code>A</code> belong to the same group, and so on.</p>
+<p>Sometimes you may want to transform the grouped data - you can do so by passing a second mapping function. For example, we may want to group firstnames by lastname.</p>
+<pre><code class="julia">julia&gt; group(getproperty(:lastname), getproperty(:firstname), t2)
+Dict{String,Array{String,1}} with 4 entries:
+  &quot;King&quot;     =&gt; [&quot;Arthur&quot;]
+  &quot;Williams&quot; =&gt; [&quot;Adam&quot;, &quot;Eve&quot;]
+  &quot;Brown&quot;    =&gt; [&quot;Cindy&quot;]
+  &quot;Smith&quot;    =&gt; [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;]
+</code></pre>
+
+<p>Note that the returned structure is still not a <code>Table</code> at all - it is a dictionary with the unique <code>lastname</code> values as keys, returing (non-tabular) arrays of <code>firstname</code>.</p>
+<p>If instead, our group elements are rows (named tuples), each group will itslef be a table. For example, we can keep the entire row by dropping the second function.</p>
+<pre><code class="julia">julia&gt; families = group(getproperty(:lastname), t2)
+Groups{String,Any,Table{NamedTuple{(:firstname, :lastname, :age),Tuple{String,String,Int64}},1,NamedTuple{(:firstname, :lastname, :age),Tuple{Array{String,1},Array{String,1},Array{Int64,1}}}},Dict{String,Array{Int64,1}}} with 4 entries:
+  &quot;King&quot;     =&gt; Table with 3 columns and 1 row:…
+  &quot;Williams&quot; =&gt; Table with 3 columns and 2 rows:…
+  &quot;Brown&quot;    =&gt; Table with 3 columns and 1 row:…
+  &quot;Smith&quot;    =&gt; Table with 3 columns and 3 rows:…
+</code></pre>
+
+<p>The results are only summarized above (for compactness), but can be easily accessed.</p>
+<pre><code class="julia">julia&gt; familes[&quot;Smith&quot;]
+Table with 3 columns and 3 rows:
+     firstname  lastname  age
+   ┌─────────────────────────
+ 1 │ Alice      Smith     25
+ 2 │ Bob        Smith     42
+ 3 │ Charlie    Smith     37
+</code></pre>
+
+<p>There are also more advanced functions <code>groupreduce</code>, <code>groupinds</code> and <code>groupview</code>, which may help you perform your analysis more succinctly and faster, and are covered in later sections of this manual.</p>
+<p><a id='Joining-data-1'></a></p>
+<h2 id="joining-data">Joining data</h2>
+<p>A very common relational operation is to <em>join</em> the data from two tables based on certain commonalities, such as the values matching in two columns. <em>SplitApplyCombine.jl</em> provides an <code>innerjoin</code> function for precisely this (please note that <code>join</code> is a Julia operation to concatenate strings).</p>
+<p>Let's suppose we have a small database of customers, and the items they have ordered from an online store.</p>
+<pre><code class="julia">julia&gt; customers = Table(id = 1:3, name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], address = [&quot;12 Beach Street&quot;, &quot;163 Moon Road&quot;, &quot;6 George Street&quot;])
+Table with 3 columns and 3 rows:
+     id  name     address
+   ┌─────────────────────────────
+ 1 │ 1   Alice    12 Beach Street
+ 2 │ 2   Bob      163 Moon Road
+ 3 │ 3   Charlie  6 George Street
+
+julia&gt; orders = Table(customer_id = [2, 2, 3, 3], items = [&quot;Socks&quot;, &quot;Tie&quot;, &quot;Shirt&quot;, &quot;Underwear&quot;])
+Table with 2 columns and 4 rows:
+     customer_id  items
+   ┌───────────────────────
+ 1 │ 2            Socks
+ 2 │ 2            Tie
+ 3 │ 3            Shirt
+ 4 │ 3            Underwear
+</code></pre>
+
+<p>Here, these two tables are related by the customer's <code>id</code>. We can join the two tables on this column to determine the <code>address</code> that we need to send the <code>items</code> to. The <code>innerjoin</code> function expects two functions, to describe the joining key of the first table and the joining key of the second table. We will use <code>getproperty</code> to select the columns.</p>
+<pre><code class="julia">julia&gt; innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+Table with 5 columns and 4 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 2   Bob      163 Moon Road    2            Socks
+ 2 │ 2   Bob      163 Moon Road    2            Tie
+ 3 │ 3   Charlie  6 George Street  3            Shirt
+ 4 │ 3   Charlie  6 George Street  3            Underwear
+</code></pre>
+
+<p>By default, <code>innerjoin</code> will <code>merge</code> all of the columns. Like <code>group</code>, the <code>innerjoin</code> function can accept an additional function to describe a mapping to desired output (as well as a comparison operation on the keys). The more advanced features of <code>innerjoin</code> and other types of joins are covered in later sections of this manual.</p>
+<p><a id='Progressing-onwards-1'></a></p>
+<h2 id="progressing-onwards">Progressing onwards</h2>
+<p>Congratulations on completing the introductory tutorial. You should now know enough basics to get started with data analysis in Julia using <em>TypedTables.jl</em> and related packages.</p>
+<p>The following setions of the manual demonstrate more advanced techniques, explain the  design of this (and related) packages, and provide an API reference.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../table/" class="btn btn-neutral float-right" title="Table">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../.." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../.." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../table/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+      <script src="../../assets/mathjaxhelper.js"></script>
+      <script src="../../search/require.js"></script>
+      <script src="../../search/search.js"></script>
+
+</body>
+</html>

@@ -8,7 +8,7 @@
   
   <meta name="author" content="Andy Ferris">
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Acceleration indices - TypedTables.jl</title>
+  <title>Design - TypedTables.jl</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Acceleration indices";
-    var mkdocs_page_input_path = "man/acceleratedarrays.md";
-    var mkdocs_page_url = "/man/acceleratedarrays/";
+    var mkdocs_page_name = "Design";
+    var mkdocs_page_input_path = "man/design.md";
+    var mkdocs_page_url = "/man/design/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -126,15 +126,9 @@
 		
     <span class="caption-text">Accelerations</span>
     <ul class="subnav">
-                <li class=" current">
+                <li class="">
                     
-    <a class="current" href="./">Acceleration indices</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#acceleration-indices-with-acceleratedarrays">Acceleration Indices with AcceleratedArrays</a></li>
-    
-
-    </ul>
+    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
                 </li>
     </ul>
 	    </li>
@@ -143,9 +137,15 @@
 		
     <span class="caption-text">Advanced topics</span>
     <ul class="subnav">
-                <li class="">
+                <li class=" current">
                     
-    <a class="" href="../design/">Design</a>
+    <a class="current" href="./">Design</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#design-overview">Design overview</a></li>
+    
+
+    </ul>
                 </li>
     </ul>
 	    </li>
@@ -177,14 +177,14 @@
     
       
         
-          <li>Accelerations &raquo;</li>
+          <li>Advanced topics &raquo;</li>
         
       
     
-    <li>Acceleration indices</li>
+    <li>Design</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/acceleratedarrays.md"
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/design.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -194,13 +194,8 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='Acceleration-Indices-with-*AcceleratedArrays*-1'></a></p>
-<h1 id="acceleration-indices-with-acceleratedarrays">Acceleration Indices with <em>AcceleratedArrays</em></h1>
-<p>Database systems have evolved many performance tricks over the years to achieve efficiency and scalability. In an environment such as a SQL RDBMS, much effort is put into the creation of an efficient "query planner" that will essentially construct a small computer program, ultimately made up of nested loops, searching, mapping and filtering operations, to perform a query. However, the second "magic" ingredient used by an RDBMS for performance are secondary "acceleration indices", which are pre-calculated views of the data. These views help queries find data that match certain conditions - a hash-map index well let us locate a matching entry in <em>O</em>(1), or a sort-based index will let us quickly locate <em>all</em> the cells less than (or more than) a certain value.</p>
-<p>For at least some of the kinds of data analytics performed in Julia, it may be possible to expect the programmer to write and execute their own query plan - that is, to understand their data model, to predict the "statistics" regarding the size of and other properties of the data, and to come up with their own rough order of operations that may be efficient. Thus, we may not need to implement a complete query planner to make a viable platform for data analytics in Julia - however, we will absolutely need acceleration indices to perform each elementary operation fast. In the worst case, the programmer would have to construct their own hash-maps and sort-indices (and use them in their own hand-written loops) to obtain peak performance.</p>
-<p>The <em>AcceleratedArrays</em> package exists to provide a way of attaching secondary acceleration indices to any array in Julia, to speed up operations such as <code>filter</code>, <code>findall</code>, <code>group</code> and <code>innerjoin</code> in a transparent and generic way. These acceleration indices can be attached to arbitrary columns (or indeed, entire <code>Table</code>s). These indices remain silently attached to their parent array until they encounter an operation they can accelerate. The user is free to write <em>generic</em> code to execute their query, and the presence of the acceleration index will only act to speed up the resulting specialized algorithm constructed by Julia's compiler.</p>
-<p>This system allows for an extensible set of acceleration indices - such as accelerated spatial lookup using a spatial search tree, or an inverted index for searching for words in text fields. </p>
-<p>Note: by default, the <code>innerjoin</code> operation will construct a hash-based index to perform a join on two unindexed data sources, meaning most basic data operations can be achieved at reasonable speeds.</p>
+                <p><a id='Design-overview-1'></a></p>
+<h1 id="design-overview">Design overview</h1>
               
             </div>
           </div>
@@ -208,10 +203,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../design/" class="btn btn-neutral float-right" title="Design">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../reference/" class="btn btn-neutral float-right" title="API reference">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../join/" class="btn btn-neutral" title="Joining data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../acceleratedarrays/" class="btn btn-neutral" title="Acceleration indices"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -239,10 +234,10 @@
           <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../join/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../acceleratedarrays/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../design/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../reference/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

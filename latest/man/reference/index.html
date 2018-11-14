@@ -8,7 +8,7 @@
   
   <meta name="author" content="Andy Ferris">
   <link rel="shortcut icon" href="../../img/favicon.ico">
-  <title>Acceleration indices - TypedTables.jl</title>
+  <title>API reference - TypedTables.jl</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Acceleration indices";
-    var mkdocs_page_input_path = "man/acceleratedarrays.md";
-    var mkdocs_page_url = "/man/acceleratedarrays/";
+    var mkdocs_page_name = "API reference";
+    var mkdocs_page_input_path = "man/reference.md";
+    var mkdocs_page_url = "/man/reference/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -126,15 +126,9 @@
 		
     <span class="caption-text">Accelerations</span>
     <ul class="subnav">
-                <li class=" current">
+                <li class="">
                     
-    <a class="current" href="./">Acceleration indices</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#acceleration-indices-with-acceleratedarrays">Acceleration Indices with AcceleratedArrays</a></li>
-    
-
-    </ul>
+    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
                 </li>
     </ul>
 	    </li>
@@ -150,9 +144,23 @@
     </ul>
 	    </li>
           
-            <li class="toctree-l1">
+            <li class="toctree-l1 current">
 		
-    <a class="" href="../reference/">API reference</a>
+    <a class="current" href="./">API reference</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#api-reference">API Reference</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#constructing-tables">Constructing tables</a></li>
+        
+            <li><a class="toctree-l3" href="#reflection">Reflection</a></li>
+        
+        </ul>
+    
+
+    </ul>
 	    </li>
           
         </ul>
@@ -176,15 +184,11 @@
     <li><a href="../..">Docs</a> &raquo;</li>
     
       
-        
-          <li>Accelerations &raquo;</li>
-        
-      
     
-    <li>Acceleration indices</li>
+    <li>API reference</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/acceleratedarrays.md"
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/reference.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -194,13 +198,56 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='Acceleration-Indices-with-*AcceleratedArrays*-1'></a></p>
-<h1 id="acceleration-indices-with-acceleratedarrays">Acceleration Indices with <em>AcceleratedArrays</em></h1>
-<p>Database systems have evolved many performance tricks over the years to achieve efficiency and scalability. In an environment such as a SQL RDBMS, much effort is put into the creation of an efficient "query planner" that will essentially construct a small computer program, ultimately made up of nested loops, searching, mapping and filtering operations, to perform a query. However, the second "magic" ingredient used by an RDBMS for performance are secondary "acceleration indices", which are pre-calculated views of the data. These views help queries find data that match certain conditions - a hash-map index well let us locate a matching entry in <em>O</em>(1), or a sort-based index will let us quickly locate <em>all</em> the cells less than (or more than) a certain value.</p>
-<p>For at least some of the kinds of data analytics performed in Julia, it may be possible to expect the programmer to write and execute their own query plan - that is, to understand their data model, to predict the "statistics" regarding the size of and other properties of the data, and to come up with their own rough order of operations that may be efficient. Thus, we may not need to implement a complete query planner to make a viable platform for data analytics in Julia - however, we will absolutely need acceleration indices to perform each elementary operation fast. In the worst case, the programmer would have to construct their own hash-maps and sort-indices (and use them in their own hand-written loops) to obtain peak performance.</p>
-<p>The <em>AcceleratedArrays</em> package exists to provide a way of attaching secondary acceleration indices to any array in Julia, to speed up operations such as <code>filter</code>, <code>findall</code>, <code>group</code> and <code>innerjoin</code> in a transparent and generic way. These acceleration indices can be attached to arbitrary columns (or indeed, entire <code>Table</code>s). These indices remain silently attached to their parent array until they encounter an operation they can accelerate. The user is free to write <em>generic</em> code to execute their query, and the presence of the acceleration index will only act to speed up the resulting specialized algorithm constructed by Julia's compiler.</p>
-<p>This system allows for an extensible set of acceleration indices - such as accelerated spatial lookup using a spatial search tree, or an inverted index for searching for words in text fields. </p>
-<p>Note: by default, the <code>innerjoin</code> operation will construct a hash-based index to perform a join on two unindexed data sources, meaning most basic data operations can be achieved at reasonable speeds.</p>
+                <p><a id='API-Reference-1'></a></p>
+<h1 id="api-reference">API Reference</h1>
+<p><em>TypedTables.jl</em>'s API is intentially small, relying on existing interfaces to expose powerful and composable functionality.</p>
+<p>The reference material can be easily accessed at the REPL, by pressing <code>?</code> and typing in the name of the command.</p>
+<p><a id='Constructing-tables-1'></a></p>
+<h2 id="constructing-tables">Constructing tables</h2>
+<p><a id='TypedTables.Table' href='#TypedTables.Table'>#</a>
+<strong><code>TypedTables.Table</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>Table(name1 = array1, ...)
+</code></pre>
+
+<p>Create a column-storage-based <code>Table</code> with column names <code>name1</code>, etc, from arrays <code>array1</code>, etc. The input arrays <code>array1</code>, etc, must share the same dimensionality and indices.</p>
+<p><code>Table</code> itself is an <code>AbstractArray</code> whose elements are <code>NamedTuple</code>s of the form <code>(name1 = first(array1), ...)</code>, etc. Rows of the table are obtained via standard array indexing <code>table[i]</code>, and columns via <code>table.name</code>.</p>
+<p><code>Table</code> differs from <code>FlexTable</code> in that the columns are immutable - you may add, remove, rename and replace entire columns of a <code>FlexTable</code>, but not a <code>Table</code>. However, <code>Table</code> can access and iterate rows in local scope with fast, fully type-inferred code while <code>FlexTable</code> will be more efficient with a higher-order interface.</p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/17656dabd0bf1e3f33f2322dca6c91d851549118/src/Table.jl#L3-L17' class='documenter-source'>source</a><br></p>
+<p><a id='TypedTables.FlexTable' href='#TypedTables.FlexTable'>#</a>
+<strong><code>TypedTables.FlexTable</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>FlexTable(name1 = array1, ...)
+</code></pre>
+
+<p>Create a column-storage-based <code>FlexTable</code> with column names <code>name1</code>, etc, from arrays <code>array1</code>, etc. The input arrays <code>array1</code>, etc, must share the same dimensionality and indices.</p>
+<p><code>FlexTable</code> itself is an <code>AbstractArray</code> whose elements are <code>NamedTuple</code>s of the form <code>(name1 = first(array1), ...)</code>, etc. Rows of the table are obtained via standard array indexing <code>table[i]</code>, and columns via <code>table.name</code>.</p>
+<p><code>FlexTable</code> differs from <code>Table</code> in that the columns are mutable - you may add, remove, rename and replace entire columns of a <code>FlexTable</code>, but not a <code>Table</code>. However, <code>Table</code> can access and iterate rows in local scope with fast, fully type-inferred code while <code>FlexTable</code> will be more efficient with a higher-order interface.</p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/17656dabd0bf1e3f33f2322dca6c91d851549118/src/FlexTable.jl#L3-L17' class='documenter-source'>source</a><br></p>
+<p><a id='Reflection-1'></a></p>
+<h2 id="reflection">Reflection</h2>
+<p><a id='Tables.columns' href='#Tables.columns'>#</a>
+<strong><code>Tables.columns</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>columns(table::Table)
+</code></pre>
+
+<p>Convert a <code>Table</code> into a <code>NamedTuple</code> of its columns.</p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/17656dabd0bf1e3f33f2322dca6c91d851549118/src/Table.jl#L74-L78' class='documenter-source'>source</a><br></p>
+<pre><code>columns(dataframe::FlexTable)
+</code></pre>
+
+<p>Convert a <code>FlexTable</code> into a <code>NamedTuple</code> of its columns.</p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/17656dabd0bf1e3f33f2322dca6c91d851549118/src/FlexTable.jl#L42-L46' class='documenter-source'>source</a><br></p>
+<p><a id='TypedTables.columnnames' href='#TypedTables.columnnames'>#</a>
+<strong><code>TypedTables.columnnames</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>columnnames(table)
+</code></pre>
+
+<p>Return a tuple of the column names of a <code>Table</code>.</p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/17656dabd0bf1e3f33f2322dca6c91d851549118/src/Table.jl#L90-L94' class='documenter-source'>source</a><br></p>
+<pre><code>columnnames(table)
+</code></pre>
+
+<p>Return a tuple of the column names of a <code>Table</code>.</p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/17656dabd0bf1e3f33f2322dca6c91d851549118/src/FlexTable.jl#L64-L68' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>
@@ -208,10 +255,8 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../design/" class="btn btn-neutral float-right" title="Design">Next <span class="icon icon-circle-arrow-right"></span></a>
       
-      
-        <a href="../join/" class="btn btn-neutral" title="Joining data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../design/" class="btn btn-neutral" title="Design"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -239,10 +284,8 @@
           <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../join/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../design/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
-      
-        <span style="margin-left: 15px"><a href="../design/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
