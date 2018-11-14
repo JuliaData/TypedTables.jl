@@ -1,6 +1,6 @@
 # TypedTables.jl
 
-*Simple, column-based storage*
+*Simple, fast, column-based storage for data analysis in Julia*
 
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://FugroRoames.github.io/TypedTables.jl/stable)
 [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://FugroRoames.github.io/TypedTables.jl/latest)

@@ -21,23 +21,48 @@ struct Table{T <: NamedTuple, N, Data <: NamedTuple{<:Any, <:Tuple{Vararg{Abstra
     # Inner constructor, to compare axes?
 end
 
-Table(;kwargs...) = Table(kwargs.data)
-Table(nt::NamedTuple) = Table{_eltypes(nt), _ndims(nt), typeof(nt)}(nt)
+Table(ts...; kwargs...) = _table(removenothings(merge(_columns(ts...), kwargs.data)))
 
 function Table{NamedTuple{names,T}}() where {names, T<:Tuple}
     # TODO we can make this type-stable.
     Table(NamedTuple{names}(ntuple(i -> Vector{T.parameters[i]}(), length(T.parameters))))
 end
 
-function Table(x)
+_table(nt::NamedTuple) = Table{_eltypes(nt), _ndims(nt), typeof(nt)}(nt)
+
+_columns() = NamedTuple()
+_columns(x, y...) = merge(_columns(x), _columns(y...))
+_columns(nt::NamedTuple) = nt
+_columns(t::Table) = columns(t)
+function _columns(x)
     if Tables.istable(x)
         if Tables.columnaccess(x)
-            return Table(columntable(x))
+            return columntable(x)
         else
-            return Table(Tables.buildcolumns(Tables.schema(x), x))
+            return Tables.buildcolumns(Tables.schema(x), x)
         end
     else
         error("Cannot construct table from $(typeof(x))")
+    end
+end
+
+@generated function removenothings(nt::NamedTuple{names, T}) where {names, T}
+    exprs = []
+    newnames = []
+    params = T.parameters
+    for i in 1:length(params)
+        if params[i] <: AbstractArray
+            push!(newnames, names[i])
+            push!(exprs, :(getfield(nt, $(QuoteNode(names[i])))))
+        elseif params[i] !== Nothing
+            error("Columns must be arrays")
+        end
+    end
+
+    if length(names) == length(newnames)
+        return :(nt)
+    else
+        return :(NamedTuple{$(tuple(newnames...))}(tuple($(exprs...))))
     end
 end
 

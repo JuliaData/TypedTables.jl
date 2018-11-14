@@ -1,6 +1,6 @@
 # TypedTables.jl
 
-*Simple, column-based storage for data analysis in Julia.*
+*Simple, fast, column-based storage for data analysis in Julia.*
 
 ## Introduction
 

@@ -19,23 +19,20 @@ mutable struct FlexTable{N} <: AbstractArray{NamedTuple, N}
     data::NamedTuple{<:Any, <:Tuple{Vararg{AbstractArray{<:Any, N}}}}
 
     # Inner constructor, to compare axes?
-end
-
-FlexTable(;kwargs...) = FlexTable(kwargs.data)
-FlexTable(nt::NamedTuple) = FlexTable{_ndims(nt)}(nt)
-
-function FlexTable(x)
-    cols = columns(x)
-    if cols isa NamedTuple{<:Any, <:Tuple{Vararg{AbstractArray{N}} where N}}
-        return FlexTable(cols)
-    else
-        return FlexTable(columntable(cols))
+    function FlexTable{N}(d::NamedTuple{<:Any, <:Tuple{Vararg{AbstractArray{<:Any, N}}}}) where N
+        new(d)
     end
 end
+
+FlexTable(ts...; kwargs...) = _flextable(removenothings(merge(_columns(ts...), kwargs.data)))
+FlexTable{N}(ts...; kwargs...) where {N} = _flextable(removenothings(merge(_columns(ts...), kwargs.data)))::FlexTable{N}
+
+_flextable(nt::NamedTuple) = FlexTable{_ndims(nt)}(nt)
+
 FlexTable(t::Table) = FlexTable(columns(t))
 Table(t::FlexTable) = Table(columns(t))
 
-FlexTable{N}(t::Table{<:Any, N}) where {N} = FlexTable{N}(columns(t))
+_columns(t::FlexTable) = columns(t)
 
 Tables.istable(::Type{<:FlexTable}) = true
 Tables.rowaccess(::Type{<:FlexTable}) = true
@@ -56,6 +53,11 @@ Convert a `FlexTable` into a `NamedTuple` of its columns.
 
 function Base.setproperty!(t::FlexTable, name::Symbol, a)
     setfield!(t, :data, merge(columns(t), NamedTuple{(name,)}((convert(AbstractArray, a),))))
+    return t
+end
+
+function Base.setproperty!(t::FlexTable, name::Symbol, ::Nothing)
+    setfield!(t, :data, removenothings(merge(columns(t), NamedTuple{(name,)}((nothing,)))))
     return t
 end
 

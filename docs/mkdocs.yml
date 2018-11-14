@@ -3,7 +3,7 @@
 
 site_name:        TypedTables.jl
 repo_url:         https://github.com/FugroRoames/TypedTables.jl
-site_description: TypedTables - simple, columnar storage for Julia
+site_description: TypedTables - simple, fast, column-based storage for data analysis in Julia
 site_author:      Andy Ferris
 
 theme: readthedocs
@@ -25,6 +25,7 @@ docs_dir: 'build'
 
 pages:
   - Home: index.md
+  - Quick start tutorial: man/tutorial.md
   - Table types:
     - Table: man/table.md
     - FlexTable: man/flextable.md
@@ -40,3 +41,6 @@ pages:
     - Joining data: man/join.md
   - Accelerations:
     - Acceleration indices: man/acceleratedarrays.md
+  - Advanced topics:
+    - Design: man/design.md
+  - API reference: man/reference.md

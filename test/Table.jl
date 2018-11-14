@@ -1,6 +1,11 @@
 @testset "Table" begin
     t = @inferred(Table(a = [1,2,3], b = [2.0, 4.0, 6.0]))::Table
 
+    @test Table(t) == t
+    @test Table(t; c = [true,false,true]) == Table(a = [1,2,3], b = [2.0,4.0,6.0], c = [true,false,true])
+    @test Table(t, Table(c = [true,false,true])) == Table(a = [1,2,3], b = [2.0,4.0,6.0], c = [true,false,true])
+    @test Table(t; b = nothing) == Table(a = [1,2,3])
+
     @test axes(t) === (Base.OneTo(3),)
     @test size(t) === (3,)
     @test length(t) === 3

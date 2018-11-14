@@ -1,6 +1,11 @@
 @testset "FlexTable" begin
     t = @inferred(FlexTable(a = [1,2,3], b = [2.0, 4.0, 6.0]))::FlexTable
 
+    @test FlexTable(t; c = [true,false,true]) == Table(a = [1,2,3], b = [2.0,4.0,6.0], c = [true,false,true])
+    @test FlexTable(t, Table(c = [true,false,true])) == Table(a = [1,2,3], b = [2.0,4.0,6.0], c = [true,false,true])
+    @test FlexTable(t; b = nothing) == Table(a = [1,2,3])
+
+
     @test axes(t) === (Base.OneTo(3),)
     @test size(t) === (3,)
     @test length(t) === 3
@@ -95,6 +100,8 @@
     t4 = FlexTable(a = [1,2,3])
     t4.b = [2.0, 4.0, 6.0]
     @test t4 == t
+    t4.b = nothing
+    @test t4 == FlexTable(a = [1,2,3])
 
     @testset "Tables.jl" begin
         t = FlexTable(a = [1, 2, 3], b = [2.0, 4.0, missing])
