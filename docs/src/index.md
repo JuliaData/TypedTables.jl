@@ -24,6 +24,8 @@ That's it!
 
 ## Quick start
 
+Here's a table:
+
 ```julia
 julia> using TypedTables
 
@@ -34,13 +36,6 @@ Table with 2 columns and 3 rows:
  1 │ 1  2.0
  2 │ 2  4.0
  3 │ 3  6.0
-
-julia> t[1]  # Get first row
-(a = 1, b = 2.0)
-
-julia> t.a  # Get column `a`
-3-element Array{Int64,1}:
- 1
- 2
- 3
 ```
+
+Now you can read [the **tutorial**](man/tutorial.md) to find out what to do with it.

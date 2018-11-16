@@ -25,7 +25,7 @@ A `Table` behaves as a Julia array that contains named tuples for each row. Each
 single element - you should consider the above as a one-dimensional container with three
 elements, rather than as a two-dimensional "matrix" of six cells. Another name for a
 collection of named tuples is a "relation", and `Table`s are useful for performing
-relational algebra.
+[relational algebra](https://en.wikipedia.org/wiki/Relational_algebra).
 
 You can access elements (rows) exactly like any other Julia array.
 
@@ -102,7 +102,7 @@ Table with 2 columns and 3 rows:
  3 │ Charlie  37
 ```
 
-The names and number of a `Table` are fixed and immutable. You cannot add, remove, or delete
+The names and number of columns in a `Table` are fixed and immutable. You cannot add, remove, or delete
 columns from a `Table`. Instead, a new table should be formed - you can even call the new
 table by the old variable name, if you want.
 
@@ -269,11 +269,11 @@ Table with 2 columns and 1 row:
  1 │ Bob   42
 ```
 
-Data can also be found with Julia's built-in `filter` and `findall` functions.
+Data can also be found with Julia's standard `filter` and `findall` functions.
 
 ## Summarizing data
 
-Julia has a range of built-in functions for asking common questions about a set of data.
+Julia has a range of standard functions for asking common questions about a set of data.
 
 For example, we can use the `in` operator to test if an entry is in a column.
 
