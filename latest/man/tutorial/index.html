@@ -230,7 +230,7 @@ Table with 2 columns and 3 rows:
  3 │ Charlie  37
 </code></pre>
 
-<p>A <code>Table</code> behaves as a Julia array that contains named tuples for each row. Each row is a single element - you should consider the above as a one-dimensional container with three elements, rather than as a two-dimensional "matrix" of six cells. Another name for a collection of named tuples is a "relation", and <code>Table</code>s are useful for performing relational algebra.</p>
+<p>A <code>Table</code> behaves as a Julia array that contains named tuples for each row. Each row is a single element - you should consider the above as a one-dimensional container with three elements, rather than as a two-dimensional "matrix" of six cells. Another name for a collection of named tuples is a "relation", and <code>Table</code>s are useful for performing <a href="https://en.wikipedia.org/wiki/Relational_algebra">relational algebra</a>.</p>
 <p>You can access elements (rows) exactly like any other Julia array.</p>
 <pre><code class="julia">julia&gt; t[1]
 (name = &quot;Alice&quot;, age = 25)
@@ -289,7 +289,7 @@ Table with 2 columns and 3 rows:
  3 │ Charlie  37
 </code></pre>
 
-<p>The names and number of a <code>Table</code> are fixed and immutable. You cannot add, remove, or delete columns from a <code>Table</code>. Instead, a new table should be formed - you can even call the new table by the old variable name, if you want.</p>
+<p>The names and number of columns in a <code>Table</code> are fixed and immutable. You cannot add, remove, or delete columns from a <code>Table</code>. Instead, a new table should be formed - you can even call the new table by the old variable name, if you want.</p>
 <p>Multiple tables and additional columns can be created in the one <code>Table</code> constructor. For example, it is easy to add an additional column.</p>
 <pre><code class="julia">julia&gt; Table(t; lastname = [&quot;Smith&quot;, &quot;Smith&quot;, &quot;Smith&quot;])
 Table with 3 columns and 3 rows:
@@ -411,10 +411,10 @@ Table with 2 columns and 1 row:
  1 │ Bob   42
 </code></pre>
 
-<p>Data can also be found with Julia's built-in <code>filter</code> and <code>findall</code> functions.</p>
+<p>Data can also be found with Julia's standard <code>filter</code> and <code>findall</code> functions.</p>
 <p><a id='Summarizing-data-1'></a></p>
 <h2 id="summarizing-data">Summarizing data</h2>
-<p>Julia has a range of built-in functions for asking common questions about a set of data.</p>
+<p>Julia has a range of standard functions for asking common questions about a set of data.</p>
 <p>For example, we can use the <code>in</code> operator to test if an entry is in a column.</p>
 <pre><code class="julia">julia&gt; &quot;Bob&quot; in t.name
 true
