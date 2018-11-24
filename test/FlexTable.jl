@@ -6,6 +6,14 @@
     @test FlexTable(t; b = nothing) == Table(a = [1,2,3])
 
     @test columnnames(t) == (:a, :b)
+    @test propertynames(t) == (:a, :b)
+    @test columns(t) == (a = [1,2,3], b = [2.0, 4.0, 6.0])
+    @test rows(t)::Table == t
+    @test Tables.istable(t) === true
+    @test Tables.rowaccess(t) === true
+    @test Tables.columnaccess(t) === true
+    @test Tables.schema(t) == Tables.Schema(NamedTuple{(:a,:b),Tuple{Int,Float64}})
+
     @test t.a == [1,2,3]
     @test axes(t) === (Base.OneTo(3),)
     @test size(t) === (3,)
@@ -23,6 +31,7 @@
     @test @inferred(vcat(t, t))::FlexTable{1} == FlexTable(a = [1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
     @test @inferred(hcat(t, t))::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0])
     @test [t t; t t]::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3;1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0; 2.0 2.0; 4.0 4.0; 6.0 6.0])
+    @test @inferred(vec(t))::FlexTable{1} == t
 
 
     io = IOBuffer()
