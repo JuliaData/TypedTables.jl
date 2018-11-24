@@ -212,7 +212,7 @@
 <p>Create a column-storage-based <code>Table</code> with column names <code>name1</code>, etc, from arrays <code>array1</code>, etc. The input arrays <code>array1</code>, etc, must share the same dimensionality and indices.</p>
 <p><code>Table</code> itself is an <code>AbstractArray</code> whose elements are <code>NamedTuple</code>s of the form <code>(name1 = first(array1), ...)</code>, etc. Rows of the table are obtained via standard array indexing <code>table[i]</code>, and columns via <code>table.name</code>.</p>
 <p><code>Table</code> differs from <code>FlexTable</code> in that the columns are immutable - you may add, remove, rename and replace entire columns of a <code>FlexTable</code>, but not a <code>Table</code>. However, <code>Table</code> can access and iterate rows in local scope with fast, fully type-inferred code while <code>FlexTable</code> will be more efficient with a higher-order interface.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/9bbc08b5a8dea5650ebe1cbb0d8fe36850da7ef3/src/Table.jl#L3-L17' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/2d37d86e4aa5cf98c72bdc9dd4773688e61cf2dd/src/Table.jl#L3-L17' class='documenter-source'>source</a><br></p>
 <p><a id='TypedTables.FlexTable' href='#TypedTables.FlexTable'>#</a>
 <strong><code>TypedTables.FlexTable</code></strong> &mdash; <em>Type</em>.</p>
 <pre><code>FlexTable(name1 = array1, ...)
@@ -221,7 +221,7 @@
 <p>Create a column-storage-based <code>FlexTable</code> with column names <code>name1</code>, etc, from arrays <code>array1</code>, etc. The input arrays <code>array1</code>, etc, must share the same dimensionality and indices.</p>
 <p><code>FlexTable</code> itself is an <code>AbstractArray</code> whose elements are <code>NamedTuple</code>s of the form <code>(name1 = first(array1), ...)</code>, etc. Rows of the table are obtained via standard array indexing <code>table[i]</code>, and columns via <code>table.name</code>.</p>
 <p><code>FlexTable</code> differs from <code>Table</code> in that the columns are mutable - you may add, remove, rename and replace entire columns of a <code>FlexTable</code>, but not a <code>Table</code>. However, <code>Table</code> can access and iterate rows in local scope with fast, fully type-inferred code while <code>FlexTable</code> will be more efficient with a higher-order interface.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/9bbc08b5a8dea5650ebe1cbb0d8fe36850da7ef3/src/FlexTable.jl#L3-L17' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/2d37d86e4aa5cf98c72bdc9dd4773688e61cf2dd/src/FlexTable.jl#L3-L17' class='documenter-source'>source</a><br></p>
 <p><a id='Reflection-1'></a></p>
 <h2 id="reflection">Reflection</h2>
 <p><a id='Tables.columns' href='#Tables.columns'>#</a>
@@ -230,24 +230,24 @@
 </code></pre>
 
 <p>Convert a <code>Table</code> into a <code>NamedTuple</code> of its columns.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/9bbc08b5a8dea5650ebe1cbb0d8fe36850da7ef3/src/Table.jl#L74-L78' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/2d37d86e4aa5cf98c72bdc9dd4773688e61cf2dd/src/Table.jl#L74-L78' class='documenter-source'>source</a><br></p>
 <pre><code>columns(dataframe::FlexTable)
 </code></pre>
 
 <p>Convert a <code>FlexTable</code> into a <code>NamedTuple</code> of its columns.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/9bbc08b5a8dea5650ebe1cbb0d8fe36850da7ef3/src/FlexTable.jl#L42-L46' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/2d37d86e4aa5cf98c72bdc9dd4773688e61cf2dd/src/FlexTable.jl#L42-L46' class='documenter-source'>source</a><br></p>
 <p><a id='TypedTables.columnnames' href='#TypedTables.columnnames'>#</a>
 <strong><code>TypedTables.columnnames</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>columnnames(table)
 </code></pre>
 
 <p>Return a tuple of the column names of a <code>Table</code>.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/9bbc08b5a8dea5650ebe1cbb0d8fe36850da7ef3/src/Table.jl#L90-L94' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/2d37d86e4aa5cf98c72bdc9dd4773688e61cf2dd/src/Table.jl#L90-L94' class='documenter-source'>source</a><br></p>
 <pre><code>columnnames(table)
 </code></pre>
 
 <p>Return a tuple of the column names of a <code>Table</code>.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/9bbc08b5a8dea5650ebe1cbb0d8fe36850da7ef3/src/FlexTable.jl#L64-L68' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/2d37d86e4aa5cf98c72bdc9dd4773688e61cf2dd/src/FlexTable.jl#L64-L68' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>
