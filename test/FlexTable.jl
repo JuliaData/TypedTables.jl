@@ -22,7 +22,20 @@
 
     @test @inferred(vcat(t, t))::FlexTable{1} == FlexTable(a = [1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
     @test @inferred(hcat(t, t))::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0])
-    # TODO hvcat
+    @test [t t; t t]::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3;1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0; 2.0 2.0; 4.0 4.0; 6.0 6.0])
+
+
+    io = IOBuffer()
+    show(io, t)
+    str = String(take!(io))
+    @test str == """
+        FlexTable with 2 columns and 3 rows:
+             a  b
+           ┌───────
+         1 │ 1  2.0
+         2 │ 2  4.0
+         3 │ 3  6.0"""
+
 
     t2 = empty(t)
     @test t2 isa typeof(t)
