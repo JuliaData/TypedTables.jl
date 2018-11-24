@@ -236,11 +236,11 @@ function Base.splice!(t::Table{<:NamedTuple{names}}, inds::AbstractArray, ins::N
     return Table(map((col, vals) -> splice!(col, inds, vals), columns(t), ins))
 end
 
-function Base.splice!(t::Table{<:NamedTuple{names}}, inds::Integer, ins::Table{<:NamedTuple{names}}) where {names}
+function Base.splice!(t::Table{<:NamedTuple}, inds::Integer, ins::AbstractVector{<:NamedTuple})
     return map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins))
 end
 
-function Base.splice!(t::Table{<:NamedTuple{names}}, inds::AbstractArray, ins::Table{<:NamedTuple{names}}) where {names}
+function Base.splice!(t::Table{<:NamedTuple}, inds::AbstractArray, ins::AbstractVector{<:NamedTuple})
     return Table(map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins)))
 end
 

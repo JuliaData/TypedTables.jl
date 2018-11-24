@@ -5,7 +5,8 @@
     @test FlexTable(t, Table(c = [true,false,true])) == Table(a = [1,2,3], b = [2.0,4.0,6.0], c = [true,false,true])
     @test FlexTable(t; b = nothing) == Table(a = [1,2,3])
 
-
+    @test columnnames(t) == (:a, :b)
+    @test t.a == [1,2,3]
     @test axes(t) === (Base.OneTo(3),)
     @test size(t) === (3,)
     @test length(t) === 3
@@ -57,13 +58,13 @@
     @test t3 == FlexTable(a = [-10, 5, 10], b = [-10.0, 5.0, 0.0])
     @test splice!(t3, 2:1, (a=1, b=1.0)) == empty(t)
     @test t3 == FlexTable(a = [-10, 1, 5, 10], b = [-10.0, 1.0, 5.0, 0.0])
-    @test splice!(t3, 3:2, (a=[2], b=[2.0])) == empty(t)
+    @test splice!(t3, 3:2, Table(a=[2], b=[2.0])) == empty(t)
     @test t3 == FlexTable(a = [-10, 1, 2, 5, 10], b = [-10.0, 1.0, 2.0, 5.0, 0.0])
     @test splice!(t3, 2) === (a = 1, b = 1.0)
     @test t3 == FlexTable(a = [-10, 2, 5, 10], b = [-10.0, 2.0, 5.0, 0.0])
     @test splice!(t3, 2, (a = 3, b = 3.0)) === (a = 2, b = 2.0)
     @test t3 == FlexTable(a = [-10, 3, 5, 10], b = [-10.0, 3.0, 5.0, 0.0])
-    @test splice!(t3, 2, (a = [4], b = [4.0])) === (a = 3, b = 3.0)
+    @test splice!(t3, 2, Table(a = [4], b = [4.0])) === (a = 3, b = 3.0)
     @test t3 == FlexTable(a = [-10, 4, 5, 10], b = [-10.0, 4.0, 5.0, 0.0])
 
     @test pop!(t3) === (a = 10, b = 0.0)
@@ -77,6 +78,9 @@
 
     prepend!(t3, FlexTable(a = [3], b = [3.0]))
     @test t3 == FlexTable(a = [3,4,5,6], b = [3.0, 4.0, 5.0, 6.0])
+
+    deleteat!(t3, 4)
+    @test t3 == Table(a = [3,4,5], b = [3.0, 4.0, 5.0])
 
     @testset "Merging FlexTables" begin
         t1 = FlexTable(a = [1,2,3],)

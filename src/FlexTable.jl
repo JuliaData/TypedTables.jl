@@ -199,11 +199,11 @@ function Base.splice!(t::FlexTable, inds::AbstractVector, ins::NamedTuple)
     return FlexTable{1}(map((col, vals) -> splice!(col, inds, vals), columns(t), ins))
 end
 
-function Base.splice!(t::Union{FlexTable, Table}, inds::Integer, ins::Union{FlexTable, Table})
+function Base.splice!(t::FlexTable, inds::Integer, ins::AbstractVector{<:NamedTuple})
     return map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins))::NamedTuple
 end
 
-function Base.splice!(t::Union{FlexTable, Table}, inds::AbstractVector, ins::Union{FlexTable, Table})
+function Base.splice!(t::FlexTable, inds::AbstractVector, ins::AbstractVector{<:NamedTuple})
     return FlexTable{1}(map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins)))
 end
 
