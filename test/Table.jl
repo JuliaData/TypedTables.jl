@@ -122,4 +122,28 @@
         @test out == Dict(1 => Table(a=[1, 1], b=[2.0, 6.0]),
                           2 => Table(a=[2],    b=[4.0]))
     end
+
+    @testset "innerjoin" begin
+        customers = Table(id = 1:3, name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
+        orders = Table(customer_id = [2, 2, 3, 3], items = ["Socks", "Tie", "Shirt", "Underwear"])
+
+        t = innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+
+        @test t isa Table
+        @test t == Table(id = [2, 2, 3, 3],
+                         name = ["Bob", "Bob", "Charlie", "Charlie"],
+                         address = ["163 Moon Road", "163 Moon Road", "6 George Street", "6 George Street"],
+                         customer_id = [2, 2, 3, 3],
+                         items = ["Socks", "Tie", "Shirt", "Underwear"])
+
+        # Issue #34
+        orders2 = Table(customer_id = [2, 2, 3, 3], items = ["Socks", "Tie", "Shirt", missing])
+        t2 = innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders2)
+        @test t2 isa Table
+        @test isequal(t2, Table(id = [2, 2, 3, 3],
+                          name = ["Bob", "Bob", "Charlie", "Charlie"],
+                          address = ["163 Moon Road", "163 Moon Road", "6 George Street", "6 George Street"],
+                          customer_id = [2, 2, 3, 3],
+                          items = ["Socks", "Tie", "Shirt", missing]))
+    end
 end
