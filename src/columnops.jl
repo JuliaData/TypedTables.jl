@@ -17,6 +17,10 @@ function Base.map(::GetProperty{name}, t::Union{Table{<:Any, N}, FlexTable{N}}) 
     return copy(getproperty(t, name::Symbol))::AbstractArray{<:Any, N}
 end
 
+@inline function Base.map(f::GetProperties{names}, t::Union{Table{<:Any, N}, FlexTable{N}}) where {names,  N}
+    return copy(f(t))
+end
+
 # In `mapview`, the output should alias the inputs
 function SplitApplyCombine.mapview(::typeof(merge), t1::Table, t2::Table)
     return Table(merge(columns(t1), columns(t2)))
@@ -30,6 +34,10 @@ end
     return getproperty(t, name::Symbol)::AbstractArray{<:Any, N}
 end
 
+@inline function SplitApplyCombine.mapview(f::GetProperties{names}, t::Union{Table{<:Any, N}, FlexTable{N}}) where {names,  N}
+    return f(t)
+end
+
 # broadcast
 
 @inline function Broadcast.broadcasted(::Broadcast.DefaultArrayStyle{N}, ::typeof(merge), ts::Table{<:Any, N}...) where {N}
@@ -40,10 +48,18 @@ end
 	FlexTable{N}(merge(map(columns, ts)...))
 end
 
-@inline function Broadcast.broadcasted(::Broadcast.DefaultArrayStyle{N}, f::GetProperty{names}, t::Table{<:Any, N}) where {N, name}
+@inline function Broadcast.broadcasted(::Broadcast.DefaultArrayStyle{N}, f::GetProperty{name}, t::Table{<:Any, N}) where {N, name}
 	return getproperty(t, name::Symbol)
 end
 
-@inline function Broadcast.broadcasted(::Broadcast.DefaultArrayStyle{N}, f::GetProperty{names}, t::FlexTable{N}) where {N, name}
+@inline function Broadcast.broadcasted(::Broadcast.DefaultArrayStyle{N}, f::GetProperty{name}, t::FlexTable{N}) where {N, name}
 	return getproperty(t, name::Symbol)::AbstractArray{<:Any, N}
+end
+
+@inline function Broadcast.broadcasted(::Broadcast.DefaultArrayStyle{N}, f::GetProperties{names}, t::Table{<:Any, N}) where {N, names}
+    return f(t)
+end
+
+@inline function Broadcast.broadcasted(::Broadcast.DefaultArrayStyle{N}, f::GetProperties{names}, t::FlexTable{N}) where {N, names}
+    return f(t)
 end

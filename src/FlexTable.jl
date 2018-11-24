@@ -61,6 +61,8 @@ function Base.setproperty!(t::FlexTable, name::Symbol, ::Nothing)
     return t
 end
 
+propertytype(::FlexTable{N}) where {N} = FlexTable{N}
+
 """
     columnnames(table)
 

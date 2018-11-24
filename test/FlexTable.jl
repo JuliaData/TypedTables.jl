@@ -33,7 +33,6 @@
     @test [t t; t t]::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3;1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0; 2.0 2.0; 4.0 4.0; 6.0 6.0])
     @test @inferred(vec(t))::FlexTable{1} == t
 
-
     io = IOBuffer()
     show(io, t)
     str = String(take!(io))
@@ -45,6 +44,7 @@
          2 │ 2  4.0
          3 │ 3  6.0"""
 
+    @test @inferred(getproperties(:b, :a)(t))::FlexTable == FlexTable(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
 
     t2 = empty(t)
     @test t2 isa typeof(t)
@@ -120,6 +120,10 @@
         @test map(getproperty(:a), t)::Vector == [1,2,3]
         @test mapview(getproperty(:a), t)::Vector == [1,2,3]
         @test broadcast(getproperty(:a), t)::Vector == [1,2,3]
+
+        @test @inferred(map(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
+        @test @inferred(mapview(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
+        @test @inferred(broadcast(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
     end
 
     # setproperty!

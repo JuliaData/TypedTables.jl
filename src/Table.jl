@@ -87,6 +87,8 @@ function Base.setproperty!(t::Table, name::Symbol, a)
     error("type Table is immutable. Set the values of an existing column with the `.=` operator, e.g. `table.name .= array`.")
 end
 
+propertytype(::Table) = Table
+
 """
     columnnames(table)
 

@@ -344,6 +344,8 @@ In fact, `Table` will know that getting a certain field of every row via `map` i
 as simply extracting the column `name`, and this operation will be fast. This will be most
 useful in the operations below.
 
+There is a similar function `getproperties` for selecting more than one column.
+
 ## Grouping data
 
 Frequently, one wishes to group and process data using a so-called "split-apply-combine"

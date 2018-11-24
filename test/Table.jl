@@ -1,5 +1,5 @@
 @testset "Table" begin
-    t = @inferred(Table(a = [1,2,3], b = [2.0, 4.0, 6.0]))::Table
+    t = @inferred(Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0]))::Table
 
     @test Table(t) == t
     @test Table(t; c = [true,false,true]) == Table(a = [1,2,3], b = [2.0,4.0,6.0], c = [true,false,true])
@@ -44,6 +44,8 @@
          1 │ 1  2.0
          2 │ 2  4.0
          3 │ 3  6.0"""
+
+    @test @inferred(getproperties(:b, :a)(t))::Table == Table(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
 
     t2 = empty(t)
     @test t2 isa typeof(t)
@@ -119,6 +121,10 @@
         @test @inferred(map(getproperty(:a), t))::Vector == [1,2,3]
         @test @inferred(mapview(getproperty(:a), t))::Vector == [1,2,3]
         @test @inferred(broadcast(getproperty(:a), t))::Vector == [1,2,3]
+
+        @test @inferred(map(getproperties(:a), t))::Table == Table(a = [1,2,3])
+        @test @inferred(mapview(getproperties(:a), t))::Table == Table(a = [1,2,3])
+        @test @inferred(broadcast(getproperties(:a), t))::Table == Table(a = [1,2,3])
     end
 
     @testset "missing in tables" begin
