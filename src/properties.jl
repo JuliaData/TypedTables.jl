@@ -191,7 +191,7 @@ macro select(exprs...)
             push!(names, expr.args[1])
             internal_names = Symbol[]
             calc_expr!(internal_names, expr.args[2])
-            push!(calcs, :(Calc{$(tuple(internal_names...))}(x -> $(expr.args[2]))))
+            push!(calcs, :(Calc{$(tuple(internal_names...))}((x...) -> $(expr.args[2]))))
         else
             error("Bad input to @select")
         end

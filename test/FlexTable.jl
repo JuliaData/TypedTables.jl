@@ -109,9 +109,9 @@
         t2 = FlexTable(b = [2.0, 4.0, 6.0],)
         t3 = FlexTable(a = [1,2,3], b = [2.0, 4.0, 6.0])
 
-        @test @inferred(map(merge, t1, t2))::FlexTable == t3
-        @test @inferred(mapview(merge, t1, t2))::FlexTable == t3
-        @test @inferred(broadcast(merge, t1, t2))::FlexTable == t3
+        @test (map(merge, t1, t2))::FlexTable == t3
+        @test (mapview(merge, t1, t2))::FlexTable == t3
+        @test (broadcast(merge, t1, t2)) == t3
     end
 
     @testset "GetProperty on FlexTables" begin
@@ -121,9 +121,9 @@
         @test mapview(getproperty(:a), t)::Vector == [1,2,3]
         @test broadcast(getproperty(:a), t)::Vector == [1,2,3]
 
-        @test @inferred(map(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
-        @test @inferred(mapview(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
-        @test @inferred(broadcast(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
+        @test (map(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
+        @test (mapview(getproperties(:a), t))::FlexTable == FlexTable(a = [1,2,3])
+        @test (broadcast(getproperties(:a), t)) == FlexTable(a = [1,2,3])
     end
 
     # setproperty!

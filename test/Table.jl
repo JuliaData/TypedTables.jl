@@ -127,6 +127,22 @@
         @test @inferred(broadcast(getproperties(:a), t))::Table == Table(a = [1,2,3])
     end
 
+    @testset "@select and @calc on Tables" begin
+        t = Table(a = [1,2,3], b = [2.0, 4.0, 6.0])
+        
+        c = @calc(2*$a)
+        @test @inferred(c(t))::Vector == [2, 4, 6] # (Works because 2 * vector works)
+        @test @inferred(map(c, t))::Vector == [2, 4, 6]
+        @test @inferred(mapview(c, t))::MappedArray == [2, 4, 6]
+        @test c.(t)::Vector == [2, 4, 6]
+
+        s = @select(sum = $a + $b)
+        @test @inferred(s(t))::Table == Table(sum = [3.0, 6.0, 9.0]) # (Works because vector + vector works)
+        @test @inferred(map(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
+        @test @inferred(mapview(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
+        @test s.(t)::Table == Table(sum = [3.0, 6.0, 9.0])
+    end
+
     @testset "missing in tables" begin
         t = Table(a = [1, 2, 3], b = [2.0, 4.0, missing])
 
