@@ -110,6 +110,12 @@ macro calc(expr)
     # We traverse the expression tree and locate the $ nodes, which we note the name of and
     # replace with getproperty calls
     names = Symbol[]
+
+    if expr isa Expr && expr.head == :$ && length(expr.args) == 1 && expr.args[1] isa Symbol
+        return :($(GetProperty{expr.args[1]}()))
+    end
+
+
     calc_expr!(names, expr)
     return :(Calc{$(tuple(names...))}((x...) -> $expr))
 end
@@ -182,6 +188,11 @@ macro select(exprs...)
     # For each express we extract the output property name and the associated `Calc`.
     names = Symbol[]
     calcs = Expr[]
+
+    if exprs isa Tuple{Vararg{Symbol}}
+        return :($(GetProperties{exprs}()))
+    end
+
     for expr in exprs
         if expr isa Symbol
             push!(names, expr)

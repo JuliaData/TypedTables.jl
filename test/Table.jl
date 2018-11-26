@@ -45,7 +45,11 @@
          2 │ 2  4.0
          3 │ 3  6.0"""
 
-    @test @inferred(getproperties(:b, :a)(t))::Table == Table(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
+    @test @inferred(TypedTables.getproperties(:b, :a)(t))::Table == Table(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
+
+    @test t == t
+    @test isequal(t, t)
+    @test !isless(t, t)
 
     t2 = empty(t)
     @test t2 isa typeof(t)
@@ -116,38 +120,52 @@
     end
 
     @testset "GetProperty on Tables" begin
-        t = Table(a = [1,2,3], b = [2.0, 4.0, 6.0])
+        t = Table(a = [1,2,3], b = [2.0, 4.0, 6.0], c = [true, false, true])
 
         @test @inferred(map(getproperty(:a), t))::Vector == [1,2,3]
         @test @inferred(mapview(getproperty(:a), t))::Vector == [1,2,3]
         @test @inferred(broadcast(getproperty(:a), t))::Vector == [1,2,3]
+        @test @inferred(mapreduce(getproperty(:a), +, t)) === 6
+        @test @inferred(filter(getproperty(:c), t))::Table == Table(a = [1,3], b = [2.0, 6.0], c = [true, true])
+        @test @inferred(findall(getproperty(:c), t))::Vector{Int} == [1, 3]
 
-        @test @inferred(map(getproperties(:a), t))::Table == Table(a = [1,2,3])
-        @test @inferred(mapview(getproperties(:a), t))::Table == Table(a = [1,2,3])
-        @test @inferred(broadcast(getproperties(:a), t))::Table == Table(a = [1,2,3])
+        @test @inferred(map(TypedTables.getproperties(:a), t))::Table == Table(a = [1,2,3])
+        @test @inferred(mapview(TypedTables.getproperties(:a), t))::Table == Table(a = [1,2,3])
+        @test @inferred(broadcast(TypedTables.getproperties(:a), t))::Table == Table(a = [1,2,3])
+        @test @inferred(mapreduce(TypedTables.getproperties(:a), (acc, row) -> acc + row.a, t; init = 0)) === 6
     end
 
     @testset "@select and @calc on Tables" begin
-        t = Table(a = [1,2,3], b = [2.0, 4.0, 6.0])
+        t = Table(a = [1,2,3], b = [2.0, 4.0, 6.0], c = [true, false, true])
         
         c = @calc(2*$a)
         @test @inferred(c(t))::Vector == [2, 4, 6] # (Works because 2 * vector works)
         @test @inferred(map(c, t))::Vector == [2, 4, 6]
         @test @inferred(mapview(c, t))::MappedArray == [2, 4, 6]
-        @test c.(t)::Vector == [2, 4, 6]
+        @test @inferred(broadcast(c, t))::Vector == [2, 4, 6]
+        @test @inferred(mapreduce(c, +, t)) === 12
+
+        c2 = @calc($b > 3.0)
+        @test @inferred(filter(c2, t))::Table == Table(a = [2,3], b = [4.0,6.0], c = [false,true])
+        @test @inferred(findall(c2, t))::Vector{Int} == [2, 3]
 
         s = @select(sum = $a + $b)
         @test @inferred(s(t))::Table == Table(sum = [3.0, 6.0, 9.0]) # (Works because vector + vector works)
         @test @inferred(map(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
         @test @inferred(mapview(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
-        @test s.(t)::Table == Table(sum = [3.0, 6.0, 9.0])
+        @test @inferred(broadcast(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
+        @test @inferred(mapreduce(s, (acc, row) -> acc + row.sum, t; init = 0.0)) === 18.0
     end
 
-    @testset "missing in tables" begin
+    @testset "missing in Tables" begin
         t = Table(a = [1, 2, 3], b = [2.0, 4.0, missing])
 
         @test t[1]::eltype(t) == (a = 1, b = 2.0)
         @test isequal(t[3]::eltype(t), (a = 3, b = missing))
+
+        @test (t == t) === missing
+        @test isequal(t, t)
+        @test !isless(t, t)
     end
 
     @testset "Tables.jl" begin

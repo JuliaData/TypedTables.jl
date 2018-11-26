@@ -294,3 +294,17 @@ SplitApplyCombine.groupreduce(by, f, op, t::FlexTable; kwargs...) = groupreduce(
 SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1::FlexTable, t2) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), t2))
 SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, t1, rows(t2)))
 SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1::FlexTable, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), rows(t2)))
+
+Base.:(==)(t1::FlexTable{N}, t2::AbstractArray{<:Any,N}) where {N} = (rows(t1) == t2)
+Base.:(==)(t1::AbstractArray{<:Any,N}, t2::FlexTable{N}) where {N} = (t1 == rows(t2))
+Base.:(==)(t1::FlexTable{N}, t2::FlexTable{N}) where {N} = (rows(t1) == rows(t2))
+
+Base.isequal(t1::FlexTable{N}, t2::AbstractArray{<:Any,N}) where {N} = isequal(rows(t1), t2)
+Base.isequal(t1::AbstractArray{<:Any,N}, t2::FlexTable{N}) where {N} = isequal(t1, rows(t2))
+Base.isequal(t1::FlexTable{N}, t2::FlexTable{N}) where {N} = isequal(rows(t1), rows(t2))
+
+Base.isless(t1::FlexTable{1}, t2::AbstractVector) = isless(rows(t1), t2)
+Base.isless(t1::AbstractVector, t2::FlexTable{1}) = isless(t1, rows(t2))
+Base.isless(t1::FlexTable{1}, t2::FlexTable{1}) = isless(rows(t1), rows(t2))
+
+Base.hash(t::FlexTable, h::UInt) = hash(rows(t), h)

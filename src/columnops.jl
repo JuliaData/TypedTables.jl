@@ -99,15 +99,23 @@ _materialize(x::MappedArray) = copy(x)
 
 # mapreduce
 
+function Base.mapreduce(f::GetProperty, op, t::Table; kwargs...)
+    return mapreduce(identity, op, f(t); kwargs...)
+end
+
+function Base.mapreduce(f::GetProperties, op, t::Table; kwargs...)
+    return mapreduce(identity, op, f(t); kwargs...)
+end
+
 function Base.mapreduce(f::Calc{names}, op, t::Table; kwargs...) where {names}
     # minimize number of columns before iterating over the rows
     t2 = GetProperties(names)(t)
-    return mapreduce(f, op, t; kwargs...)
+    return mapreduce(f, op, t2; kwargs...)
 end
 
-function Base.mapreduce(f::Calc{names}, op, t::Table{names}; kwargs...) where {names}
+function Base.mapreduce(f::Calc{names}, op, t::Table{<:NamedTuple{names}}; kwargs...) where {names}
     # efficient to iterate over rows with a minimal number of columns
-    invoke(mapreduce, Tuple{Function, typeof(of), typeof(t)}, f, op, t; kwargs...)
+    invoke(mapreduce, Tuple{Function, typeof(op), typeof(t)}, f, op, t; kwargs...)
 end
 
 # `filter(f, t)` defaults to `t[map(f, t)]`
