@@ -4,14 +4,14 @@
 
     @test @inferred(TypedTables.getproperties(:b)(nt)) === (b = 2.0,)
 
-    c1 = @calc($b)
+    c1 = @compute($b)
     @test c1 isa TypedTables.GetProperty
     @test @inferred(c1(nt)) === 2.0
 
-    c2 = @calc(2*$b)
+    c2 = @compute(2*$b)
     @test @inferred(c2(nt)) === 4.0
 
-    c3 = @calc($a + 2*$b)
+    c3 = @compute($a + 2*$b)
     @test @inferred(c3(nt)) === 5.0
 
     s1 = @select(a)

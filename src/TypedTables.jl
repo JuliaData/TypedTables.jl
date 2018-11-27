@@ -7,7 +7,7 @@ using SplitApplyCombine
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
-export @calc, @select
+export @compute, @select
 export Table, FlexTable, columns, rows, columnnames, showtable, getproperties
 
 # Resultant element type of given column arrays

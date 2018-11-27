@@ -135,17 +135,17 @@
         @test @inferred(mapreduce(TypedTables.getproperties(:a), (acc, row) -> acc + row.a, t; init = 0)) === 6
     end
 
-    @testset "@select and @calc on Tables" begin
+    @testset "@select and @compute on Tables" begin
         t = Table(a = [1,2,3], b = [2.0, 4.0, 6.0], c = [true, false, true])
-        
-        c = @calc(2*$a)
+
+        c = @compute(2*$a)
         @test @inferred(c(t))::Vector == [2, 4, 6] # (Works because 2 * vector works)
         @test @inferred(map(c, t))::Vector == [2, 4, 6]
         @test @inferred(mapview(c, t))::MappedArray == [2, 4, 6]
         @test @inferred(broadcast(c, t))::Vector == [2, 4, 6]
         @test @inferred(mapreduce(c, +, t)) === 12
 
-        c2 = @calc($b > 3.0)
+        c2 = @compute($b > 3.0)
         @test @inferred(filter(c2, t))::Table == Table(a = [2,3], b = [4.0,6.0], c = [false,true])
         @test @inferred(findall(c2, t))::Vector{Int} == [2, 3]
 
