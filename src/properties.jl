@@ -91,9 +91,9 @@ const UNARY_OPERATORS = [:!, :-]
 const BINARY_OPERATORS = [:+, :-, :*, :/, :\, ://, :÷, :×, :∈, :∉, :⊂, :⊆, :⊃, :⊇, :⊄, :⊈, :⊅, :⊉, :(==), :(===), :<, :<=, :>, :>=, :!=, :!==, :\, :≠, :≡, :≢, :≯ ,:≱, :≮, :≰]
 
 """
-    @compute(...)
+    @Compute(...)
 
-The `@compute` macro returns a function which performs a calculation on the properties of an
+The `@Compute` macro returns a function which performs a calculation on the properties of an
 object, such as a `NamedTuple`.
 
 The input expression is standard Julia code, with `\$` prepended to property names. For
@@ -105,11 +105,11 @@ example. if you want to refer to a property named `a` then use `\$a` in the expr
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
-julia> @compute(\$a + \$b)(nt)
+julia> @Compute(\$a + \$b)(nt)
 3.0
 ```
 """
-macro compute(expr)
+macro Compute(expr)
     # We traverse the expression tree and locate the $ nodes, which we note the name of and
     # replace with getproperty calls
     names = Symbol[]
@@ -250,18 +250,18 @@ end
 end
 
 """
-    @select(...)
+    @Select(...)
 
-The `@select` macro returns a function which performs an arbitrary transformation of the
+The `@Select` macro returns a function which performs an arbitrary transformation of the
 properties of an object, such as a `NamedTuple`.
 
 The input expression is a comma-seperated list of `lhs = rhs` pairs. The `lhs` is the name
 of the new property to calculate. The `rhs is  standard Julia code, with `\$` prepended to
 input property names. For example. if you want to rename an input property `a` to be called
-`b`, use `@select(b = \$a)`.
+`b`, use `@Select(b = \$a)`.
 
 As a special case, if a property is to be simply replicated the `= rhs` part can be dropped,
-for example `@select(a)` is synomous with `@select(a = \$a)`.
+for example `@Select(a)` is synomous with `@Select(a = \$a)`.
 
 # Example
 
@@ -269,11 +269,11 @@ for example `@select(a)` is synomous with `@select(a = \$a)`.
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
-julia> @select(a, sum_a_b = \$a + \$b)(nt)
+julia> @Select(a, sum_a_b = \$a + \$b)(nt)
 (a = 1, sum_a_b = 3.0)
 ```
 """
-macro select(exprs...)
+macro Select(exprs...)
     # For each express we extract the output property name and the associated `Compute`.
     names = Symbol[]
     fs = Expr[]

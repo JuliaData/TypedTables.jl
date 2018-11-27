@@ -135,21 +135,21 @@
         @test @inferred(mapreduce(TypedTables.getproperties(:a), (acc, row) -> acc + row.a, t; init = 0)) === 6
     end
 
-    @testset "@select and @compute on Tables" begin
+    @testset "@Select and @Compute on Tables" begin
         t = Table(a = [1,2,3], b = [2.0, 4.0, 6.0], c = [true, false, true])
 
-        c = @compute(2*$a)
+        c = @Compute(2*$a)
         @test @inferred(c(t))::Vector == [2, 4, 6] # (Works because 2 * vector works)
         @test @inferred(map(c, t))::Vector == [2, 4, 6]
         @test @inferred(mapview(c, t))::MappedArray == [2, 4, 6]
         @test @inferred(broadcast(c, t))::Vector == [2, 4, 6]
         @test @inferred(mapreduce(c, +, t)) === 12
 
-        c2 = @compute($b > 3.0)
+        c2 = @Compute($b > 3.0)
         @test @inferred(filter(c2, t))::Table == Table(a = [2,3], b = [4.0,6.0], c = [false,true])
         @test @inferred(findall(c2, t))::Vector{Int} == [2, 3]
 
-        s = @select(sum = $a + $b)
+        s = @Select(sum = $a + $b)
         @test @inferred(s(t))::Table == Table(sum = [3.0, 6.0, 9.0]) # (Works because vector + vector works)
         @test @inferred(map(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
         @test @inferred(mapview(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])

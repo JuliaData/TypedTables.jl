@@ -7,8 +7,8 @@ using SplitApplyCombine
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
-export @compute, @select
-export Table, FlexTable, columns, rows, columnnames, showtable, getproperties
+export @Compute, @Select
+export Table, FlexTable, columns, rows, columnnames, showtable
 
 # Resultant element type of given column arrays
 @generated function _eltypes(a::NamedTuple{names, T}) where {names, T <: Tuple{Vararg{AbstractArray}}}

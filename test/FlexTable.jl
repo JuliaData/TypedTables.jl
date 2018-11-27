@@ -148,21 +148,21 @@
         @test mapreduce(TypedTables.getproperties(:a), (acc, row) -> acc + row.a, t; init = 0) === 6
     end
 
-    @testset "@select and @compute on FlexTables" begin
+    @testset "@Select and @Compute on FlexTables" begin
         t = FlexTable(a = [1, 2, 3], b = [2.0, 4.0, 6.0], c = [true, false, true])
 
-        c = @compute(2*$a)
+        c = @Compute(2*$a)
         @test c(t)::Vector == [2, 4, 6] # (Works because 2 * vector works)
         @test map(c, t)::Vector == [2, 4, 6]
         @test mapview(c, t)::MappedArray == [2, 4, 6]
         @test broadcast(c, t)::Vector == [2, 4, 6]
         @test mapreduce(c, +, t) === 12
 
-        c2 = @compute($b > 3.0)
+        c2 = @Compute($b > 3.0)
         @test filter(c2, t)::FlexTable == FlexTable(a = [2,3], b = [4.0,6.0], c = [false,true])
         @test findall(c2, t)::Vector{Int} == [2, 3]
 
-        s = @select(sum = $a + $b)
+        s = @Select(sum = $a + $b)
         @test s(t)::FlexTable == FlexTable(sum = [3.0, 6.0, 9.0]) # (Works because vector + vector works)
         @test map(s, t)::FlexTable == FlexTable(sum = [3.0, 6.0, 9.0])
         @test mapview(s, t)::FlexTable == FlexTable(sum = [3.0, 6.0, 9.0])
