@@ -87,6 +87,9 @@ end
     return Expr(:call, :(c.f), exprs...)
 end
 
+const UNARY_OPERATORS = [:!, :-]
+const BINARY_OPERATORS = [:+, :-, :*, :/, :\, ://, :÷, :×, :∈, :∉, :⊂, :⊆, :⊃, :⊇, :⊄, :⊈, :⊅, :⊉, :(==), :(===), :<, :<=, :>, :>=, :!=, :!==, :\, :≠, :≡, :≢, :≯ ,:≱, :≮, :≰]
+
 """
     @compute(...)
 
@@ -111,12 +114,99 @@ macro compute(expr)
     # replace with getproperty calls
     names = Symbol[]
 
-    if expr isa Expr && expr.head == :$ && length(expr.args) == 1 && expr.args[1] isa Symbol
-        return :($(GetProperty{expr.args[1]}()))
+    # First we check if we can simplify the expression to make it more introsepctable
+    if expr isa Expr
+        # Simple column extraction
+        if expr.head == :$ && length(expr.args) == 1 && expr.args[1] isa Symbol
+            return :($(GetProperty{expr.args[1]}()))
+        end
+
+        if expr.head == :call && countdollars(expr.args[1]) == 0
+            # Single argument function
+            if length(expr.args) == 2 && expr.args[2] isa Expr && expr.args[2].head == :$ && length(expr.args[2].args) == 1 && expr.args[2].args[1] isa Symbol
+                f = expr.args[1]
+                name = expr.args[2].args[1]
+                return :(Compute{($(QuoteNode(name)),)}($f))
+            end
+
+            # Two argument functions
+            if length(expr.args) == 3
+                # Binary function
+                if expr.args[2] isa Expr && expr.args[2].head == :$ && length(expr.args[2].args) == 1 && expr.args[2].args[1] isa Symbol && expr.args[3] isa Expr && expr.args[3].head == :$ && length(expr.args[3].args) == 1 && expr.args[3].args[1] isa Symbol
+                    f = expr.args[1]
+                    name1 = expr.args[2].args[1]
+                    name2 = expr.args[3].args[1]
+                    return :(Compute{($(QuoteNode(name1)),$(QuoteNode(name2)))}($f))
+                end                
+
+                # Fix1
+                if countdollars(expr.args[2]) == 0 && expr.args[3] isa Expr && expr.args[3].head == :$ && length(expr.args[3].args) == 1 && expr.args[3].args[1] isa Symbol
+                    f = expr.args[1]
+                    x = expr.args[2]
+                    name = expr.args[3].args[1]
+                    return :(Compute{($(QuoteNode(name)),)}(Base.Fix1($f, $x)))
+                end
+
+                # Fix2
+                if expr.args[2] isa Expr && expr.args[2].head == :$ && length(expr.args[2].args) == 1 && expr.args[2].args[1] isa Symbol && countdollars(expr.args[3]) == 0
+                    f = expr.args[1]
+                    name = expr.args[2].args[1]
+                    x = expr.args[3]
+                    return :(Compute{($(QuoteNode(name)),)}(Base.Fix2($f, $x)))
+                end
+            end
+        end
+
+        # Unary operator
+        if expr.head ∈ UNARY_OPERATORS && length(expr.args) == 1 && expr.args[1].head == :$ && length(expr.args[1].args) == 1 && expr.args[1].args[1] isa Symbol
+            f = expr.head
+            name = expr.args[1].args[1]
+            return :(Compute{($(QuoteNode(name)),)}($f))
+        end
+
+        # Binary operator
+        if expr.head ∈ BINARY_OPERATORS && length(expr.args) == 2
+            # Binary function
+            if expr.args[1].head == :$ && length(expr.args[1].args) == 1 && expr.args[1].args[1] isa Symbol && expr.args[2].head == :$ && length(expr.args[2].args) == 1 && expr.args[2].args[1] isa Symbol
+                f = expr.head
+                name1 = expr.args[1].args[1]
+                name2 = expr.args[2].args[1]
+                return :(Compute{($(QuoteNode(name1)),$(QuoteNode(name2)))}($f))
+            end
+
+            # Fix1
+            if countdollars(expr.args[1]) == 0 && expr.args[2].head == :$ && length(expr.args[2].args) == 1 && expr.args[2].args[1] isa Symbol
+                f = expr.head
+                x = expr.args[1]
+                name = expr.args[2].args[1]
+                return :(Compute{($(QuoteNode(name)),)}(Base.Fix1($f, $x)))
+            end
+
+            # Fix2
+            if expr.args[1].head == :$ && length(expr.args[1].args) == 1 && expr.args[1].args[1] isa Symbol && countdollars(expr.args[2]) == 0
+                f = expr.head
+                name = expr.args[1].args[1]
+                x = expr.args[2]
+                return :(Compute{($(QuoteNode(name)),)}(Base.Fix2($f, $x)))
+            end
+        end        
     end
 
+    # In the general case, we make a new closure
     compute_expr!(names, expr)
     return :(Compute{$(tuple(names...))}((x...) -> $expr))
+end
+
+countdollars(expr) = countdollars(expr, 0)
+countdollars(expr, n::Int) = n
+function countdollars(expr::Expr, n::Int)
+    if expr.head == :$
+        @assert length(expr.args) == 1 && expr.args[1] isa Symbol
+        n += 1
+    else
+        n += sum(map(countdollars, expr.args))
+    end
+    return n
 end
 
 function compute_expr!(names::Vector{Symbol}, expr::Expr)

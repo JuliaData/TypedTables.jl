@@ -24,6 +24,12 @@ end
 
 @inline function Base.map(f::Compute{names}, t::Table{<:NamedTuple{names}}) where {names}
     # efficient to iterate over rows with a minimal number of columns
+    if length(names) == 1 # unwrap in the simple cases
+        return map(f.f, getproperty(names[1])(t))
+    elseif length(names) == 2
+        return map(f.f, getproperty(names[1])(t), getproperty(names[2])(t))
+    end
+
     invoke(map, Tuple{Function, typeof(t)}, f, t)
 end
 
@@ -55,6 +61,10 @@ end
 
 @inline function SplitApplyCombine.mapview(f::Compute{names}, t::Table{<:NamedTuple{names}}) where {names}
     # efficient to iterate over rows with a minimal number of columns
+    if length(names) == 1 # unwrap in the simple cases (consider 2-argument version)
+        return mapview(f.f, getproperty(names[1])(t))
+    end
+
     invoke(mapview, Tuple{Function, typeof(t)}, f, t)
 end
 
@@ -85,6 +95,12 @@ end
 
 @inline function Broadcast.broadcasted(style::Broadcast.DefaultArrayStyle{N}, f::Compute{names}, t::Table{<:NamedTuple{names}, N}) where {N, names}
     # efficient to iterate over rows with a minimal number of columns
+    if length(names) == 1 # unwrap in the simple cases
+        return Broadcast.broadcasted(f.f, getproperty(names[1])(t))
+    elseif length(names) == 2
+        return Broadcast.broadcasted(f.f, getproperty(names[1])(t), getproperty(names[2])(t))
+    end
+
     invoke(Broadcast.broadcasted, Tuple{typeof(style), Function, typeof(t)}, style, f, t)
 end
 
@@ -115,6 +131,12 @@ end
 
 function Base.mapreduce(f::Compute{names}, op, t::Table{<:NamedTuple{names}}; kwargs...) where {names}
     # efficient to iterate over rows with a minimal number of columns
+    if length(names) == 1 # unwrap in the simple cases
+        return mapreduce(f.f, op, getproperty(names[1])(t))
+    elseif length(names) == 2
+        return mapreduce(f.f, op, getproperty(names[1])(t), getproperty(names[2])(t))
+    end
+    
     invoke(mapreduce, Tuple{Function, typeof(op), typeof(t)}, f, op, t; kwargs...)
 end
 
@@ -137,5 +159,9 @@ end
 
 function Base.findall(f::Compute{names}, t::Table{<:NamedTuple{names}}) where {names}
     # efficient to iterate over rows with a minimal number of columns
+    if length(names) == 1 # unwrap in the simple cases
+        return findall(f.f, getproperty(names[1])(t))
+    end
+
     invoke(findall, Tuple{Function, typeof(t)}, f, t)
 end
