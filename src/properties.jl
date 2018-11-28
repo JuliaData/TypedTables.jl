@@ -74,7 +74,7 @@ Return a constructor for an object similar to `x` that can accept a `NamedTuple`
 arbitrary properties and support `getproperty`. Used for determining the return type of a
 `getproperties` function. The defaults return type is `NamedTuple`.
 """
-propertytype(x) = identity # the input is always a `NamedTuple`
+propertytype(x) = identity # the input is always a `NamedTuple`, and so this is the default propertytype
 
 struct Compute{names, F} <: Function
     f::F
