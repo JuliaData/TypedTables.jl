@@ -14,6 +14,8 @@
     @test Tables.rowaccess(t) === true
     @test Tables.columnaccess(t) === true
     @test Tables.schema(t) == Tables.Schema(NamedTuple{(:a,:b),Tuple{Int,Float64}})
+    @test @inferred(Tables.materializer(t)(map(x -> 2*x, Tables.columns(t)))) isa Table
+    @test Tables.materializer(t)(map(x -> 2*x, Tables.columns(t))) == Table(a = [2,4,6], b = [4.0,8.0,12.0])
 
     @test t.a == [1,2,3]
     @test axes(t) === (Base.OneTo(3),)

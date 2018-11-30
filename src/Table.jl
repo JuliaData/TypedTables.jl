@@ -70,6 +70,7 @@ Tables.istable(::Type{<:Table}) = true
 Tables.rowaccess(::Type{<:Table}) = true
 Tables.columnaccess(::Type{<:Table}) = true
 Tables.schema(::Table{T}) where {T} = Tables.Schema(T)
+Tables.materializer(::Table) = Table
 
 """
     columns(table::Table)

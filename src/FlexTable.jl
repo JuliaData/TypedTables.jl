@@ -38,6 +38,7 @@ Tables.istable(::Type{<:FlexTable}) = true
 Tables.rowaccess(::Type{<:FlexTable}) = true
 Tables.columnaccess(::Type{<:FlexTable}) = true
 Tables.schema(t::FlexTable) = Tables.Schema(_eltypes(columns(t)))
+Tables.materializer(::FlexTable) = FlexTable
 
 """
     columns(dataframe::FlexTable)
