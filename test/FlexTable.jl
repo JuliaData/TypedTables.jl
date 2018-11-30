@@ -35,7 +35,6 @@
     @test [t t; t t]::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3;1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0; 2.0 2.0; 4.0 4.0; 6.0 6.0])
     @test @inferred(vec(t))::FlexTable{1} == t
 
-
     io = IOBuffer()
     show(io, t)
     str = String(take!(io))
@@ -47,6 +46,18 @@
          2 │ 2  4.0
          3 │ 3  6.0"""
 
+    @test @inferred(TypedTables.getproperties(:b, :a)(t))::FlexTable == FlexTable(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
+
+    @test t == t
+    @test t == rows(t)
+    @test rows(t) == t
+    @test isequal(t, t)
+    @test isequal(t, rows(t))
+    @test isequal(rows(t), t)
+    @test !isless(t, t)
+    @test !isless(t, rows(t))
+    @test !isless(rows(t), t)
+    @test hash(t) == hash(rows(t))
 
     t2 = empty(t)
     @test t2 isa typeof(t)
@@ -106,30 +117,71 @@
     deleteat!(t3, 4)
     @test t3 == Table(a = [3,4,5], b = [3.0, 4.0, 5.0])
 
-    @testset "Merging FlexTables" begin
-        t1 = FlexTable(a = [1,2,3],)
-        t2 = FlexTable(b = [2.0, 4.0, 6.0],)
-        t3 = FlexTable(a = [1,2,3], b = [2.0, 4.0, 6.0])
-
-        @test @inferred(map(merge, t1, t2))::FlexTable == t3
-        @test @inferred(mapview(merge, t1, t2))::FlexTable == t3
-        @test @inferred(broadcast(merge, t1, t2))::FlexTable == t3
-    end
-
-    @testset "GetProperty on FlexTables" begin
-        t = FlexTable(a = [1,2,3], b = [2.0, 4.0, 6.0])
-
-        @test map(getproperty(:a), t)::Vector == [1,2,3]
-        @test mapview(getproperty(:a), t)::Vector == [1,2,3]
-        @test broadcast(getproperty(:a), t)::Vector == [1,2,3]
-    end
-
     # setproperty!
     t4 = FlexTable(a = [1,2,3])
     t4.b = [2.0, 4.0, 6.0]
     @test t4 == t
     t4.b = nothing
     @test t4 == FlexTable(a = [1,2,3])
+
+    @testset "Merging FlexTables" begin
+        t1 = FlexTable(a = [1,2,3],)
+        t2 = FlexTable(b = [2.0, 4.0, 6.0],)
+        t3 = FlexTable(a = [1,2,3], b = [2.0, 4.0, 6.0])
+
+        @test (map(merge, t1, t2))::FlexTable == t3
+        @test (mapview(merge, t1, t2))::FlexTable == t3
+        @test (broadcast(merge, t1, t2)) == t3
+    end
+
+    @testset "GetProperty on FlexTables" begin
+        t = FlexTable(a = [1, 2, 3], b = [2.0, 4.0, 6.0], c = [true, false, true])
+
+        @test map(getproperty(:a), t)::Vector == [1,2,3]
+        @test mapview(getproperty(:a), t)::Vector == [1,2,3]
+        @test broadcast(getproperty(:a), t)::Vector == [1,2,3]
+        @test mapreduce(getproperty(:a), +, t) === 6
+        @test filter(getproperty(:c), t)::FlexTable == FlexTable(a = [1,3], b = [2.0, 6.0], c = [true, true])
+        @test findall(getproperty(:c), t)::Vector{Int} == [1, 3]
+
+        @test map(TypedTables.getproperties(:a), t)::FlexTable == FlexTable(a = [1,2,3])
+        @test mapview(TypedTables.getproperties(:a), t)::FlexTable == FlexTable(a = [1,2,3])
+        @test broadcast(TypedTables.getproperties(:a), t) == FlexTable(a = [1,2,3])
+        @test mapreduce(TypedTables.getproperties(:a), (acc, row) -> acc + row.a, t; init = 0) === 6
+    end
+
+    @testset "@Select and @Compute on FlexTables" begin
+        t = FlexTable(a = [1, 2, 3], b = [2.0, 4.0, 6.0], c = [true, false, true])
+
+        c = @Compute(2*$a)
+        @test c(t)::Vector == [2, 4, 6] # (Works because 2 * vector works)
+        @test map(c, t)::Vector == [2, 4, 6]
+        @test mapview(c, t)::MappedArray == [2, 4, 6]
+        @test broadcast(c, t)::Vector == [2, 4, 6]
+        @test mapreduce(c, +, t) === 12
+
+        c2 = @Compute($b > 3.0)
+        @test filter(c2, t)::FlexTable == FlexTable(a = [2,3], b = [4.0,6.0], c = [false,true])
+        @test findall(c2, t)::Vector{Int} == [2, 3]
+
+        s = @Select(sum = $a + $b)
+        @test s(t)::FlexTable == FlexTable(sum = [3.0, 6.0, 9.0]) # (Works because vector + vector works)
+        @test map(s, t)::FlexTable == FlexTable(sum = [3.0, 6.0, 9.0])
+        @test mapview(s, t)::FlexTable == FlexTable(sum = [3.0, 6.0, 9.0])
+        @test broadcast(s, t) == FlexTable(sum = [3.0, 6.0, 9.0])
+        @test mapreduce(s, (acc, row) -> acc + row.sum, t; init = 0.0) === 18.0
+    end
+
+    @testset "missing in FlexTables" begin
+        t = FlexTable(a = [1, 2, 3], b = [2.0, 4.0, missing])
+
+        @test t[1]::eltype(t) == (a = 1, b = 2.0)
+        @test isequal(t[3]::eltype(t), (a = 3, b = missing))
+
+        @test (t == t) === missing
+        @test isequal(t, t)
+        @test !isless(t, t)
+    end
 
     @testset "Tables.jl" begin
         t = FlexTable(a = [1, 2, 3], b = [2.0, 4.0, missing])
@@ -151,4 +203,17 @@
                           2 => Table(a=[2],    b=[4.0]))
     end
 
+    @testset "innerjoin" begin
+        customers = FlexTable(id = 1:3, name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
+        orders = FlexTable(customer_id = [2, 2, 3, 3], items = ["Socks", "Tie", "Shirt", "Underwear"])
+
+        t = innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+
+        @test t isa FlexTable
+        @test t == FlexTable(id = [2, 2, 3, 3],
+                             name = ["Bob", "Bob", "Charlie", "Charlie"],
+                             address = ["163 Moon Road", "163 Moon Road", "6 George Street", "6 George Street"],
+                             customer_id = [2, 2, 3, 3],
+                             items = ["Socks", "Tie", "Shirt", "Underwear"])
+    end
 end

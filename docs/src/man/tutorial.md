@@ -327,22 +327,55 @@ Table with 2 columns and 3 rows:
  3 │ C        false
 ```
 
-It is worth being aware of a special function `getproperty`, which is Julia's function for
-the `.` operator - that is `a.b` is just convenient shorthand syntax for
-`getproperty(a, :b)`. The function `getproperty(:b)` returns *another function* such that
-`getproperty(:b)(a)` is the same as `a.b`. If you wish to programmatically select a column
-of a Table, you can use `getproperty` to do so.
+Writing anonymous functions can become laborious when dealing with many rows, so the
+convenience macros `@Select` and `@Compute` are provided to aid in their construction.
+
+The `@Select` macro returns a function that can map a row to a new row (or a table to a
+new table) by defining a functional mapping for each output column. The above example can
+alternatively be written as:
 
 ```julia
-julia> map(getproperty(:name), t)
+julia> map(@Select(initial = first($name), is_old = $age > 40), t)
+Table with 2 columns and 3 rows:
+     initial  is_old
+   ┌────────────────
+ 1 │ A        false
+ 2 │ B        true
+ 3 │ C        false
+```
+
+For shorthand, the `= ...` can be ommited to simply extract a column. For example, we can
+reorder the columns via
+
+```
+julia> @Select(age, name)(t)
+Table with 2 columns and 3 rows:
+     age  name
+   ┌─────────────
+ 1 │ 25   Alice
+ 2 │ 42   Bob
+ 3 │ 37   Charlie
+```
+(Note that here we "select" columns directly, rather than using `map` to select the fields
+of each row.)
+
+The `@Compute` macro returns a function that maps a row to a value. As for `@Select`, the
+input column names are prepended with `$`, for example:
+
+```julia
+julia> map(@Compute($name), t)
 3-element Array{String,1}:
  "Alice"  
  "Bob"    
  "Charlie"
 ```
-In fact, `Table` will know that getting a certain field of every row via `map` is the same
-as simply extracting the column `name`, and this operation will be fast. This will be most
-useful in the operations below.
+
+Unlike an anonymous function, these two macros create an introspectable function that allows
+computations to take advantage of columnar storage and advanced features like acceleration
+indices. You may find calculations may be performed faster with the macros for a wide
+variety of functions like `map`, `broadcast`, `filter`, `findall`, `reduce`, `group` and
+`innerjoin`. For instance, the example above simply extracts the `name` column from `t`,
+without performing an explicit map.
 
 ## Grouping data
 
@@ -392,7 +425,7 @@ Sometimes you may want to transform the grouped data - you can do so by passing 
 mapping function. For example, we may want to group firstnames by lastname.
 
 ```julia
-julia> group(getproperty(:lastname), getproperty(:firstname), t2)
+julia> group(@Compute($lastname), $Compute($firstname), t2)
 Dict{String,Array{String,1}} with 4 entries:
   "King"     => ["Arthur"]
   "Williams" => ["Adam", "Eve"]
@@ -406,7 +439,7 @@ If instead, our group elements are rows (named tuples), each group will itslef b
 For example, we can keep the entire row by dropping the second function.
 
 ```julia
-julia> families = group(getproperty(:lastname), t2)
+julia> families = group(@Compute($lastname), t2)
 Groups{String,Any,Table{NamedTuple{(:firstname, :lastname, :age),Tuple{String,String,Int64}},1,NamedTuple{(:firstname, :lastname, :age),Tuple{Array{String,1},Array{String,1},Array{Int64,1}}}},Dict{String,Array{Int64,1}}} with 4 entries:
   "King"     => Table with 3 columns and 1 row:…
   "Williams" => Table with 3 columns and 2 rows:…
@@ -417,7 +450,7 @@ Groups{String,Any,Table{NamedTuple{(:firstname, :lastname, :age),Tuple{String,St
 The results are only summarized above (for compactness), but can be easily accessed.
 
 ```julia
-julia> familes["Smith"]
+julia> families["Smith"]
 Table with 3 columns and 3 rows:
      firstname  lastname  age
    ┌─────────────────────────
@@ -465,7 +498,7 @@ function expects two functions, to describe the joining key of the first table a
 joining key of the second table. We will use `getproperty` to select the columns.
 
 ```julia
-julia> innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+julia> innerjoin(@Compute($id), @Compute($customer_id), customers, orders)
 Table with 5 columns and 4 rows:
      id  name     address          customer_id  items
    ┌─────────────────────────────────────────────────────

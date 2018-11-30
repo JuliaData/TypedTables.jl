@@ -62,6 +62,8 @@ function Base.setproperty!(t::FlexTable, name::Symbol, ::Nothing)
     return t
 end
 
+propertytype(::FlexTable{N}) where {N} = FlexTable{N}
+
 """
     columnnames(table)
 
@@ -265,4 +267,45 @@ function Base.vec(t::FlexTable)
     return FlexTable{1}(map(vec, columns(t)))
 end
 
+# "Bulk" operations on FlexTables should generally first unrwap to Tables
+_flex(t::Table{<:Any, N}) where {N} = FlexTable(columns(t))
+_flex(t) = t
+
+Broadcast.broadcastable(t::FlexTable) = Table(t)
+
+Base.map(f, t::FlexTable{N}) where {N} = _flex(map(f, rows(t)))::AbstractArray{<:Any, N}
+Base.map(f, t::FlexTable{N}, t2) where {N} = _flex(map(f, rows(t), t2))::AbstractArray{<:Any, N}
+Base.map(f, t, t2::FlexTable{N}) where {N} = _flex(map(f, t, rows(t2)))::AbstractArray{<:Any, N}
+Base.map(f, t::FlexTable{N}, t2::FlexTable{N}) where {N} = _flex(map(f, rows(t), rows(t2)))::AbstractArray{<:Any, N}
+
+Base.mapreduce(f, op, t::FlexTable; kwargs...) = mapreduce(f, op, rows(t); kwargs...)
+
+Base.filter(f, t::FlexTable{N}) where {N} = FlexTable(filter(f, rows(t)))::FlexTable{N}
+
+SplitApplyCombine.mapview(f, t::FlexTable{N}) where {N} = _flex(mapview(f, rows(t)))::AbstractArray{<:Any, N}
+SplitApplyCombine.mapview(f, t::FlexTable{N}, t2) where {N} = _flex(mapview(f, rows(t), t2))::AbstractArray{<:Any, N}
+SplitApplyCombine.mapview(f, t, t2::FlexTable{N}) where {N} = _flex(mapview(f, t, rows(t2)))::AbstractArray{<:Any, N}
+SplitApplyCombine.mapview(f, t::FlexTable{N}, t2::FlexTable{N}) where {N} = _flex(mapview(f, rows(t), rows(t2)))::AbstractArray{<:Any, N}
+
 SplitApplyCombine.group(by, f, t::FlexTable) = group(by, f, rows(t))
+SplitApplyCombine.groupview(by, f, t::FlexTable) = groupview(by, f, rows(t))
+SplitApplyCombine.groupinds(by, t::FlexTable) = groupinds(by, rows(t))
+SplitApplyCombine.groupreduce(by, f, op, t::FlexTable; kwargs...) = groupreduce(by, f, op, rows(t); kwargs...)
+
+SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1::FlexTable, t2) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), t2))
+SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, t1, rows(t2)))
+SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1::FlexTable, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), rows(t2)))
+
+Base.:(==)(t1::FlexTable{N}, t2::AbstractArray{<:Any,N}) where {N} = (rows(t1) == t2)
+Base.:(==)(t1::AbstractArray{<:Any,N}, t2::FlexTable{N}) where {N} = (t1 == rows(t2))
+Base.:(==)(t1::FlexTable{N}, t2::FlexTable{N}) where {N} = (rows(t1) == rows(t2))
+
+Base.isequal(t1::FlexTable{N}, t2::AbstractArray{<:Any,N}) where {N} = isequal(rows(t1), t2)
+Base.isequal(t1::AbstractArray{<:Any,N}, t2::FlexTable{N}) where {N} = isequal(t1, rows(t2))
+Base.isequal(t1::FlexTable{N}, t2::FlexTable{N}) where {N} = isequal(rows(t1), rows(t2))
+
+Base.isless(t1::FlexTable{1}, t2::AbstractVector) = isless(rows(t1), t2)
+Base.isless(t1::AbstractVector, t2::FlexTable{1}) = isless(t1, rows(t2))
+Base.isless(t1::FlexTable{1}, t2::FlexTable{1}) = isless(rows(t1), rows(t2))
+
+Base.hash(t::FlexTable, h::UInt) = hash(rows(t), h)

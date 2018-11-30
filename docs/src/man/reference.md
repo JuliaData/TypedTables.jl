@@ -19,3 +19,12 @@ TypedTables.FlexTable
 TypedTables.columns
 TypedTables.columnnames
 ```
+
+## Convenience macros
+
+These macros return *functions* that can be applied to tables and rows.
+
+```@docs
+TypedTables.@Compute
+TypedTables.@Select
+```

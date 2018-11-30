@@ -4,7 +4,6 @@ It is frequently useful to break data appart into different *groups* for process
 
 In a powerful environment such as Julia, that fully supports nested containers, it makes sense to represent each group as distinct containers, with an outer container acting as a "dictionary" of the groups. This is in contrast to environments with a less rich system of containers, such as SQL, which has popularized a slightly different notion of grouping data into a single flat tabular structure, where one (or more) columns act as the grouping key. Here we focus on the former approach.
 
-
 ## Using the `group` function
 
 *SplitApplyCombine* provides a `group` function, which can operate on arbitary Julia objects. The function has the signature `group(by, f, iter)` where `iter` is a container that can be iterated, `by` is a function from the elements of `iter` to the grouping *key*, and the optional argument `f` is a mapping applied to the grouped elements (by default, `f = identity`, the identity function).
