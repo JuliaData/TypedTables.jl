@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Andy Ferris">
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Joining data - TypedTables.jl</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  <link href="../../assets/Documenter.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Joining data";
+    var mkdocs_page_input_path = "man/join.md";
+    var mkdocs_page_url = "/man/join/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> TypedTables.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../tutorial/">Quick start tutorial</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Table types</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../table/">Table</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../flextable/">FlexTable</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Data storage</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../data/">Data representation</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../io/">Input and output</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Basic data manipulation</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../map/">Mapping data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../filter/">Finding data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../reduce/">Reducing data</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Grouping and joining data</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../group/">Groupind data</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Joining data</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#joining-data">Joining data</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#cartesian-productjoin-of-tables">Cartesian product/join of tables</a></li>
+        
+            <li><a class="toctree-l4" href="#relational-join">Relational "join"</a></li>
+        
+            <li><a class="toctree-l4" href="#left-group-join">Left-group-join</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Accelerations</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Advanced topics</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../design/">Design</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../reference/">API reference</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">TypedTables.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Grouping and joining data &raquo;</li>
+        
+      
+    
+    <li>Joining data</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/join.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <p><a id='Joining-data-1'></a></p>
+<h1 id="joining-data">Joining data</h1>
+<p>The methods defined so far work on single data sources (tables) at-a-time. Sometimes, we need to <em>join</em> information together from multiple tables.</p>
+<p><a id='Cartesian-product/join-of-tables-1'></a></p>
+<h2 id="cartesian-productjoin-of-tables">Cartesian product/join of tables</h2>
+<p>Before progressing to the typical "join" operations on tables, we'll discuss the Cartesian product (or Cartesian "join") between two tables. In SQL, this is called the <code>CROSS JOIN</code>.</p>
+<p>Suppose <code>table1</code> has <code>n</code> rows, and <code>table2</code> has <code>m</code> rows. We can create a new table that contains <code>n × m</code> rows with the data from <code>table1</code> and <code>table2</code>. In fact, if the output <code>table3</code> were an <code>n × m</code> <em>matrix</em> of rows, we could say that the row <code>table3[i, j]</code> contains the combination of <code>table1[i]</code> and <code>table2[j]</code>.</p>
+<p>The easiest way to do this is with the <code>SplitApplyCombine.product</code>. For a quick primer, <code>out = product(f, a, b)</code> returns an array <code>out</code> such that <code>out[i, j] = f(a, b)</code>. For example, let's take all combinations of the sums of <code>[1, 2, 3]</code> and <code>[10, 20, 30, 40]</code>.</p>
+<pre><code class="julia">julia&gt; product(+, [1, 2, 3], [10, 20, 30, 40])
+3×4 Array{Int64,2}:
+ 11  21  31  41
+ 12  22  32  42
+ 13  23  33  43
+</code></pre>
+
+<p>One can also use <code>tuple</code> to simply collect both sets of data.</p>
+<pre><code class="julia">julia&gt; product(tuple, [1, 2, 3], [10, 20, 30, 40])
+3×4 Array{Tuple{Int64,Int64},2}:
+ (1, 10)  (1, 20)  (1, 30)  (1, 40)
+ (2, 10)  (2, 20)  (2, 30)  (2, 40)
+ (3, 10)  (3, 20)  (3, 30)  (3, 40)
+</code></pre>
+
+<p>(Note that <code>tuple</code> is the <em>only</em> option for the similar function <code>Iterators.product</code>). Let's try this with a table. This time, for two tables with <em>distinct</em> column names, we can use the <code>merge</code> function to merge the rows into single <code>NamedTuple</code>s - for example, take this list of all pairings of firstnames and lastnames.</p>
+<pre><code class="julia">julia&gt; t1 = Table(firstname = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;])
+Table with 1 column and 3 rows:
+     firstname
+   ┌──────────
+ 1 │ Alice
+ 2 │ Bob
+ 3 │ Charlie
+
+julia&gt; t2 = Table(lastname = [&quot;Smith&quot;, &quot;Williams&quot;, &quot;Brown&quot;, &quot;King&quot;])
+Table with 1 column and 4 rows:
+     lastname
+   ┌─────────
+ 1 │ Smith
+ 2 │ Williams
+ 3 │ Brown
+ 4 │ King
+
+julia&gt; t3 = product(merge, t1, t2)
+Table with 2 columns and 3×4 rows:
+       firstname  lastname
+     ┌────────────────────
+ 1,1 │ Alice      Smith
+ 2,1 │ Bob        Smith
+ 3,1 │ Charlie    Smith
+ 1,2 │ Alice      Williams
+ 2,2 │ Bob        Williams
+ 3,2 │ Charlie    Williams
+ 1,3 │ Alice      Brown
+ 2,3 │ Bob        Brown
+ 3,3 │ Charlie    Brown
+ 1,4 │ Alice      King
+ 2,4 │ Bob        King
+ 3,4 │ Charlie    King
+
+julia&gt; size(t3)
+(3, 4)
+</code></pre>
+
+<p>Remember that one must be careful that the column names are indeed distinct when using <code>product(merge, ...)</code> this way.</p>
+<p>This is our first example of a <code>Table</code> which an array of higher than one-dimension - it is an <code>AbstractMatrix</code>. The <code>product</code> of many tables may be a <code>3</code>- or higher-dimensional array. Note that higher-dimensional tables do not print as a matrix like other higher-dimensional arrays at the REPL, as this would quickly obscure the columns. Instead, the indices are displayed to the left of each row.</p>
+<p>Finally, also note that there is a <code>productview</code> function for performing this operation lazily. This may be crucial to remember - the size of the output is the <em>product</em> of the size of the inputs, which grows very quickly even for very reasonably sized input tables. This operation can be very expensive in both time and memory if appropriate care isn't taken.</p>
+<p><a id='Cartesian-product-with-generators-1'></a></p>
+<h3 id="cartesian-product-with-generators">Cartesian product with generators</h3>
+<p>One can feed in multiple inputs into a generator, and Julia will automatically take the Cartesian product of all inputs. For example:</p>
+<pre><code class="julia">julia&gt; t3 = Table(merge(row1, row2) for row1 in t1, row2 in t2)
+Table with 2 columns and 12 rows:
+      firstname  lastname
+    ┌────────────────────
+ 1  │ Alice      Smith
+ 2  │ Bob        Smith
+ 3  │ Charlie    Smith
+ 4  │ Alice      Williams
+ 5  │ Bob        Williams
+ 6  │ Charlie    Williams
+ 7  │ Alice      Brown
+ 8  │ Bob        Brown
+ 9  │ Charlie    Brown
+ 10 │ Alice      King
+ 11 │ Bob        King
+ 12 │ Charlie    King
+</code></pre>
+
+<p><a id='Relational-"join"-1'></a></p>
+<h2 id="relational-join">Relational "join"</h2>
+<p>In a nutshell: the relational "join" operation is simply the above Cartesian product followed by a filtering operation. Generally, the filtering operation will depend on information coming from <em>both</em> input data sets - for example, that the values in a particular column must match exactly. (Any filtering that depends only on information from one input table can be done more efficiently <em>before</em> the join operation).</p>
+<p>For a simple example, let's look for all pairings of firstnames and lastnames that have an equal number of characters. For efficiency, we combine this with <code>productview</code>.</p>
+<pre><code class="julia">julia&gt; filter(row -&gt; length(row.firstname) == length(row.lastname), t3)
+Table with 2 columns and 2 rows:
+     firstname  lastname
+   ┌────────────────────
+ 1 │ Alice      Smith
+ 2 │ Alice      Brown
+</code></pre>
+
+<p>Many might find that this two-step process a rather indirect way of performing a join operation. Below we cover two more standard techniques.</p>
+<p><a id='Using-primary-and-foreign-keys-1'></a></p>
+<h3 id="using-primary-and-foreign-keys">Using primary and foreign keys</h3>
+<p>Before launching into <code>innerjoin</code>, it is worth taking a detour to expore a common case where a far simpler operation can perform the requisite join - indexing!</p>
+<p>In a relation, a "primary" key is a column (or multiple columns) with values that uniquely identify the row - no two rows may have the same primary key. <code>Table</code> and <code>FlexTable</code> do not <em>directly</em> support uniqueness in the columns (though the <em>array</em> corresponding to a column could surely enforce uniqueness). However, each row <em>is</em> uniquely identified by it's index, for example <code>t1[1]</code> corresponds to the row <code>(firstname = "Alice",)</code>.</p>
+<p>In fact, using the array index as the primary key can be the most efficient way of uniquely identifying your data. A second table with related data may indeed have a column containing the indices of relevant rows in the first table. Such columns are generally referred to as being a "foreign key" (they uniquely identify data in a "foreign" table).</p>
+<p>As an example, let's take a simplistic <code>customers</code> and <code>orders</code> database.</p>
+<pre><code class="julia">julia&gt; customers = Table(name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], address = [&quot;12 Beach Street&quot;, &quot;163 Moon Road&quot;, &quot;6 George Street&quot;])
+Table with 2 columns and 3 rows:
+     name     address
+   ┌─────────────────────────
+ 1 │ Alice    12 Beach Street
+ 2 │ Bob      163 Moon Road
+ 3 │ Charlie  6 George Street
+
+julia&gt; orders = Table(customer_id = [2, 2, 3, 3], items = [&quot;Socks&quot;, &quot;Tie&quot;, &quot;Shirt&quot;, &quot;Underwear&quot;])
+Table with 2 columns and 4 rows:
+     customer_id  items
+   ┌───────────────────────
+ 1 │ 2            Socks
+ 2 │ 2            Tie
+ 3 │ 3            Shirt
+ 4 │ 3            Underwear
+</code></pre>
+
+<p>To get the customer for each order is just a simple indexing operation.</p>
+<pre><code class="julia">julia&gt; customers[orders.customer_id]
+Table with 2 columns and 4 rows:
+     name     address
+   ┌─────────────────────────
+ 1 │ Bob      163 Moon Road
+ 2 │ Bob      163 Moon Road
+ 3 │ Charlie  6 George Street
+ 4 │ Charlie  6 George Street
+
+</code></pre>
+
+<p>We can denormalize the orders and their customers to a single table by performing a <code>merge</code> on each row (in this case using broadcasting dot-syntax for brevity).</p>
+<pre><code class="julia">julia&gt; merge.(customers[orders.customer_id], orders)
+Table with 4 columns and 4 rows:
+     name     address          customer_id  items
+   ┌─────────────────────────────────────────────────
+ 1 │ Bob      163 Moon Road    2            Socks
+ 2 │ Bob      163 Moon Road    2            Tie
+ 3 │ Charlie  6 George Street  3            Shirt
+ 4 │ Charlie  6 George Street  3            Underwear
+
+</code></pre>
+
+<p>We can perform these operation lazily for cost <em>O</em>(1) using <code>view</code> and <code>mapview</code> - after which the data can be processed further.</p>
+<pre><code class="julia">julia&gt; mapview(merge, view(customers, orders.customer_id), orders)
+Table with 4 columns and 4 rows:
+     name     address          customer_id  items
+   ┌─────────────────────────────────────────────────
+ 1 │ Bob      163 Moon Road    2            Socks
+ 2 │ Bob      163 Moon Road    2            Tie
+ 3 │ Charlie  6 George Street  3            Shirt
+ 4 │ Charlie  6 George Street  3            Underwear
+</code></pre>
+
+<p>This is a simple and powerful technique. By <a href="https://en.wikipedia.org/wiki/Database_normalization">normalizing</a> your one-to-many relationships into multiple tables using the array index as primary and foreign keys, you can join your data together quickly and efficiently with (possibly lazy) indexing.</p>
+<p><a id='Inner-join-1'></a></p>
+<h3 id="inner-join">Inner join</h3>
+<p>We now turn out attention to the relational join, implemented via <em>SplitApplyCombine</em>'s <code>innerjoin</code> function (note that the <code>join</code> function in <code>Base</code> is a concatenation operation on strings, not a relational operation on tables).</p>
+<p>The <code>innerjoin</code> function is flexible, able to join any iterable data source via any comparing predicate, and perform an arbitrary mapping of the matching results. Using <code>?</code>, we can view its documentation at the REPL:</p>
+<pre><code class="julia">help?&gt; innerjoin
+search: innerjoin
+
+  innerjoin(lkey, rkey, f, comparison, left, right)
+
+  Performs a relational-style join operation between iterables left and right,
+  returning a collection of elements f(l, r) for which comparison(lkey(l), rkey(r))
+  is true where l ∈ left, r ∈ right.
+
+  Example
+  ≡≡≡≡≡≡≡≡≡
+
+  julia&gt; innerjoin(iseven, iseven, tuple, ==, [1,2,3,4], [0,1,2])
+  6-element Array{Tuple{Int64,Int64},1}:
+   (1, 1)
+   (2, 0)
+   (2, 2)
+   (3, 1)
+   (4, 0)
+   (4, 2)
+</code></pre>
+
+<p>Let's examine this. Assume the inputs <code>left</code> and <code>right</code> are <code>Table</code>s. We may want to join the tables via a single column each, in which case <code>getproperty(:name)</code> would be suitable for <code>lkey</code> and <code>rkey</code>. In the simplest case, such as a natural join, for <code>f</code> we may want to <code>merge</code> all the columns from both input tables (which is the default for <code>f</code>), and the <code>comparison</code> operator may be equality (it defaults to <code>isequal</code>).</p>
+<p>As an example, we modify our <code>customers</code> table to explicitly include the customer's <code>id</code>, similarly to above.</p>
+<pre><code class="julia">julia&gt; customers = Table(id = 1:3, name = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;], address = [&quot;12 Beach Street&quot;, &quot;163 Moon Road&quot;, &quot;6 George Street&quot;])
+Table with 3 columns and 3 rows:
+     id  name     address
+   ┌─────────────────────────────
+ 1 │ 1   Alice    12 Beach Street
+ 2 │ 2   Bob      163 Moon Road
+ 3 │ 3   Charlie  6 George Street
+
+julia&gt; innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+Table with 5 columns and 4 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 2   Bob      163 Moon Road    2            Socks
+ 2 │ 2   Bob      163 Moon Road    2            Tie
+ 3 │ 3   Charlie  6 George Street  3            Shirt
+ 4 │ 3   Charlie  6 George Street  3            Underwear
+</code></pre>
+
+<p>The <code>innerjoin</code> function can be used to join any tables based on any conditions. However, by default only the <code>isequal</code> comparison is accelerated via a temporary hash index - all other comparisons will invoke an exhaustive <em>O</em>(<code>n^2</code>) algorithm.</p>
+<p>See the section on Acceleration Indices for methods of (a) attaching secondary acceleration indices to your columns, and (b) using these to accelerate operations using comparisons other than <code>isequal</code>. For example, a <code>SortIndex</code> can be used to accelerate joins on order-related predicates, such as the value in one column being smaller than another column.</p>
+<p><a id='Inner-joins-with-generators-1'></a></p>
+<h3 id="inner-joins-with-generators">Inner joins with generators</h3>
+<p>As a final example, generators provide a convenient syntax for filtering Cartesian products of collections - that is, to perform an inner join!</p>
+<pre><code class="julia">julia&gt; Table(merge(customer, order) for customer in customers, order in orders if customer.id == order.customer_id)
+Table with 5 columns and 4 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 2   Bob      163 Moon Road    2            Socks
+ 2 │ 2   Bob      163 Moon Road    2            Tie
+ 3 │ 3   Charlie  6 George Street  3            Shirt
+ 4 │ 3   Charlie  6 George Street  3            Underwear
+</code></pre>
+
+<p>The disadvantage of this technique is that it will perform an exhaustive search by default, costing <em>O</em>(<code>n^2</code>).</p>
+<p><a id='Left-group-join-1'></a></p>
+<h2 id="left-group-join">Left-group-join</h2>
+<p>Currently <em>SplitApplyCombine</em> and <em>TypedTables</em> do not provide what in SQL is called an <code>LEFT OUTER JOIN</code> (or any of the other <code>OUTER JOIN</code> operations).</p>
+<p>Such a query can be alternatively modeled as a hybrid group/join operation. <em>SplitApplyCombine</em> provides <code>leftgroupjoin</code> to perform precisely this. This is similar to LINQ's <code>GroupJoin</code> method. Let us investigate this query with the same data as for <code>innerjoin</code>, above.</p>
+<pre><code class="julia">julia&gt; groups = leftgroupjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
+Dict{Int64,Table{NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Int64,String,String,Int64,String}},1,NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Array{Int64,1},Array{String,1},Array{String,1},Array{Int64,1},Array{String,1}}}}} with 3 entries:
+  2 =&gt; Table with 5 columns and 2 rows:…
+  3 =&gt; Table with 5 columns and 2 rows:…
+  1 =&gt; Table with 5 columns and 0 rows:…
+
+julia&gt; groups[1]
+Table with 5 columns and 0 rows:
+     id  name  address  customer_id  items
+   ┌──────────────────────────────────────
+
+julia&gt; groups[2]
+Table with 5 columns and 2 rows:
+     id  name  address        customer_id  items
+   ┌────────────────────────────────────────────
+ 1 │ 2   Bob   163 Moon Road  2            Socks
+ 2 │ 2   Bob   163 Moon Road  2            Tie
+
+julia&gt; groups[3]
+Table with 5 columns and 2 rows:
+     id  name     address          customer_id  items
+   ┌─────────────────────────────────────────────────────
+ 1 │ 3   Charlie  6 George Street  3            Shirt
+ 2 │ 3   Charlie  6 George Street  3            Underwear
+</code></pre>
+
+<p>As you can see - 3 groups were identified, according to the distinct keys in the <code>id</code> column of <code>customers</code>. While the first customer had no associated orders, note that an empty group has nonetheless been created. Much like SQL's <code>LEFT OUTER JOIN</code> command, <code>leftgroupjoin</code> lets us handle the case that no matching data is found. While SQL achieves this by noting there is <code>missing</code> data in the columns associated with the right table, here we use a set of nested containers (dictionaries of tables of rows) to denote the relationship.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../acceleratedarrays/" class="btn btn-neutral float-right" title="Acceleration indices">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../group/" class="btn btn-neutral" title="Groupind data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../group/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../acceleratedarrays/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+      <script src="../../assets/mathjaxhelper.js"></script>
+      <script src="../../search/require.js"></script>
+      <script src="../../search/search.js"></script>
+
+</body>
+</html>

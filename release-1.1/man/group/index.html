@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Andy Ferris">
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Groupind data - TypedTables.jl</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/highlight.css">
+  <link href="../../assets/Documenter.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Groupind data";
+    var mkdocs_page_input_path = "man/group.md";
+    var mkdocs_page_url = "/man/group/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js"></script>
+  <script src="../../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> TypedTables.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../tutorial/">Quick start tutorial</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Table types</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../table/">Table</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../flextable/">FlexTable</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Data storage</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../data/">Data representation</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../io/">Input and output</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Basic data manipulation</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../map/">Mapping data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../filter/">Finding data</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../reduce/">Reducing data</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Grouping and joining data</span>
+    <ul class="subnav">
+                <li class=" current">
+                    
+    <a class="current" href="./">Groupind data</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#grouping-data">Grouping data</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#using-the-group-function">Using the group function</a></li>
+        
+            <li><a class="toctree-l4" href="#lazy-grouping">Lazy grouping</a></li>
+        
+            <li><a class="toctree-l4" href="#summarizing-groups-with-groupreduce">Summarizing groups with groupreduce</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../join/">Joining data</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Accelerations</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../acceleratedarrays/">Acceleration indices</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Advanced topics</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../design/">Design</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../reference/">API reference</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">TypedTables.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Grouping and joining data &raquo;</li>
+        
+      
+    
+    <li>Groupind data</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/FugroRoames/TypedTables.jl/edit/master/docs/man/group.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <p><a id='Grouping-data-1'></a></p>
+<h1 id="grouping-data">Grouping data</h1>
+<p>It is frequently useful to break data appart into different <em>groups</em> for processing - a paradigm frequently referred to a the split-apply-combine methodology.</p>
+<p>In a powerful environment such as Julia, that fully supports nested containers, it makes sense to represent each group as distinct containers, with an outer container acting as a "dictionary" of the groups. This is in contrast to environments with a less rich system of containers, such as SQL, which has popularized a slightly different notion of grouping data into a single flat tabular structure, where one (or more) columns act as the grouping key. Here we focus on the former approach.</p>
+<p><a id='Using-the-group-function-1'></a></p>
+<h2 id="using-the-group-function">Using the <code>group</code> function</h2>
+<p><em>SplitApplyCombine</em> provides a <code>group</code> function, which can operate on arbitary Julia objects. The function has the signature <code>group(by, f, iter)</code> where <code>iter</code> is a container that can be iterated, <code>by</code> is a function from the elements of <code>iter</code> to the grouping <em>key</em>, and the optional argument <code>f</code> is a mapping applied to the grouped elements (by default, <code>f = identity</code>, the identity function).</p>
+<p>To demonstrate the power of grouping, this time we'll add some more rows and columns to our example data.</p>
+<pre><code class="julia">julia&gt; t = Table(firstname = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;, &quot;Adam&quot;, &quot;Eve&quot;, &quot;Cindy&quot;, &quot;Arthur&quot;], lastname = [&quot;Smith&quot;, &quot;Smith&quot;, &quot;Smith&quot;, &quot;Williams&quot;, &quot;Williams&quot;, &quot;Brown&quot;, &quot;King&quot;], age = [25, 42, 37, 65, 18, 33, 54])
+Table with 3 columns and 7 rows:
+     firstname  lastname  age
+   ┌─────────────────────────
+ 1 │ Alice      Smith     25
+ 2 │ Bob        Smith     42
+ 3 │ Charlie    Smith     37
+ 4 │ Adam       Williams  65
+ 5 │ Eve        Williams  18
+ 6 │ Cindy      Brown     33
+ 7 │ Arthur     King      54
+</code></pre>
+
+<p>Let's get familiar with the <em>basic</em> usage of <code>group</code> on standard (non-tabular) arrays. For example, let's group people's first name by their first letter.</p>
+<pre><code class="julia">julia&gt; group(first, t.firstname)
+Dict{Char,Array{String,1}} with 4 entries:
+  'C' =&gt; [&quot;Charlie&quot;, &quot;Cindy&quot;]
+  'A' =&gt; [&quot;Alice&quot;, &quot;Adam&quot;, &quot;Arthur&quot;]
+  'E' =&gt; [&quot;Eve&quot;]
+  'B' =&gt; [&quot;Bob&quot;]
+</code></pre>
+
+<p>The groups are returned as a <code>Dict</code> where they indices (or keys) of the dictionary are the first character of people's firstname string. The values of the <code>Dict</code> are arrays listing the matching firstnames.</p>
+<p>Next, we may want to group up data coming from a table (not just a single column). For example, we may want to group firstnames by lastname.</p>
+<pre><code class="julia">julia&gt; group(getproperty(:lastname), getproperty(:firstname), t)
+Dict{String,Array{String,1}} with 4 entries:
+  &quot;King&quot;     =&gt; [&quot;Arthur&quot;]
+  &quot;Williams&quot; =&gt; [&quot;Adam&quot;, &quot;Eve&quot;]
+  &quot;Brown&quot;    =&gt; [&quot;Cindy&quot;]
+  &quot;Smith&quot;    =&gt; [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;]
+</code></pre>
+
+<p>Note that the returned structure is still not a <code>Table</code> at all - it is a dictionary (<code>Dict</code>) with the unique <code>lastname</code> values as keys, returing (non-tabular) arrays of <code>firstname</code>.</p>
+<p>If instead, our grouping elements are <code>rows</code>, the group will be a table. For example, we can just drop the <code>getproperty(:firstname)</code> projection to get:</p>
+<pre><code class="julia">julia&gt; groups = group(getproperty(:lastname), t)
+Groups{String,Any,Table{NamedTuple{(:firstname, :lastname, :age),Tuple{String,String,Int64}},1,NamedTuple{(:firstname, :lastname, :age),Tuple{Array{String,1},Array{String,1},Array{Int64,1}}}},Dict{String,Array{Int64,1}}} with 4 entries:
+  &quot;King&quot;     =&gt; Table with 3 columns and 1 row:…
+  &quot;Williams&quot; =&gt; Table with 3 columns and 2 rows:…
+  &quot;Brown&quot;    =&gt; Table with 3 columns and 1 row:…
+  &quot;Smith&quot;    =&gt; Table with 3 columns and 3 rows:…
+</code></pre>
+
+<p>The results are only summarized (for compactness), but can be easily accessed.</p>
+<pre><code class="julia">julia&gt; groups[&quot;Smith&quot;]
+Table with 3 columns and 3 rows:
+     firstname  lastname  age
+   ┌─────────────────────────
+ 1 │ Alice      Smith     25
+ 2 │ Bob        Smith     42
+ 3 │ Charlie    Smith     37
+</code></pre>
+
+<p><a id='Lazy-grouping-1'></a></p>
+<h2 id="lazy-grouping">Lazy grouping</h2>
+<p>There are additional functions provided to do grouping while copying less data.</p>
+<p>A <code>groupinds</code> function let's you identify the indices of the rows belonging to certain groups.</p>
+<pre><code class="julia">julia&gt; lastname_inds = groupinds(t.lastname)
+Dict{String,Array{Int64,1}} with 4 entries:
+  &quot;King&quot;     =&gt; [7]
+  &quot;Williams&quot; =&gt; [4, 5]
+  &quot;Brown&quot;    =&gt; [6]
+  &quot;Smith&quot;    =&gt; [1, 2, 3]
+</code></pre>
+
+<p>We can then use these indices to perform calculations on each group of data, for example the mean age per lastname grouping.</p>
+<pre><code class="julia">julia&gt; using Statistics
+
+julia&gt; Dict(lastname =&gt; mean(t.age[inds]) for (lastname, inds) in lastname_inds)
+Dict{String,Float64} with 4 entries:
+  &quot;King&quot;     =&gt; 54.0
+  &quot;Williams&quot; =&gt; 41.5
+  &quot;Brown&quot;    =&gt; 33.0
+  &quot;Smith&quot;    =&gt; 34.6667
+</code></pre>
+
+<p>There is additionally a <code>groupview</code> function, which calculates the <code>groupinds</code> and constructs each subset as a <code>view</code>.</p>
+<p><a id='Summarizing-groups-with-groupreduce-1'></a></p>
+<h2 id="summarizing-groups-with-groupreduce">Summarizing groups with <code>groupreduce</code></h2>
+<p>Sometimes we can perform a split-apply-combine strategy by streaming just once over the data, and reducing over the groups. The <code>groupreduce</code> function lets us do this, and can be more performant than alternative approaches.</p>
+<p>For example, we can sum up the ages corresponding to each family name.</p>
+<pre><code class="julia">julia&gt; groupreduce(getproperty(:lastname), +, getproperty(:age), t)
+Dict{String,Int64} with 4 entries:
+  &quot;King&quot;     =&gt; 54
+  &quot;Williams&quot; =&gt; 83
+  &quot;Brown&quot;    =&gt; 33
+  &quot;Smith&quot;    =&gt; 104
+</code></pre>
+
+<p><em>SplitApplyCombine</em> provides related functions <code>groupsum</code>, <code>groupprod</code>, and so-on. One particularly handy function for summarizing data by giving counts of unique values is <code>groupcount</code>.</p>
+<pre><code class="julia">julia&gt; groupcount(t.lastname)
+Dict{String,Int64} with 4 entries:
+  &quot;King&quot;     =&gt; 1
+  &quot;Williams&quot; =&gt; 2
+  &quot;Brown&quot;    =&gt; 1
+  &quot;Smith&quot;    =&gt; 3
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../join/" class="btn btn-neutral float-right" title="Joining data">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../reduce/" class="btn btn-neutral" title="Reducing data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/FugroRoames/TypedTables.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../reduce/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../join/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+      <script src="../../assets/mathjaxhelper.js"></script>
+      <script src="../../search/require.js"></script>
+      <script src="../../search/search.js"></script>
+
+</body>
+</html>
