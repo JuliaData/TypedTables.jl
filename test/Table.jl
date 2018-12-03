@@ -31,8 +31,14 @@
     @test similar(t) isa typeof(t)
     @test axes(similar(t)) === axes(t)
 
+    @test @inferred(vcat(t))::Table == t
     @test @inferred(vcat(t, t))::Table == Table(a = [1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
+    @test @inferred(vcat(t, t, t))::Table == Table(a = [1,2,3,1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
+
+    @test @inferred(hcat(t))::Table == Table(a = hcat([1; 2; 3]), b = hcat([2.0; 4.0; 6.0]))
     @test @inferred(hcat(t, t))::Table == Table(a = [1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0])
+    @test @inferred(hcat(t, t, t))::Table == Table(a = [1 1 1;2 2 2;3 3 3], b = [2.0 2.0 2.0; 4.0 4.0 4.0; 6.0 6.0 6.0])
+
     @test [t t; t t]::Table == Table(a = [1 1;2 2;3 3;1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0; 2.0 2.0; 4.0 4.0; 6.0 6.0])
     @test @inferred(vec(t))::Table == t
 
