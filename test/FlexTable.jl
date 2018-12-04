@@ -33,12 +33,10 @@
     @test @inferred(vcat(t))::FlexTable{1} == t
     @test @inferred(vcat(t, t))::FlexTable{1} == FlexTable(a = [1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
     @test @inferred(vcat(t, t, t))::FlexTable{1} == FlexTable(a = [1,2,3,1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
-    @test @inferred(vcat(t, t))::FlexTable{1} == FlexTable(a = [1,2,3,1,2,3], b = [2.0, 4.0, 6.0, 2.0, 4.0, 6.0])
 
     @test @inferred(hcat(t))::FlexTable{2} == FlexTable(a = hcat([1; 2; 3]), b = hcat([2.0; 4.0; 6.0]))
     @test @inferred(hcat(t, t))::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0])
     @test @inferred(hcat(t, t, t))::FlexTable{2} == FlexTable(a = [1 1 1;2 2 2;3 3 3], b = [2.0 2.0 2.0; 4.0 4.0 4.0; 6.0 6.0 6.0])
-    @test @inferred(hcat(t, t))::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0])
     
     @test [t t; t t]::FlexTable{2} == FlexTable(a = [1 1;2 2;3 3;1 1;2 2;3 3], b = [2.0 2.0; 4.0 4.0; 6.0 6.0; 2.0 2.0; 4.0 4.0; 6.0 6.0])
     @test @inferred(vec(t))::FlexTable{1} == t
