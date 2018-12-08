@@ -243,24 +243,25 @@ end
 # Private fields are never exposed since they can conflict with column names
 Base.propertynames(t::FlexTable, private::Bool=false) = columnnames(t)
 
-function Base.vcat(t::Union{FlexTable, Table}, t2::Union{FlexTable, Table})
-    return FlexTable{_vcat_ndims(ndims(t), ndims(t2))}(map(vcat, columns(t), columns(t2)))
+
+@inline function Base.vcat(ts::Union{FlexTable, Table}...)
+    return FlexTable{_vcat_ndims(map(ndims, ts)...)}(map(vcat, map(columns, ts)...))
 end
 
-function Base.hcat(t::Union{FlexTable, Table}, t2::Union{FlexTable, Table})
-    return FlexTable{_hcat_ndims(ndims(t), ndims(t2))}(map(hcat, columns(t), columns(t2)))
+@inline function Base.hcat(ts::Union{FlexTable, Table}...)
+    return FlexTable{_hcat_ndims(map(ndims, ts)...)}(map(hcat, map(columns, ts)...))
 end
 
 function Base.hvcat(rows::Tuple{Vararg{Int}}, ts::Union{FlexTable, Table}...)
     return FlexTable(map((cols...,) -> hvcat(rows, cols...), map(columns, ts)...))
 end
 
-@pure function _vcat_ndims(i::Int, j::Int)
-    max(i, j, 1)
+@pure function _vcat_ndims(i::Int...)
+    max(1, i...)
 end
 
-@pure function _hcat_ndims(i::Int, j::Int)
-    max(i, j, 2)
+@pure function _hcat_ndims(i::Int...)
+    max(2, i...)
 end
 
 function Base.vec(t::FlexTable)

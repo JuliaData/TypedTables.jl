@@ -274,13 +274,28 @@ end
 # Private fields are never exposed since they can conflict with column names
 Base.propertynames(t::Table, private::Bool=false) = columnnames(t)
 
-function Base.vcat(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
+
+@inline Base.vcat(t::Table) = Table(map(vcat, columns(t)))
+
+@inline function Base.vcat(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
     return Table(map(vcat, columns(t), columns(t2)))
 end
 
-function Base.hcat(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
+@inline function Base.vcat(t1::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}, ts::Table{<:NamedTuple{names}}...) where {names}
+    return Table(map(vcat, columns(t1), columns(t2), map(columns, ts)...))
+end
+
+
+@inline Base.hcat(t::Table) = Table(map(hcat, columns(t)))
+
+@inline function Base.hcat(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
     return Table(map(hcat, columns(t), columns(t2)))
 end
+
+@inline function Base.hcat(t1::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}, ts::Table{<:NamedTuple{names}}...) where {names}
+    return Table(map(hcat, columns(t1), columns(t2), map(columns, ts)...))
+end
+
 
 function Base.hvcat(rows::Tuple{Vararg{Int}}, tables::Table{<:NamedTuple{names}}...) where {names}
     return Table(map((cols...,) -> hvcat(rows, cols...), map(columns, tables)...))
