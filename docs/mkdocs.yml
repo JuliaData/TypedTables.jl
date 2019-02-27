@@ -37,7 +37,7 @@ pages:
     - Finding data: man/filter.md
     - Reducing data: man/reduce.md
   - Grouping and joining data:
-    - Groupind data: man/group.md
+    - Grouping data: man/group.md
     - Joining data: man/join.md
   - Accelerations:
     - Acceleration indices: man/acceleratedarrays.md
