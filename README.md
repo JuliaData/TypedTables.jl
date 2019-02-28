@@ -13,11 +13,6 @@
 represent an array of `NamedTuple`s. This package is designed to be lightweight,
 easy-to-use and fast, and presents a very minimal new interface to learn.
 
-Data manipulation is possible throught the tools built into Julia (such as `map`, `filter`,
-and `reduce`) and those provide by [SplitApplyCombine.jl](https://github.com/JuliaData/SplitApplyCombine.jl)
-(like `group` and `innerjoin`). You can speed up data analysis tasks with acceleration indices, by using the [AcceleratedArrays.jl](https://github.com/andyferris/AcceleratedArrays.jl) package. This package is integrated the *Tables.jl* interface, and therefore the rest of
-the data ecosystem such as *Query.jl*.
-
 ## Quick Start
 
 It's simple to get started and create a table!
@@ -55,8 +50,7 @@ renamed or replaced. This comes at the cost of type-inferability - it will be sl
 rows of a `FlexTable` in a `for` loop. However, all the higher-level functions and queries will
 still execute at full speed!
 
-## Notes
-
-This rewrite of *TypedTables.jl* is still young, and more functionality will be added
-over time. Be assured that the current provided interface is fully stabilized as it is
-simply the interface provided by an `AbstractVector{<:NamedTuple}`.
+Data manipulation is possible throught the tools built into Julia (such as `map`, `filter`,
+and `reduce`) and those provide by [SplitApplyCombine.jl](https://github.com/JuliaData/SplitApplyCombine.jl)
+(like `group` and `innerjoin`). You can speed up data analysis tasks with acceleration indices, by using the [AcceleratedArrays.jl](https://github.com/andyferris/AcceleratedArrays.jl) package. This package is integrated the *Tables.jl* interface and the rest of
+the data ecosystem, including packages such as [Query.jl](https://github.com/queryverse/Query.jl).

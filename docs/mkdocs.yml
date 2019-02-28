@@ -26,7 +26,8 @@ docs_dir: 'build'
 pages:
   - Home: index.md
   - Quick start tutorial: man/tutorial.md
-  - Table types:
+  - Design overview: man/design.md
+  - Tables types:
     - Table: man/table.md
     - FlexTable: man/flextable.md
   - Data storage:
@@ -41,6 +42,4 @@ pages:
     - Joining data: man/join.md
   - Accelerations:
     - Acceleration indices: man/acceleratedarrays.md
-  - Advanced topics:
-    - Design: man/design.md
   - API reference: man/reference.md
