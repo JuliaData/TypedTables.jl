@@ -2,72 +2,72 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
      <loc>/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/tutorial/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/table/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/flextable/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/data/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/io/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/map/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/filter/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/reduce/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/group/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/join/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/acceleratedarrays/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/design/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>/man/reference/</loc>
-     <lastmod>2019-02-27</lastmod>
+     <lastmod>2019-03-20</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>
