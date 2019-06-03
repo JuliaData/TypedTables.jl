@@ -214,7 +214,7 @@
 <p>Create a column-storage-based <code>Table</code> with column names <code>name1</code>, etc, from arrays <code>array1</code>, etc. The input arrays <code>array1</code>, etc, must share the same dimensionality and indices.</p>
 <p><code>Table</code> itself is an <code>AbstractArray</code> whose elements are <code>NamedTuple</code>s of the form <code>(name1 = first(array1), ...)</code>, etc. Rows of the table are obtained via standard array indexing <code>table[i]</code>, and columns via <code>table.name</code>.</p>
 <p><code>Table</code> differs from <code>FlexTable</code> in that the columns are immutable - you may add, remove, rename and replace entire columns of a <code>FlexTable</code>, but not a <code>Table</code>. However, <code>Table</code> can access and iterate rows in local scope with fast, fully type-inferred code while <code>FlexTable</code> will be more efficient with a higher-order interface.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/Table.jl#L3-L17' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/Table.jl#L3-L17' class='documenter-source'>source</a><br></p>
 <p><a id='TypedTables.FlexTable' href='#TypedTables.FlexTable'>#</a>
 <strong><code>TypedTables.FlexTable</code></strong> &mdash; <em>Type</em>.</p>
 <pre><code>FlexTable(name1 = array1, ...)
@@ -223,7 +223,7 @@
 <p>Create a column-storage-based <code>FlexTable</code> with column names <code>name1</code>, etc, from arrays <code>array1</code>, etc. The input arrays <code>array1</code>, etc, must share the same dimensionality and indices.</p>
 <p><code>FlexTable</code> itself is an <code>AbstractArray</code> whose elements are <code>NamedTuple</code>s of the form <code>(name1 = first(array1), ...)</code>, etc. Rows of the table are obtained via standard array indexing <code>table[i]</code>, and columns via <code>table.name</code>.</p>
 <p><code>FlexTable</code> differs from <code>Table</code> in that the columns are mutable - you may add, remove, rename and replace entire columns of a <code>FlexTable</code>, but not a <code>Table</code>. However, <code>Table</code> can access and iterate rows in local scope with fast, fully type-inferred code while <code>FlexTable</code> will be more efficient with a higher-order interface.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/FlexTable.jl#L3-L17' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/FlexTable.jl#L3-L17' class='documenter-source'>source</a><br></p>
 <p><a id='Reflection-1'></a></p>
 <h2 id="reflection">Reflection</h2>
 <p><a id='Tables.columns' href='#Tables.columns'>#</a>
@@ -232,24 +232,24 @@
 </code></pre>
 
 <p>Convert a <code>Table</code> into a <code>NamedTuple</code> of its columns.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/Table.jl#L75-L79' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/Table.jl#L75-L79' class='documenter-source'>source</a><br></p>
 <pre><code>columns(dataframe::FlexTable)
 </code></pre>
 
 <p>Convert a <code>FlexTable</code> into a <code>NamedTuple</code> of its columns.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/FlexTable.jl#L43-L47' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/FlexTable.jl#L43-L47' class='documenter-source'>source</a><br></p>
 <p><a id='TypedTables.columnnames' href='#TypedTables.columnnames'>#</a>
 <strong><code>TypedTables.columnnames</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>columnnames(table)
 </code></pre>
 
 <p>Return a tuple of the column names of a <code>Table</code>.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/Table.jl#L93-L97' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/Table.jl#L93-L97' class='documenter-source'>source</a><br></p>
 <pre><code>columnnames(table)
 </code></pre>
 
 <p>Return a tuple of the column names of a <code>Table</code>.</p>
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/FlexTable.jl#L67-L71' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/FlexTable.jl#L67-L71' class='documenter-source'>source</a><br></p>
 <p><a id='Convenience-macros-1'></a></p>
 <h2 id="convenience-macros">Convenience macros</h2>
 <p>These macros return <em>functions</em> that can be applied to tables and rows.</p>
@@ -268,7 +268,7 @@ julia&gt; @Compute($a + $b)(nt)
 3.0
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/properties.jl#L93-L111' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/properties.jl#L93-L111' class='documenter-source'>source</a><br></p>
 <p><a id='TypedTables.@Select' href='#TypedTables.@Select'>#</a>
 <strong><code>TypedTables.@Select</code></strong> &mdash; <em>Macro</em>.</p>
 <pre><code>@Select(...)
@@ -285,7 +285,7 @@ julia&gt; @Select(a, sum_a_b = $a + $b)(nt)
 (a = 1, sum_a_b = 3.0)
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/97fd36e97cec17510733b1c82f5707f5adffef62/src/properties.jl#L252-L275' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/FugroRoames/TypedTables.jl/blob/59773eba5725dea94ff182996dfe8cdf8c5d0e4c/src/properties.jl#L252-L275' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>
