@@ -292,7 +292,7 @@ Dict{String,Float64} with 4 entries:
 <h2 id="summarizing-groups-with-groupreduce">Summarizing groups with <code>groupreduce</code></h2>
 <p>Sometimes we can perform a split-apply-combine strategy by streaming just once over the data, and reducing over the groups. The <code>groupreduce</code> function lets us do this, and can be more performant than alternative approaches.</p>
 <p>For example, we can sum up the ages corresponding to each family name.</p>
-<pre><code class="julia">julia&gt; groupreduce(getproperty(:lastname), +, getproperty(:age), t)
+<pre><code class="julia">julia&gt; groupreduce(getproperty(:lastname), getproperty(:age), +, t)
 Dict{String,Int64} with 4 entries:
   &quot;King&quot;     =&gt; 54
   &quot;Williams&quot; =&gt; 83
