@@ -105,7 +105,7 @@ Sometimes we can perform a split-apply-combine strategy by streaming just once o
 For example, we can sum up the ages corresponding to each family name.
 
 ```julia
-julia> groupreduce(getproperty(:lastname), +, getproperty(:age), t)
+julia> groupreduce(getproperty(:lastname), getproperty(:age), +, t)
 Dict{String,Int64} with 4 entries:
   "King"     => 54
   "Williams" => 83
