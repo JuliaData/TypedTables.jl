@@ -2,7 +2,7 @@
 #   http://www.mkdocs.org/user-guide/configuration/
 
 site_name:        TypedTables.jl
-repo_url:         https://github.com/FugroRoames/TypedTables.jl
+repo_url:         https://github.com/JuliaData/TypedTables.jl
 site_description: TypedTables - simple, fast, column-based storage for data analysis in Julia
 site_author:      Andy Ferris
 
