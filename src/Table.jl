@@ -199,6 +199,35 @@ function Base.append!(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{name
     return t
 end
 
+_asnamedtuple(T) = data -> _asnamedtuple(T, data)
+function _asnamedtuple(::Type{T}, data) where {names, T<:NamedTuple{names}}
+    if data isa NamedTuple
+        return T(data)
+    else
+        return T(Tuple(getproperty(data, n) for n in names))
+    end
+end
+
+function append_columnaccess!(t::Table, t2)
+    cols = _asnamedtuple(NamedTuple{columnnames(t)}, columns(t2))
+    map(append!, columns(t), cols)
+    return t
+end
+
+append_rowaccess!(t::Table, t2) =
+    mapfoldl(_asnamedtuple(NamedTuple{columnnames(t)}), push!, Tables.rows(t2); init = t)
+
+function Base.append!(t::Table, t2)
+    if Tables.istable(t2)
+        if Tables.columnaccess(t2)
+            return append_columnaccess!(t, t2)
+        elseif Tables.rowaccess(t2)
+            return append_rowaccess!(t, t2)
+        end
+    end
+    throw(ArgumentError(string("Cannot handle non-table type ", typeof(t2))))
+end
+
 function Base.popfirst!(t::Table)
     return map(popfirst!, columns(t))
 end

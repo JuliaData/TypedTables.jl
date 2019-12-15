@@ -188,6 +188,21 @@
         @test isequal(Table(t |> rowtable), t)
     end
 
+    @testset "append!(_, ::$(typeof(t2)))" for t2 in Any[
+        [(a=3, b=4)],
+        (a=[3], b=[4]),
+    ]
+        t = Table(a=[1], b=[2])
+        @test append!(t, t2) == Table(a = [1, 3], b = [2, 4])
+    end
+
+    @testset "append! error handling" begin
+        @test_throws(
+            ArgumentError("Cannot handle non-table type Nothing"),
+            append!(Table(a = [1], b = [2]), nothing)
+        )
+    end
+
     @testset "group" begin
         t = Table(a = [1,2,1], b = [2.0, 4.0, 6.0])
         out = group(getproperty(:a), t)
