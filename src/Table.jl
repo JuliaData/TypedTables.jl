@@ -214,18 +214,17 @@ function append_columnaccess!(t::Table, t2)
     return t
 end
 
-append_rowaccess!(t::Table, t2) =
-    mapfoldl(_asnamedtuple(NamedTuple{columnnames(t)}), push!, Tables.rows(t2); init = t)
+append_rows!(t::Table, rows) =
+    mapfoldl(_asnamedtuple(NamedTuple{columnnames(t)}), push!, rows; init = t)
 
-function Base.append!(t::Table, t2)
-    if Tables.istable(t2)
-        if Tables.columnaccess(t2)
-            return append_columnaccess!(t, t2)
-        elseif Tables.rowaccess(t2)
-            return append_rowaccess!(t, t2)
-        end
+isrowiterator(t) =
+    Tables.istable(t) && Tables.rowaccess(t) && Tables.rows(t) === t
+
+function Base.append!(t::Table, rows)
+    if isrowiterator(rows) && Tables.columnaccess(rows)
+        return append_columnaccess!(t, rows)
     end
-    throw(ArgumentError(string("Cannot handle non-table type ", typeof(t2))))
+    return append_rows!(t, rows)
 end
 
 function Base.popfirst!(t::Table)

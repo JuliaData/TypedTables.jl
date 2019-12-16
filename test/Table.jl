@@ -188,19 +188,24 @@
         @test isequal(Table(t |> rowtable), t)
     end
 
-    @testset "append!(_, ::$(typeof(t2)))" for t2 in Any[
+    @testset "append!(_, rows(::$(typeof(t2))))" for t2 in Any[
         [(a=3, b=4)],
         (a=[3], b=[4]),
     ]
         t = Table(a=[1], b=[2])
-        @test append!(t, t2) == Table(a = [1, 3], b = [2, 4])
+        @test append!(t, Tables.rows(t2)) == Table(a = [1, 3], b = [2, 4])
     end
 
     @testset "append! error handling" begin
-        @test_throws(
-            ArgumentError("Cannot handle non-table type Nothing"),
+        err = nothing
+        @test try
             append!(Table(a = [1], b = [2]), nothing)
-        )
+            false
+        catch err
+            true
+        end
+        @test err isa MethodError
+        @test err.f === iterate
     end
 
     @testset "group" begin
