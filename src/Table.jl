@@ -66,8 +66,7 @@ end
     end
 end
 
-Tables.istable(::Type{<:Table}) = true
-Tables.rowaccess(::Type{<:Table}) = true
+Tables.isrowtable(::Type{<:Table}) = true
 Tables.columnaccess(::Type{<:Table}) = true
 Tables.schema(::Table{T}) where {T} = Tables.Schema(T)
 Tables.materializer(::Table) = Table
@@ -217,11 +216,8 @@ end
 append_rows!(t::Table, rows) =
     mapfoldl(_asnamedtuple(NamedTuple{columnnames(t)}), push!, rows; init = t)
 
-isrowiterator(t) =
-    Tables.istable(t) && Tables.rowaccess(t) && Tables.rows(t) === t
-
 function Base.append!(t::Table, rows)
-    if isrowiterator(rows) && Tables.columnaccess(rows)
+    if Tables.isrowtable(rows) && Tables.columnaccess(rows)
         return append_columnaccess!(t, rows)
     end
     return append_rows!(t, rows)
