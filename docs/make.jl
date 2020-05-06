@@ -10,7 +10,7 @@ makedocs(
 # for more information.
 deploydocs(
     deps = Deps.pip("mkdocs", "python-markdown-math"),
-    repo = "github.com/FugroRoames/TypedTables.jl.git",
+    repo = "github.com/JuliaData/TypedTables.jl.git",
     julia = "1.0",
     osname = "linux"
 )

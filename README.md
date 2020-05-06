@@ -2,12 +2,12 @@
 
 *Simple, fast, column-based storage for data analysis in Julia*
 
-[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://FugroRoames.github.io/TypedTables.jl/stable)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://FugroRoames.github.io/TypedTables.jl/latest)
-[![Build Status](https://travis-ci.org/FugroRoames/TypedTables.jl.svg?branch=master)](https://travis-ci.org/FugroRoames/TypedTables.jl)
+[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaData.github.io/TypedTables.jl/stable)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaData.github.io/TypedTables.jl/latest)
+[![Build Status](https://travis-ci.org/JuliaData/TypedTables.jl.svg?branch=master)](https://travis-ci.org/JuliaData/TypedTables.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/t6jor6wh5j8y8urt?svg=true)](https://ci.appveyor.com/project/andyferris/typedtables-jl)
-[![Coverage Status](https://coveralls.io/repos/github/FugroRoames/TypedTables.jl/badge.svg?branch=master)](https://coveralls.io/github/FugroRoames/TypedTables.jl?branch=master)
-[![codecov.io](http://codecov.io/github/FugroRoames/TypedTables.jl/coverage.svg?branch=master)](http://codecov.io/github/FugroRoames/TypedTables.jl?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/JuliaData/TypedTables.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaData/TypedTables.jl?branch=master)
+[![codecov.io](http://codecov.io/github/JuliaData/TypedTables.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaData/TypedTables.jl?branch=master)
 
 *TypedTables.jl* provides two column-based storage containers: `Table` and `FlexTable`, both of which
 represent an array of `NamedTuple`s. This package is designed to be lightweight,
