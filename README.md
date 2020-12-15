@@ -6,7 +6,6 @@
 [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaData.github.io/TypedTables.jl/latest)
 [![CI](https://github.com/JuliaData/TypedTables.jl/workflows/CI/badge.svg)](https://github.com/JuliaData/TypedTables.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/JuliaData/TypedTables.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaData/TypedTables.jl)
-[![deps](https://juliahub.com/docs/TypedTables/deps.svg)](https://juliahub.com/ui/Packages/TypedTables/yjnue?t=2)
 [![deps](https://juliahub.com/docs/TypedTables/deps.svg)](https://juliahub.com/ui/Packages/TypedTables/NU69s?t=2)
 [![version](https://juliahub.com/docs/TypedTables/version.svg)](https://juliahub.com/ui/Packages/TypedTables/NU69s)
 [![pkgeval](https://juliahub.com/docs/TypedTables/pkgeval.svg)](https://juliahub.com/ui/Packages/TypedTables/NU69s)
