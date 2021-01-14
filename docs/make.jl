@@ -13,4 +13,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/JuliaData/TypedTables.jl",
+    devbranch = "main"
 )
