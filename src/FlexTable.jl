@@ -283,19 +283,19 @@ Base.mapreduce(f, op, t::FlexTable; kwargs...) = mapreduce(f, op, rows(t); kwarg
 
 Base.filter(f, t::FlexTable{N}) where {N} = FlexTable(filter(f, rows(t)))::FlexTable{N}
 
-SplitApplyCombine.mapview(f, t::FlexTable{N}) where {N} = _flex(mapview(f, rows(t)))::AbstractArray{<:Any, N}
-SplitApplyCombine.mapview(f, t::FlexTable{N}, t2) where {N} = _flex(mapview(f, rows(t), t2))::AbstractArray{<:Any, N}
-SplitApplyCombine.mapview(f, t, t2::FlexTable{N}) where {N} = _flex(mapview(f, t, rows(t2)))::AbstractArray{<:Any, N}
-SplitApplyCombine.mapview(f, t::FlexTable{N}, t2::FlexTable{N}) where {N} = _flex(mapview(f, rows(t), rows(t2)))::AbstractArray{<:Any, N}
+SplitApplyCombine.mapview(f::Union{Function, Type}, t::FlexTable{N}) where {N} = _flex(mapview(f, rows(t)))::AbstractArray{<:Any, N}
+SplitApplyCombine.mapview(f::Union{Function, Type}, t::FlexTable{N}, t2) where {N} = _flex(mapview(f, rows(t), t2))::AbstractArray{<:Any, N}
+SplitApplyCombine.mapview(f::Union{Function, Type}, t, t2::FlexTable{N}) where {N} = _flex(mapview(f, t, rows(t2)))::AbstractArray{<:Any, N}
+SplitApplyCombine.mapview(f::Union{Function, Type}, t::FlexTable{N}, t2::FlexTable{N}) where {N} = _flex(mapview(f, rows(t), rows(t2)))::AbstractArray{<:Any, N}
 
 SplitApplyCombine.group(by, f, t::FlexTable) = group(by, f, rows(t))
 SplitApplyCombine.groupview(by, f, t::FlexTable) = groupview(by, f, rows(t))
 SplitApplyCombine.groupinds(by, t::FlexTable) = groupinds(by, rows(t))
 SplitApplyCombine.groupreduce(by, f, op, t::FlexTable; kwargs...) = groupreduce(by, f, op, rows(t); kwargs...)
 
-SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1::FlexTable, t2) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), t2))
-SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, t1, rows(t2)))
-SplitApplyCombine.innerjoin(lkey, rkey, f, cmp, t1::FlexTable, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), rows(t2)))
+SplitApplyCombine.innerjoin(lkey::Union{Function, Type}, rkey::Union{Function, Type}, f::Union{Function, Type}, cmp::Union{Function, Type}, t1::FlexTable, t2) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), t2))
+SplitApplyCombine.innerjoin(lkey::Union{Function, Type}, rkey::Union{Function, Type}, f::Union{Function, Type}, cmp::Union{Function, Type}, t1, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, t1, rows(t2)))
+SplitApplyCombine.innerjoin(lkey::Union{Function, Type}, rkey::Union{Function, Type}, f::Union{Function, Type}, cmp::Union{Function, Type}, t1::FlexTable, t2::FlexTable) = _flex(innerjoin(lkey, rkey, f, cmp, rows(t1), rows(t2)))
 
 Base.:(==)(t1::FlexTable{N}, t2::AbstractArray{<:Any,N}) where {N} = (rows(t1) == t2)
 Base.:(==)(t1::AbstractArray{<:Any,N}, t2::FlexTable{N}) where {N} = (t1 == rows(t2))
