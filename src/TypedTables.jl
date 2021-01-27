@@ -3,12 +3,13 @@ module TypedTables
 using Unicode
 using Tables
 using SplitApplyCombine
+using Dictionaries
 
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
 export @Compute, @Select
-export Table, FlexTable, columns, rows, columnnames, showtable
+export Table, FlexTable, ArrayTable, columns, rows, columnnames, showtable
 
 # Resultant element type of given column arrays
 @generated function _eltypes(a::NamedTuple{names, T}) where {names, T <: Tuple{Vararg{AbstractArray}}}
@@ -19,7 +20,7 @@ export Table, FlexTable, columns, rows, columnnames, showtable
     return NamedTuple{names, Tuple{Ts...}}
 end
 
-_ndims(a::NamedTuple{<:Any, T}) where {T} = _ndims(T)
+_ndims(::NamedTuple{<:Any, T}) where {T} = _ndims(T)
 _ndims(::Type{<:Tuple{Vararg{AbstractArray{<:Any, n}}}}) where {n} = n
 
 # The following code causes newer versions of Julia to hang in precompilation
@@ -42,6 +43,7 @@ end
 include("properties.jl")
 include("Table.jl")
 include("FlexTable.jl")
+include("ArrayTable.jl")
 include("columnops.jl")
 include("show.jl")
 
