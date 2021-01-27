@@ -165,7 +165,7 @@ end
 end
 
 # empty
-Base.empty(t::Table) = empty(t, eltype(t))
+Base.empty(t::Table{<:Any, 1}) = empty(t, eltype(t))
 @generated function Base.empty(t::Table{<:NamedTuple{oldnames}, 1}, ::Type{NamedTuple{names, T}}) where {oldnames, names, T <: Tuple}
     if isempty(names)
         return :(empty(first(columns(t)), NamedTuple{(),Tuple{}}))
@@ -175,6 +175,21 @@ Base.empty(t::Table) = empty(t, eltype(t))
     # just be similar to the first one.
     exprs = [name ∈ oldnames ? :(empty(getproperty(t, $(QuoteNode(name))), $ElType)) :
                                :(empty(first(columns(t)), $ElType)) for (name, ElType) in zip(names, T.parameters)]
+    return :(Table(NamedTuple{names}(tuple($(exprs...)))))
+end
+
+
+# emptymutable
+Base.emptymutable(t::Table{<:Any, 1}) = Base.emptymutable(t, eltype(t))
+@generated function Base.emptymutable(t::Table{<:NamedTuple{oldnames}, 1}, ::Type{NamedTuple{names, T}}) where {oldnames, names, T <: Tuple}
+    if isempty(names)
+        return :(Base.emptymutable(first(columns(t)), NamedTuple{(),Tuple{}}))
+    end
+
+    # Try and be clever - if the name is preserved, we preserve the similar type, otherwise
+    # just be similar to the first one.
+    exprs = [name ∈ oldnames ? :(Base.emptymutable(getproperty(t, $(QuoteNode(name))), $ElType)) :
+                               :(Base.emptymutable(first(columns(t)), $ElType)) for (name, ElType) in zip(names, T.parameters)]
     return :(Table(NamedTuple{names}(tuple($(exprs...)))))
 end
 
