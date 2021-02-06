@@ -98,7 +98,7 @@ end
 
 function showtable(io::IO, @nospecialize t)
     row_inds = keys(t)
-    col_inds = columnnames(t)
+    col_inds = collect(columnnames(t))
     nrows = length(row_inds)::Int
     nrowstring = join(map(string, size(t)), "×")
     ncols = length(col_inds)::Int
