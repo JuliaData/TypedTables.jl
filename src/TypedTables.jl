@@ -3,6 +3,7 @@ module TypedTables
 using Unicode
 using Tables
 using SplitApplyCombine
+import Adapt
 
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows

@@ -310,3 +310,6 @@ Base.isless(t1::AbstractVector, t2::FlexTable{1}) = isless(t1, rows(t2))
 Base.isless(t1::FlexTable{1}, t2::FlexTable{1}) = isless(rows(t1), rows(t2))
 
 Base.hash(t::FlexTable, h::UInt) = hash(rows(t), h)
+
+
+Adapt.adapt_structure(to, t::FlexTable{N}) where N = FlexTable{N}(; Adapt.adapt(to, getfield(t, :data))...)
