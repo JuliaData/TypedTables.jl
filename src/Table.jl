@@ -319,3 +319,6 @@ end
 function Base.vec(t::Table{<:NamedTuple{names}}) where {names}
     return Table(map(vec, columns(t)))
 end
+
+
+Adapt.adapt_structure(to, t::Table) = Table(; Adapt.adapt(to, getfield(t, :data))...)

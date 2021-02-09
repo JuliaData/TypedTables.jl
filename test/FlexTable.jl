@@ -224,4 +224,12 @@
                              customer_id = [2, 2, 3, 3],
                              items = ["Socks", "Tie", "Shirt", "Underwear"])
     end
+
+    @testset "adapt" begin
+        tbl = FlexTable(a = randn(Float32, 10^2), b = rand(Float64, 10^2), c = rand(1:100, 10^2))
+        @test typeof(@inferred adapt(TestArrayConverter(), tbl)) == typeof(tbl)
+        adapted_tbl = adapt(TestArrayConverter(), tbl)
+        @test propertynames(adapted_tbl) == propertynames(tbl)
+        @test adapted_tbl == tbl
+    end
 end
