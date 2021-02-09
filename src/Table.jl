@@ -66,8 +66,7 @@ end
     end
 end
 
-Tables.istable(::Type{<:Table}) = true
-Tables.rowaccess(::Type{<:Table}) = true
+Tables.isrowtable(::Type{<:Table}) = true
 Tables.columnaccess(::Type{<:Table}) = true
 Tables.schema(::Table{T}) where {T} = Tables.Schema(T)
 Tables.materializer(::Table) = Table
@@ -197,6 +196,31 @@ end
 function Base.append!(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
     map(append!, columns(t), columns(t2))
     return t
+end
+
+_asnamedtuple(T) = data -> _asnamedtuple(T, data)
+function _asnamedtuple(::Type{T}, data) where {names, T<:NamedTuple{names}}
+    if data isa NamedTuple
+        return T(data)
+    else
+        return T(Tuple(getproperty(data, n) for n in names))
+    end
+end
+
+function append_columnaccess!(t::Table, t2)
+    cols = _asnamedtuple(NamedTuple{columnnames(t)}, columns(t2))
+    map(append!, columns(t), cols)
+    return t
+end
+
+append_rows!(t::Table, rows) =
+    mapfoldl(_asnamedtuple(NamedTuple{columnnames(t)}), push!, rows; init = t)
+
+function Base.append!(t::Table, rows)
+    if Tables.isrowtable(rows) && Tables.columnaccess(rows)
+        return append_columnaccess!(t, rows)
+    end
+    return append_rows!(t, rows)
 end
 
 function Base.popfirst!(t::Table)
