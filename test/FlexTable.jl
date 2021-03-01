@@ -123,6 +123,10 @@
     deleteat!(t3, 4)
     @test t3 == Table(a = [3,4,5], b = [3.0, 4.0, 5.0])
 
+    @test length(resize!(FlexTable(a=[]), 100)) == 100
+
+    @test sort(FlexTable(a=collect(100:-1:1))) == FlexTable(a=1:100)
+
     # setproperty!
     t4 = FlexTable(a = [1,2,3])
     t4.b = [2.0, 4.0, 6.0]

@@ -117,6 +117,10 @@
     deleteat!(t3, 4)
     @test t3 == Table(a = [3,4,5], b = [3.0, 4.0, 5.0])
 
+    @test length(resize!(Table(a=[]), 100)) == 100
+
+    @test sort(Table(a=collect(100:-1:1))) == Table(a=1:100)
+
     @testset "Merging Tables" begin
         t1 = Table(a = [1,2,3],)
         t2 = Table(b = [2.0, 4.0, 6.0],)
