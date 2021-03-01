@@ -212,6 +212,11 @@ end
 
 # TODO splicing in an `AbstractArray{<:NamedTuple}` should be possible...
 
+function Base.resize!(t::FlexTable, i::Integer)
+    foreach(col -> resize!(col, i), columns(t))
+    return t
+end
+
 # Speedups for column-based storage
 
 function Base.getindex(t::FlexTable, inds::Union{AbstractArray, Colon}...)
