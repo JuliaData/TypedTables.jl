@@ -149,7 +149,7 @@ end
 # Ambiguities...
 @inline Base.similar(t::Table, ::Type{NamedTuple{names, T}}) where {names, T <: Tuple} = similar(t, NamedTuple{names, T}, axes(t))
 @inline Base.similar(t::Table, ::Type{NamedTuple{names, T}}, dims::Union{Integer, AbstractUnitRange}...) where {names, T <: Tuple} = _similar(t, NamedTuple{names, T}, dims)
-@inline Base.similar(t::Table, ::Type{NamedTuple{names, T}}, dims::Tuple{Vararg{Int64,N}}) where {names, T <: Tuple, N} = _similar(t, NamedTuple{names, T}, dims)
+@inline Base.similar(t::Table, ::Type{NamedTuple{names, T}}, dims::Tuple{Vararg{Int, N}}) where {names, T <: Tuple, N} = _similar(t, NamedTuple{names, T}, dims)
 @inline Base.similar(t::Table, ::Type{NamedTuple{names, T}}, dims::Tuple{Union{Integer, OneTo},Vararg{Union{Integer, OneTo}}}) where {names, T <: Tuple} = _similar(t, NamedTuple{names, T}, dims)
 
 @generated function _similar(t::Table{<:NamedTuple{oldnames}}, ::Type{NamedTuple{names, T}}, newaxes) where {oldnames, names, T <: Tuple}
