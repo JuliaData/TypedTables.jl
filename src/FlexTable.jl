@@ -124,11 +124,11 @@ end
 
 # Ambiguities...
 @inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims::Union{Integer, AbstractUnitRange}...) = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
-@inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims::Tuple{Vararg{Int64,N}}) where {N} = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims::Tuple{Vararg{Int, N}}) where {N} = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
 @inline Base.similar(t::FlexTable, ::Type{NamedTuple}, dims::Tuple{Union{Integer, OneTo},Vararg{Union{Integer, OneTo}}}) = FlexTable{__ndims(dims)}(similar(Table(t), _eltypes(columns(t)), dims))
 
 @inline Base.similar(t::FlexTable, ::Type{NamedTuple{names, T}}, dims::Union{Integer, AbstractUnitRange}...) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
-@inline Base.similar(t::FlexTable, ::Type{NamedTuple{names, T}}, dims::Tuple{Vararg{Int64,N}}) where {N, names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
+@inline Base.similar(t::FlexTable, ::Type{NamedTuple{names, T}}, dims::Tuple{Vararg{Int, N}}) where {N, names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
 @inline Base.similar(t::FlexTable, ::Type{NamedTuple{names, T}}, dims::Tuple{Union{Integer, OneTo},Vararg{Union{Integer, OneTo}}}) where {names, T} = FlexTable{__ndims(dims)}(similar(Table(t), NamedTuple{names, T}, dims))
 
 @inline __ndims(::Integer) = 1
