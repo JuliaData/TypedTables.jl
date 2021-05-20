@@ -327,3 +327,27 @@ end
 
 
 Adapt.adapt_structure(to, t::Table) = Table(; Adapt.adapt(to, getfield(t, :data))...)
+
+"""
+    select(table::Table, selectedcolumns...)::Table
+
+Returns a new `Table` with only the selected columns in that order. Throws an error if `getproperty` can't find the requested column(s) in `table`.
+"""
+function select(table::Table, selectedcolumns...)::Table
+    
+    if length(selectedcolumns) < 1
+        error("Specify at least 1 column.")
+    end
+
+    Table(NamedTuple{ selectedcolumns }( getproperty.( Ref(table), selectedcolumns ) ))
+end
+
+"""
+    dropcolumns(table::Table, dropcolumns...)::Table
+
+Returns a new `Table` or `FlexTable`, based on `table` without the columns to be dropped.
+"""
+function dropcolumns(table::Table, dropcolumns...)::Table
+    keepcolumns = filter(c -> !(c in dropcolumns), propertynames(table))
+    select(table, keepcolumns...)
+end

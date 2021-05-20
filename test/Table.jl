@@ -1,4 +1,19 @@
 @testset "Table" begin
+
+    @testset "Selecting and dropping" begin
+        table = Table(a = [1,2,3], b = ["1","2","3"], c = [1.0, 2.0, 3.0])
+        @test table isa Table
+        @test select(table, :b) == Table(b = table.b)
+        @test select(table, :c, :b, :a) == Table(c = table.c, b = table.b, a = table.a)
+
+        @test dropcolumns(table, :b) == Table(a = table.a, c = table.c)
+        @test dropcolumns(table) == table
+
+        @test_throws Exception select(table)
+        @test_throws Exception select(table, :not_there)
+        @test_throws Exception select(table, :a, :a)    
+    end
+
     t = @inferred(Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0]))::Table
 
     @test Table(t) == t

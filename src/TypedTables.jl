@@ -9,7 +9,7 @@ using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
 export @Compute, @Select
-export Table, FlexTable, columns, rows, columnnames, showtable
+export Table, FlexTable, columns, rows, columnnames, showtable, select, dropcolumns
 
 # Resultant element type of given column arrays
 @generated function _eltypes(a::NamedTuple{names, T}) where {names, T <: Tuple{Vararg{AbstractArray}}}
