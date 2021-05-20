@@ -15,7 +15,7 @@ rename and replace entire columns of a `FlexTable`, but not a `Table`. However, 
 access and iterate rows in local scope with fast, fully type-inferred code while `FlexTable`
 will be more efficient with a higher-order interface.
 """
-struct Table{T <: NamedTuple, N, Data <: NamedTuple{<:Any, <:Tuple{Vararg{AbstractArray{<:Any,N}}}}} <: AbstractArray{T, N}
+struct Table{T <: NamedTuple, N, Data <: Union{Nothing, NamedTuple{<:Any, <:Tuple{Vararg{AbstractArray{<:Any,N}}}}}} <: AbstractArray{T, N}
     data::Data
 
     # Inner constructor, to compare axes?
@@ -304,3 +304,12 @@ end
 function Base.vec(t::Table{<:NamedTuple{names}}) where {names}
     return Table(map(vec, columns(t)))
 end
+
+# Specialize for empty table of type `Union{}`
+const EmptyTable{N} = Table{Union{}, N, Nothing}
+Base.empty(::Table{<:Any, 1}, ::Type{Union{}}) = EmptyTable{1}(nothing)
+Base.size(::EmptyTable{N}) where {N} = ntuple(i -> 0, Val(N))
+@inline Base.axes(t::EmptyTable{N}) where {N} = ntuple(i -> Base.OneTo(0), Val(N))
+@inline Base.IndexStyle(t::EmptyTable) = IndexLinear()
+@inline columns(::EmptyTable) = NamedTuple()
+@inline columnnames(::EmptyTable) = ()

@@ -107,6 +107,9 @@ function showtable(io::IO, @nospecialize t)
 
     typename = typeof(t).name.name
     print(io, "$typename with $ncols column$(ncols == 1 ? "" : "s") and $nrowstring row$(nrows == 1 ? "" : "s")")
+    if ncols == 0 && nrows == 0
+        return nothing
+    end
 
     max_show_rows = displaysize(io)[1] - 7
 
