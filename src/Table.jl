@@ -21,7 +21,7 @@ struct Table{T <: NamedTuple, N, Data <: NamedTuple{<:Any, <:Tuple{Vararg{Abstra
     # Inner constructor, to compare axes?
 end
 
-Table(ts...; kwargs...) = _table(removenothings(merge(_columns(ts...), kwargs.data)))
+Table(ts...; kwargs...) = _table(removenothings(merge(_columns(ts...), values(kwargs))))
 
 function Table{NamedTuple{names,T}}() where {names, T<:Tuple}
     # TODO we can make this type-stable.
