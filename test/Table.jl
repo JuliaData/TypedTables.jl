@@ -53,7 +53,7 @@
          2 │ 2  4.0
          3 │ 3  6.0"""
 
-    @test @inferred(TypedTables.getproperties(:b, :a)(t))::Table == Table(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
+    @test @inferred(getproperties((:b, :a))(t))::Table == Table(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
 
     @test t == t
     @test isequal(t, t)
@@ -141,10 +141,10 @@
         @test @inferred(filter(getproperty(:c), t))::Table == Table(a = [1,3], b = [2.0, 6.0], c = [true, true])
         @test @inferred(findall(getproperty(:c), t))::Vector{Int} == [1, 3]
 
-        @test @inferred(map(TypedTables.getproperties(:a), t))::Table == Table(a = [1,2,3])
-        @test @inferred(mapview(TypedTables.getproperties(:a), t))::Table == Table(a = [1,2,3])
-        @test @inferred(broadcast(TypedTables.getproperties(:a), t))::Table == Table(a = [1,2,3])
-        @test @inferred(mapreduce(TypedTables.getproperties(:a), (acc, row) -> acc + row.a, t; init = 0)) === 6
+        @test @inferred(map(getproperties((:a,)), t))::Table == Table(a = [1,2,3])
+        @test @inferred(mapview(getproperties((:a,)), t))::Table == Table(a = [1,2,3])
+        @test @inferred(broadcast(getproperties((:a,)), t))::Table == Table(a = [1,2,3])
+        @test @inferred(mapreduce(getproperties((:a,)), (acc, row) -> acc + row.a, t; init = 0)) === 6
     end
 
     @testset "@Select and @Compute on Tables" begin

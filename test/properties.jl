@@ -1,8 +1,19 @@
 @testset "Property interface" begin
-    nt = (a=1,b=2.0,c=false)
-    @test @inferred(getproperty(:b)(nt)) === 2.0
+    nt = (a=1, b=2.0, c=false, d=:abc)
 
-    @test @inferred(TypedTables.getproperties(:b)(nt)) === (b = 2.0,)
+    @test @inferred((x -> getproperty(:b)(x))(nt)) === 2.0
+
+    @test @inferred((x -> getproperties(x, (:a, :c)))(nt)) === (a = 1, c = false)
+    @test @inferred((x -> getproperties((:a, :c))(x))(nt)) === (a = 1, c = false)
+
+    if VERSION >= v"1.1" 
+        @test @inferred((x -> deleteproperty(x, :b))(nt)) === (a = 1, c = false, d = :abc)
+        @test @inferred((x -> deleteproperties(x, (:b, :d)))(nt)) === (a = 1, c = false)
+    else
+        # Inference doesn't seem to handle this on Julia 1.0 (but can on 1.1)
+        @test (x -> deleteproperty(x, :b))(nt) === (a = 1, c = false, d = :abc)
+        @test (x -> deleteproperties(x, (:b, :d)))(nt) === (a = 1, c = false)
+    end
 
     c1 = @Compute($b)
     @test c1 isa TypedTables.GetProperty

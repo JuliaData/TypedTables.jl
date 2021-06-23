@@ -8,7 +8,7 @@ import Adapt
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
-export @Compute, @Select
+export @Compute, @Select, getproperties, deleteproperty, deleteproperties
 export Table, FlexTable, columns, rows, columnnames, showtable
 
 # Resultant element type of given column arrays
@@ -20,7 +20,7 @@ export Table, FlexTable, columns, rows, columnnames, showtable
     return NamedTuple{names, Tuple{Ts...}}
 end
 
-_ndims(a::NamedTuple{<:Any, T}) where {T} = _ndims(T)
+_ndims(::NamedTuple{<:Any, T}) where {T} = _ndims(T)
 _ndims(::Type{<:Tuple{Vararg{AbstractArray{<:Any, n}}}}) where {n} = n
 
 # The following code causes newer versions of Julia to hang in precompilation
@@ -39,6 +39,10 @@ if VERSION < v"1.2.0-DEV.291"
         end
     end
 end
+
+# Apparently by default this is slower than necessary because we go through generic introspection.
+# TODO - we should probably make a PR for Base.
+Base.propertynames(::NamedTuple{names}) where {names} = names
 
 include("properties.jl")
 include("Table.jl")
