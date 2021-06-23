@@ -3,12 +3,13 @@
 *Simple, fast, column-based storage for data analysis in Julia*
 
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaData.github.io/TypedTables.jl/stable)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaData.github.io/TypedTables.jl/latest)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaData.github.io/TypedTables.jl/dev)
 [![CI](https://github.com/JuliaData/TypedTables.jl/workflows/CI/badge.svg)](https://github.com/JuliaData/TypedTables.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/JuliaData/TypedTables.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaData/TypedTables.jl)
 [![deps](https://juliahub.com/docs/TypedTables/deps.svg)](https://juliahub.com/ui/Packages/TypedTables/NU69s?t=2)
 [![version](https://juliahub.com/docs/TypedTables/version.svg)](https://juliahub.com/ui/Packages/TypedTables/NU69s)
 [![pkgeval](https://juliahub.com/docs/TypedTables/pkgeval.svg)](https://juliahub.com/ui/Packages/TypedTables/NU69s)
+
 
 *TypedTables.jl* provides two column-based storage containers: `Table` and `FlexTable`, both of which
 represent an array of `NamedTuple`s. This package is designed to be lightweight,

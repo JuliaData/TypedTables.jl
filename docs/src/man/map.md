@@ -130,6 +130,97 @@ While this operation may seem pointless (it's a lot less direct than `t.name`, a
 
 A naive implementation of this would be to iterate the rows and *then* project down to just the column of interest. For efficiency, functions like `map` (and `group`, `innerjoin`, etc) will know they can first project a `Table` or `FlexTable` to just that column, before continuing - making the operations significantly faster.
 
+## `getproperties`
+
+If we wish to get more than one column, to subset our data or to create a multi-column group or join key, we can use
+the `getproperties` function, which works like `getproperty` but accepts a tuple of `Symbol`s for the column names.
+This works well on rows or tables.
+```
+julia> getproperties((a=1, b=2, c=3), (:a, :c))
+(a = 1, c = 3)
+```
+
+By specifying just column names you can get the a curried function, as for `getproperty`. Even with just a single column selected, this function preserves the column names, in contrast to `getproperty`. For example:
+```
+julia> map(getproperties((:name,)), t)
+Table with 2 columns and 3 rows:
+     name
+   ┌────────
+ 1 │ Alice
+ 2 │ Bob
+ 3 │ Charlie
+```
+
+### `deleteproperty` and `deleteproperties`
+
+Sometimes one just wants to remove one or more columns from a table, which we can do easily enough for
+rows or tables using `deleteproperty` and `deleteproperties`.
+
+```
+julia> deleteproperty(t, :age)
+Table with 1 column and 3 rows:
+     name
+   ┌────────
+ 1 │ Alice
+ 2 │ Bob
+ 3 │ Charlie
+
+julia> deleteproperties(t, (:age,))
+Table with 1 column and 3 rows:
+     name
+   ┌────────
+ 1 │ Alice
+ 2 │ Bob
+ 3 │ Charlie
+```
+
+## `@Compute` macro
+
+To help create arbitrary computations using data from multiple columns, the `@Compute` convenience macro is provided. Variables starting with `$` will be taken as column names.
+
+```
+julia> map(@Compute($age > 40), t)
+3-element Vector{Bool}:
+ 0
+ 1
+ 0
+```
+
+The macro is able to pass along information about which columns are necessary to perform the operation to `map`. In the above, only the `age` column is iterated during the `map` operation, making this operation cheaper than some of the strategies above. For very wide tables the speedup will be greater still.
+
+## `@Select` macro
+
+The `@Select` macro goes one step further, allowing you to assemble multiple columns of data in a single step. Columns can be copied by name, and new columns can be computed.
+
+```
+julia> map(@Select(name, age, is_old = $age > 40), t)
+Table with 3 columns and 3 rows:
+     name     age  is_old
+   ┌─────────────────────
+ 1 │ Alice    25   false
+ 2 │ Bob      42   true
+ 3 │ Charlie  37   false
+```
+
+Once again, only the subset of columns required for each computation is iterated over, speeding up processing compared to naively mapping rows.
+
+## Broadcasting
+
+Since tables are just arrays, the broadcast operation is defined and behaves similarly to `map`.
+
+```
+julia> f = @Select(name, age, is_old = $age > 40)
+(::TypedTables.Select{(:name, :age, :is_old), Tuple{TypedTables.GetProperty{:name}, TypedTables.GetProperty{:age}, TypedTables.Compute{(:age,), var"#9#10"}}}) (generic function with 1 method)
+
+julia> f.(t)
+Table with 3 columns and 3 rows:
+     name     age  is_old
+   ┌─────────────────────
+ 1 │ Alice    25   false
+ 2 │ Bob      42   true
+ 3 │ Charlie  37   false
+```
+
 ## Lazy mapping
 
-It is also worth mentioning the possibility of lazily mapping the values. Functions such as `mapview` from *SplitApplyCombine* can let you construct a "view" of a new table based on existing data. This way you can avoid using up precious resources, like RAM, yet can still call up data upon demand.
+It is also worth mentioning the possibility of lazily mapping the values. Functions such as `mapview` from *SplitApplyCombine* can let you construct a "view" of a new table based on existing data. This way you can avoid using up precious resources, like RAM, yet can still call up data upon demand. It is worth noting that strategies like this may be used internally in more complicated grouping and joining operations.
