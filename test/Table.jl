@@ -43,7 +43,7 @@
     @test @inferred(vec(t))::Table == t
 
     io = IOBuffer()
-    show(io, t)
+    show(io, MIME"text/plain"(), t)
     str = String(take!(io))
     @test str == """
         Table with 2 columns and 3 rows:
@@ -193,7 +193,7 @@
     end
 
     @testset "group" begin
-        t = Table(a = [1,2,1], b = [2.0, 4.0, 6.0])
+        t = Table(a = [1, 2, 1], b = [2.0, 4.0, 6.0])
         out = group(getproperty(:a), t)
         @test typeof(out) <: SplitApplyCombine.AbstractDictionary{Int, <:Table}
         @test out == SplitApplyCombine.dictionary([
