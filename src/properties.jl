@@ -36,7 +36,29 @@ end
 @inline GetProperties(names::Tuple{Vararg{Symbol}}) = GetProperties{names}()
 
 """
-    getproperties(names::Symbol...)
+    getproperties(object, names::Tuple{Vararg{Symbol}})
+
+Return a function that extracts a set of properties with the given `names` from an `object`,
+returning a new object with just those properties.
+
+# Example
+
+Extract properties `a` and `c` from a `NamedTuple`.
+
+```julia
+julia> nt = (a = 1, b = 2.0, c = false)
+(a = 1, b = 2.0, c = false)
+
+julia> getproperties(nt, (:a, :c))
+(a = 1, c = false)
+```
+"""
+@inline function getproperties(x, names::Tuple{Vararg{Symbol}})
+    return GetProperties{names}()(x)
+end
+
+"""
+    getproperties(names::Tuple{Vararg{Symbol}})
 
 Return a function that extracts a set of properties with the given `names` from an object,
 returning a new object with just those properties.
@@ -54,13 +76,15 @@ Extract properties `a` and `c` from a `NamedTuple`.
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
-julia> getproperties(:a, :c)(nt)
+julia> getproperties((:a, :c))(nt)
 (a = 1, c = false)
 ```
 """
-@inline function getproperties(names::Symbol...)
-    return GetProperties(names)
+@inline function getproperties(names::Tuple{Vararg{Symbol}})
+    return GetProperties{names}()
 end
+
+@deprecate getproperties(names::Symbol...) getproperties(names)
 
 @generated function (::GetProperties{names})(x) where {names}
     exprs = [:($n = getproperty(x, $(QuoteNode(n)))) for n in names]
@@ -75,6 +99,65 @@ arbitrary properties and support `getproperty`. Used for determining the return 
 `getproperties` function. The defaults return type is `NamedTuple`.
 """
 propertytype(x) = identity # the input is always a `NamedTuple`, and so this is the default propertytype
+
+"""
+    deleteproperty(object, name::Symbol)
+
+Return a copy of `object` with the property with the given `name` removed.
+
+# Example
+
+```
+julia> nt = (a = 1, b = 2.0, c = false)
+(a = 1, b = 2.0, c = false)
+
+julia> deleteproperty(nt, :b)
+(a = 1, c = false)
+```
+"""
+@inline function deleteproperty(object, name::Symbol)
+    GetProperties{_deleteproperty(name, propertynames(object)...)}()(object)
+end
+
+@inline function _deleteproperty(name::Symbol, names_first::Symbol, names_other::Symbol...)
+    if name === names_first
+        return names_other
+    else
+        return (names_first, _deleteproperty(name, names_other...)...)
+    end
+end
+
+@inline function _deleteproperty(name::Symbol, names_first::Symbol)
+    if name === names_first
+        return ()
+    else
+        error("Cannot find property named $name")
+    end
+end
+
+"""
+    deleteproperties(object, names::Tuple{Vararg{Symbol}})
+
+Return a copy of `object` with the property with the given `names` removed.
+
+# Example
+
+```
+julia> nt = (a = 1, b = 2.0, c = false, d = "abc")
+(a = 1, b = 2.0, c = false)
+
+julia> deleteproperties(nt, (:b, :d))
+(a = 1, c = false)
+```
+"""
+@inline function deleteproperties(object, names::Tuple{Vararg{Symbol}})
+    GetProperties{_deleteproperties(propertynames(object), names...)}()(object)
+end
+
+@inline _deleteproperties(names, first_delete_name, other_delete_names...) = _deleteproperties(_deleteproperty(first_delete_name, names...), other_delete_names...)
+@inline _deleteproperties(names) = names
+
+# @compute
 
 struct Compute{names, F} <: Function
     f::F

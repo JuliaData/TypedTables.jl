@@ -20,6 +20,14 @@ TypedTables.columns
 TypedTables.columnnames
 ```
 
+## Property selection
+
+```@docs
+TypedTables.getproperties
+TypedTables.deleteproperty
+TypedTables.deleteproperties
+```
+
 ## Convenience macros
 
 These macros return *functions* that can be applied to tables and rows.

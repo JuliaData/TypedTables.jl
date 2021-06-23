@@ -52,7 +52,7 @@
          2 │ 2  4.0
          3 │ 3  6.0"""
 
-    @test @inferred(TypedTables.getproperties(:b, :a)(t))::FlexTable == FlexTable(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
+    @test @inferred((x -> getproperties(x, (:b, :a)))(t))::FlexTable == FlexTable(b = [2.0, 4.0, 6.0], a = [1, 2, 3])
 
     @test t == t
     @test t == rows(t)
@@ -154,10 +154,10 @@
         @test filter(getproperty(:c), t)::FlexTable == FlexTable(a = [1,3], b = [2.0, 6.0], c = [true, true])
         @test findall(getproperty(:c), t)::Vector{Int} == [1, 3]
 
-        @test map(TypedTables.getproperties(:a), t)::FlexTable == FlexTable(a = [1,2,3])
-        @test mapview(TypedTables.getproperties(:a), t)::FlexTable == FlexTable(a = [1,2,3])
-        @test broadcast(TypedTables.getproperties(:a), t) == FlexTable(a = [1,2,3])
-        @test mapreduce(TypedTables.getproperties(:a), (acc, row) -> acc + row.a, t; init = 0) === 6
+        @test map(getproperties((:a,)), t)::FlexTable == FlexTable(a = [1,2,3])
+        @test mapview(getproperties((:a,)), t)::FlexTable == FlexTable(a = [1,2,3])
+        @test broadcast(getproperties((:a,)), t) == FlexTable(a = [1,2,3])
+        @test mapreduce(getproperties((:a,)), (acc, row) -> acc + row.a, t; init = 0) === 6
     end
 
     @testset "@Select and @Compute on FlexTables" begin
