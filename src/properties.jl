@@ -38,7 +38,7 @@ end
 """
     getproperties(object, names::Tuple{Vararg{Symbol}})
 
-Return a function that extracts a set of properties with the given `names` from an `object`,
+Extract a set of properties with the given `names` from an `object`,
 returning a new object with just those properties.
 
 # Example
