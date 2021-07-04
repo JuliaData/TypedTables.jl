@@ -3,7 +3,7 @@ struct DictTable{I, T <: NamedTuple, Data <: NamedTuple{<:Any, <:Tuple{Vararg{Ab
     data::Data
     indices::Inds
 
-    function DictTable{I, T, Data, Inds}(data::NamedTuple, indices::AbstractIndices) where {I, T, Data, Inds}
+    function DictTable{I, T, Data, Inds}(data::NamedTuple{<:Any, <:Tuple{Vararg{AbstractDictionary}}}, indices::AbstractIndices) where {I, T, Data, Inds}
         # All the data columns have to share tokens - copy if we have to
         data = map(data) do col
             if sharetokens(keys(col), indices)
@@ -27,7 +27,11 @@ end
 end
 
 
-DictTable(ts...; kwargs...) = DictTable(removenothings_dict(merge(_columns(ts...), kwargs.data)))
+function DictTable(ts...; kwargs...) 
+    cols = removenothings_dict(merge(_columns(ts...), kwargs.data))
+    inds = keys(first(cols))
+    return DictTable{eltype(inds), _eltypes(cols), typeof(cols), typeof(inds)}(cols, inds)
+end
 
 _columns(t::DictTable) = columns(t)
 
@@ -35,19 +39,36 @@ _columns(t::DictTable) = columns(t)
     exprs = []
     newnames = []
     params = T.parameters
+    first = true
+    preamble = :()
     for i in 1:length(params)
-        if params[i] <: AbstractDictionary
-            push!(newnames, names[i])
-            push!(exprs, :(getfield(nt, $(QuoteNode(names[i])))))
-        elseif params[i] !== Nothing
-            error("Columns must be dictionaries, got $(params[i])")
+        if params[i] === Nothing
+            continue
+        end
+
+        push!(newnames, names[i])
+        if first
+            # If the first column is not a dictionary, then assume it is the primary key
+            first = false
+            if params[i] <: AbstractDictionary
+                preamble = :(indices = keys(getfield(nt, $(QuoteNode(names[i])))))
+                push!(exprs, :(getfield(nt, $(QuoteNode(names[i])))))
+            else
+                preamble = :(indices = Indices(getfield(nt, $(QuoteNode(names[i])))))
+                push!(exprs, :indices)
+            end
+        else
+            if params[i] <: AbstractDictionary
+                push!(exprs, :(getfield(nt, $(QuoteNode(names[i])))))
+            else
+                push!(exprs, :(Dictionary(indices, getfield(nt, $(QuoteNode(names[i]))))))
+            end
         end
     end
 
-    if length(names) == length(newnames)
-        return :(nt)
-    else
-        return :(NamedTuple{$(tuple(newnames...))}(tuple($(exprs...))))
+    return quote
+        $preamble
+        return NamedTuple{$(tuple(newnames...))}(tuple($(exprs...)))
     end
 end
 

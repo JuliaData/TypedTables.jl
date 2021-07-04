@@ -134,11 +134,11 @@ function showtable(io::IO, @nospecialize(t), keyname)
                 push!(strings[i], compact_string_row(row_ind))
             else
                 if i == 1
-                    push!(strings[i], compact_string_row(row_inds[j-1]))
+                    push!(strings[i], compact_string_row(row_ind))
                 else
                     col = cols[col_inds[i-1]]
-                    if isassigned(col, row_inds[j-1])
-                        push!(strings[i], compact_string(t[row_inds[j-1]][col_inds[i-1]]))
+                    if isassigned(col, row_ind)
+                        push!(strings[i], compact_string(t[row_ind][col_inds[i-1]]))
                     else
                         push!(strings[i], "#undef")
                     end
@@ -185,8 +185,10 @@ function showtable(io::IO, @nospecialize(t), keyname)
         n_spaces = max_column_widths[1] + 3
         print(io, " " ^ n_spaces)
     else
-        print(io, strings[1][1])
-        print(io, "   ")
+        col_str = @inbounds strings[1][1]
+        print(io, col_str)
+        n_spaces = max_column_widths[1] - textwidth(col_str) + 3
+        print(io, " " ^ n_spaces)
     end
     for i ∈ 2:length(strings)
         @inbounds col_str = strings[i][1]
