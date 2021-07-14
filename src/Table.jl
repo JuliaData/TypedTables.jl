@@ -113,6 +113,14 @@ function Base.checkbounds(::Type{Bool}, t::Table, i...)
     all(col -> checkbounds(Bool, col, i...), columns(t))
 end
 
+function Base.isassigned(t::Table{T}, i::Int) where {T}
+    return all(col -> isassigned(col, i), columns(t))
+end
+
+function Base.isassigned(t::Table{T}, is::Int...) where {T}
+    return all(col -> isassigned(col, is...), columns(t))
+end
+
 @inline function Base.getindex(t::Table{T}, i::Int) where {T}
     @boundscheck checkbounds(t, i)
     # AbstractArray{T} expects a subtype of T, and NamedTuples are invariant.

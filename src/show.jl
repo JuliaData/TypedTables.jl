@@ -97,6 +97,7 @@ function balance_widths!(widths::Vector{Int}, ncols::Int, max_width::Int, buffer
 end
 
 function showtable(io::IO, @nospecialize t)
+    cols = columns(t)
     row_inds = keys(t)
     col_inds = columnnames(t)
     nrows = length(row_inds)::Int
@@ -125,7 +126,12 @@ function showtable(io::IO, @nospecialize t)
                 if i == 1
                     push!(strings[i], compact_string_row(row_inds[j-1]))
                 else
-                    push!(strings[i], compact_string(t[row_inds[j-1]][col_inds[i-1]]))
+                    col = cols[col_inds[i-1]]
+                    if isassigned(col, row_inds[j-1])
+                        push!(strings[i], compact_string(t[row_inds[j-1]][col_inds[i-1]]))
+                    else
+                        push!(strings[i], "#undef")
+                    end
                 end
             end
         end
