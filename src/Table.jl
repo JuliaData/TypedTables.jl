@@ -217,9 +217,18 @@ function Base.push!(t::Table{<:NamedTuple{names}}, v::NamedTuple{names}) where {
     return t
 end
 
+function Base.push!(::Table, ::NamedTuple)
+    throw(ArgumentError("Named tuple names do not match."))
+end
+
+
 function Base.append!(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
     map(append!, columns(t), columns(t2))
     return t
+end
+
+function Base.append!(::Table, ::Table)
+    throw(ArgumentError("Named tuple names do not match."))
 end
 
 function Base.popfirst!(t::Table)
@@ -231,9 +240,17 @@ function Base.pushfirst!(t::Table{<:NamedTuple{names}}, v::NamedTuple{names}) wh
     return t
 end
 
+function Base.pushfirst!(::Table, ::NamedTuple)
+    throw(ArgumentError("Named tuple names do not match."))
+end
+
 function Base.prepend!(t::Table{<:NamedTuple{names}}, t2::Table{<:NamedTuple{names}}) where {names}
     map(prepend!, columns(t), columns(t2))
     return t
+end
+
+function Base.prepend!(::Table, ::Table)
+    throw(ArgumentError("Named tuple names do not match."))
 end
 
 function Base.deleteat!(t::Table, i)
@@ -244,6 +261,10 @@ end
 function Base.insert!(t::Table{<:NamedTuple{names}}, i::Integer, v::NamedTuple{names}) where {names}
     map((col, val) -> insert!(col, i, val), columns(t), v)
     return t
+end
+
+function Base.insert!(::Table, ::Integer, ::NamedTuple)
+    throw(ArgumentError("Named tuple names do not match."))
 end
 
 function Base.splice!(t::Table, inds::Integer)
@@ -258,16 +279,32 @@ function Base.splice!(t::Table{<:NamedTuple{names}}, inds::Integer, ins::NamedTu
     return map((col, vals) -> splice!(col, inds, vals), columns(t), ins)
 end
 
+function Base.splice!(::Table, ::Integer, ::NamedTuple)
+    throw(ArgumentError("Named tuple names do not match."))
+end
+
 function Base.splice!(t::Table{<:NamedTuple{names}}, inds::AbstractArray, ins::NamedTuple{names}) where {names}
     return Table(map((col, vals) -> splice!(col, inds, vals), columns(t), ins))
 end
 
-function Base.splice!(t::Table{<:NamedTuple}, inds::Integer, ins::AbstractVector{<:NamedTuple})
+function Base.splice!(::Table, ::AbstractArray, ::NamedTuple)
+    throw(ArgumentError("Named tuple names do not match."))
+end
+
+function Base.splice!(t::Table{<:NamedTuple{names}}, inds::Integer, ins::AbstractVector{<:NamedTuple{names}}) where {names}
     return map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins))
 end
 
-function Base.splice!(t::Table{<:NamedTuple}, inds::AbstractArray, ins::AbstractVector{<:NamedTuple})
+function Base.splice!(::Table, ::Integer, ::AbstractVector{<:NamedTuple})
+    throw(ArgumentError("Named tuple names do not match."))
+end
+
+function Base.splice!(t::Table{<:NamedTuple{names}}, inds::AbstractArray, ins::AbstractVector{<:NamedTuple{names}}) where {names}
     return Table(map((col, vals) -> splice!(col, inds, vals), columns(t), columns(ins)))
+end
+
+function Base.splice!(::Table, ::AbstractArray, ins::AbstractVector{<:NamedTuple})
+    throw(ArgumentError("Named tuple names do not match."))
 end
 
 # TODO splicing in an `AbstractArray{<:NamedTuple}` should be possible...
