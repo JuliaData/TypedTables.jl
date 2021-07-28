@@ -41,6 +41,8 @@ function _columns(x)
         else
             return Tables.buildcolumns(Tables.schema(x), x)
         end
+    elseif !(x isa AbstractArray)
+        return _columns(collect(x))
     else
         error("Cannot construct table from $(typeof(x))")
     end
@@ -89,6 +91,7 @@ function Base.setproperty!(t::Table, name::Symbol, a)
 end
 
 propertytype(::Table) = Table
+(::GetProperties{()})(t::Table) = mapview(_ -> (;), t)
 
 """
     columnnames(table)
@@ -99,7 +102,7 @@ columnnames(::AbstractArray{<:NamedTuple{names}}) where {names} = names
 
 # show
 Base.show(io::IO, ::MIME"text/plain", t::Table) = showtable(io, t)
-Base.show(io::IO, t::Table) = showtable(io, t)
+#Base.show(io::IO, t::Table) = showtable(io, t)
 
 # Basic AbstractArray interface
 

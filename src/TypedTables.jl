@@ -4,15 +4,17 @@ using Unicode
 using Tables
 using SplitApplyCombine
 import Adapt
+using Dictionaries
+using Indexing
 
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
 
 export @Compute, @Select, getproperties, deleteproperty, deleteproperties
-export Table, FlexTable, columns, rows, columnnames, showtable
+export Table, FlexTable, DictTable, columns, rows, columnnames, showtable
 
 # Resultant element type of given column arrays
-@generated function _eltypes(a::NamedTuple{names, T}) where {names, T <: Tuple{Vararg{AbstractArray}}}
+@generated function _eltypes(a::NamedTuple{names, T}) where {names, T <: Tuple}
     Ts = []
     for V in T.parameters
         push!(Ts, eltype(V))
@@ -47,6 +49,7 @@ Base.propertynames(::NamedTuple{names}) where {names} = names
 include("properties.jl")
 include("Table.jl")
 include("FlexTable.jl")
+include("DictTable.jl")
 include("columnops.jl")
 include("show.jl")
 

@@ -21,6 +21,9 @@ function compact_string_row(x::CartesianIndex{N}) where N
     return String(take!(io.io))
 end
 
+function compact_string_row(x)
+    return string(x)
+end
 
 function truncate_string(str, max_width)
     string_width = textwidth(str)
@@ -96,12 +99,14 @@ function balance_widths!(widths::Vector{Int}, ncols::Int, max_width::Int, buffer
     return ncols_shown
 end
 
-function showtable(io::IO, @nospecialize t)
+showtable(io::IO, t) = showtable(io, t, nothing)
+
+function showtable(io::IO, @nospecialize(t), keyname)
     cols = columns(t)
     row_inds = keys(t)
-    col_inds = columnnames(t)
+    col_inds = keyname === nothing ? columnnames(t) : setdiff(columnnames(t), (keyname,))
     nrows = length(row_inds)::Int
-    nrowstring = join(map(string, size(t)), "×")
+    nrowstring = t isa AbstractArray ? join(map(string, size(t)), "×") : string(nrows)
     ncols = length(col_inds)::Int
     display_width = displaysize(io)[2]
     max_cols = display_width ÷ 3 # assuming one-width columns with two spaces in-between
@@ -111,29 +116,35 @@ function showtable(io::IO, @nospecialize t)
 
     max_show_rows = displaysize(io)[1] - 7
 
-    ncols_shown = min(ncols+1, max_cols)::Int # First "column" shown is the indices
+    ncols_shown = min(ncols + 1, max_cols)::Int # First "column" shown is the indices
 
     strings = Vector{Vector{String}}(undef, ncols_shown)
     for i ∈ 1:ncols_shown
-        for j ∈ 1:(min(max_show_rows, nrows) + 1)
-            if j == 1
-                if i == 1
-                    strings[i] = [""]
-                else
-                    strings[i] = [compact_string(col_inds[i-1])]
-                end
+        if i == 1
+            strings[i] = [keyname === nothing ? "" : compact_string(keyname)]
+        else
+            strings[i] = [compact_string(col_inds[i-1])]
+        end
+        j = 1
+        for row_ind in row_inds
+            if j > min(max_show_rows, nrows)
+                break
+            end
+            if i == 1
+                push!(strings[i], compact_string_row(row_ind))
             else
                 if i == 1
-                    push!(strings[i], compact_string_row(row_inds[j-1]))
+                    push!(strings[i], compact_string_row(row_ind))
                 else
                     col = cols[col_inds[i-1]]
-                    if isassigned(col, row_inds[j-1])
-                        push!(strings[i], compact_string(t[row_inds[j-1]][col_inds[i-1]]))
+                    if isassigned(col, row_ind)
+                        push!(strings[i], compact_string(t[row_ind][col_inds[i-1]]))
                     else
                         push!(strings[i], "#undef")
                     end
                 end
             end
+            j += 1
         end
     end
 
@@ -170,8 +181,15 @@ function showtable(io::IO, @nospecialize t)
 
     # Header: " --  Column1  Column2"
     print(io, ":\n ")
-    n_spaces = max_column_widths[1] + 3
-    print(io, " " ^ n_spaces)
+    if keyname === nothing
+        n_spaces = max_column_widths[1] + 3
+        print(io, " " ^ n_spaces)
+    else
+        col_str = @inbounds strings[1][1]
+        print(io, col_str)
+        n_spaces = max_column_widths[1] - textwidth(col_str) + 3
+        print(io, " " ^ n_spaces)
+    end
     for i ∈ 2:length(strings)
         @inbounds col_str = strings[i][1]
         print(io, col_str)
@@ -181,10 +199,10 @@ function showtable(io::IO, @nospecialize t)
         end
     end
 
-    # Seperator: " ┌────────"
+    # Seperator: "  ┌────────" or "──┬────────"
     print(io, "\n ")
-    print(io, " " ^ max_column_widths[1])
-    print(io, " ┌─")
+    print(io, (keyname === nothing ? " " : "─") ^ max_column_widths[1])
+    print(io, keyname === nothing ? " ┌─" : "─┬─")
     print(io, "─" ^ (sum(max_column_widths) - max_column_widths[1] + 2*(length(max_column_widths) - 2)))
 
     # Body " rowind │ val1  val2"

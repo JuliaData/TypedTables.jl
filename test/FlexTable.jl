@@ -42,7 +42,7 @@
     @test @inferred(vec(t))::FlexTable{1} == t
 
     io = IOBuffer()
-    show(io, t)
+    show(io, MIME"text/plain"(), t)
     str = String(take!(io))
     @test str == """
         FlexTable with 2 columns and 3 rows:
@@ -206,12 +206,12 @@
     end
 
     @testset "group" begin
-        t = Table(a = [1,2,1], b = [2.0, 4.0, 6.0])
+        t = FlexTable(a = [1, 2, 1], b = [2.0, 4.0, 6.0])
         out = group(getproperty(:a), t)
-        @test typeof(out) <: SplitApplyCombine.AbstractDictionary{Int, <:Table}
-        @test out == SplitApplyCombine.dictionary([
-            1 => Table(a=[1, 1], b=[2.0, 6.0]),
-            2 => Table(a=[2],    b=[4.0])
+        @test typeof(out) <: Dictionary{Int}
+        @test out == dictionary([
+            1 => FlexTable(a=[1, 1], b=[2.0, 6.0]),
+            2 => FlexTable(a=[2],    b=[4.0])
         ])
     end
 
