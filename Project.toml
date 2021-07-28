@@ -14,6 +14,7 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 [compat]
 julia = "1"
 Adapt = "1, 2, 3"
+Indexing = "1"
 SplitApplyCombine = "1"
 Tables = "1"
 Dictionaries = "0.3"
