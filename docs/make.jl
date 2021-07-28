@@ -9,7 +9,7 @@ makedocs(;
         "Table types" => [
             "Table" => "man/table.md",
             "FlexTable " => "man/flextable.md",
-            "FlexTable " => "man/dicttable.md",
+            "DictTable " => "man/dicttable.md",
         ],
         "Data storage" => [
             "Data representation" => "man/data.md",
