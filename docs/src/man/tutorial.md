@@ -344,7 +344,7 @@ Table with 2 columns and 3 rows:
  3 │ C        false
 ```
 
-For shorthand, the `= ...` can be ommited to simply extract a column. For example, we can
+For shorthand, the `= ...` can be omitted to simply extract a column. For example, we can
 reorder the columns via
 
 ```
