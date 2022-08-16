@@ -28,7 +28,7 @@ end
 
 
 function DictTable(ts...; kwargs...) 
-    cols = removenothings_dict(merge(_columns(ts...), kwargs.data))
+    cols = removenothings_dict(merge(_columns(ts...), values(kwargs)))
     inds = keys(first(cols))
     return DictTable{eltype(inds), _eltypes(cols), typeof(cols), typeof(inds)}(cols, inds)
 end
