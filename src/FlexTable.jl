@@ -53,7 +53,7 @@ Convert a `FlexTable` into a `NamedTuple` of its columns.
 @inline Base.getproperty(t::FlexTable, name::Symbol) = getproperty(columns(t), name)
 
 function Base.setproperty!(t::FlexTable, name::Symbol, a)
-    setfield!(t, :data, merge(columns(t), NamedTuple{(name,)}((convert(AbstractArray, a),))))
+    setfield!(t, :data, merge(columns(t), NamedTuple{(name,)}((convert(AbstractArray, deepcopy(a)),))))
     return t
 end
 
