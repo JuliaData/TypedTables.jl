@@ -6,6 +6,7 @@ using SplitApplyCombine
 import Adapt
 using Dictionaries
 using Indexing
+using RecipesBase
 
 using Base: @propagate_inbounds, @pure, OneTo, Fix2
 import Tables.columns, Tables.rows
@@ -52,5 +53,6 @@ include("FlexTable.jl")
 include("DictTable.jl")
 include("columnops.jl")
 include("show.jl")
+include("plot.jl")
 
 end # module
