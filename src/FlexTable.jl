@@ -24,8 +24,8 @@ mutable struct FlexTable{N} <: AbstractArray{NamedTuple, N}
     end
 end
 
-FlexTable(ts...; kwargs...) = _flextable(removenothings(merge(_columns(ts...), kwargs.data)))
-FlexTable{N}(ts...; kwargs...) where {N} = _flextable(removenothings(merge(_columns(ts...), kwargs.data)))::FlexTable{N}
+FlexTable(ts...; kwargs...) = _flextable(removenothings(merge(_columns(ts...), data(kwargs))))
+FlexTable{N}(ts...; kwargs...) where {N} = _flextable(removenothings(merge(_columns(ts...), data(kwargs))))::FlexTable{N}
 
 _flextable(nt::NamedTuple) = FlexTable{_ndims(nt)}(nt)
 
