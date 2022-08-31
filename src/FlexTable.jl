@@ -232,11 +232,11 @@ function Base.view(t::FlexTable, inds::Union{AbstractArray, Colon}...)
     return FlexTable{_getindex_dims(inds)}(map(col -> view(col, inds...), columns(t)))
 end
 
-@inline _getindex_dims(inds) = __getindex_dims(0, inds...)
-@inline __getindex_dims(n::Int) = n
-@inline __getindex_dims(n::Int, ::Int, inds...) = __getindex_dims(n, inds...)
-@inline __getindex_dims(n::Int, ::AbstractArray{<:Any, m}, inds...) where {m} = __getindex_dims(n + m, inds...)
-@inline __getindex_dims(n::Int, ::Colon, inds...) = __getindex_dims(n + 1, inds...)
+@inline _getindex_dims(inds) = __getindex_dims(inds...)
+@inline __getindex_dims() = 0
+@inline __getindex_dims(::Int, inds...) = __getindex_dims(inds...)
+@inline __getindex_dims(::AbstractArray{<:Any, m}, inds...) where {m} = __getindex_dims(inds...) + m
+@inline __getindex_dims(::Colon, inds...) = __getindex_dims(inds...) + 1
 
 # Deprecated for .= syntax (via Base.Broadcast.materialize!)
 # It seems `Ref` might be the new cool here. Could also consider `AbstractArray{<:NamedTuple, 0}`?
