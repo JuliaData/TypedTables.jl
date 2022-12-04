@@ -298,23 +298,23 @@ function Base.view(t::DictTable, inds::AbstractIndices)
     return DictTable(map(col -> view(col, inds), columns(t)))
 end
 
-@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, ::typeof(merge), ts::DictTable...) where {N}
+@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, ::typeof(merge), ts::DictTable...)
 	return DictTable(merge(map(columns, ts)...))
 end
 
-@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::GetProperty, t::DictTable) where {N}
+@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::GetProperty, t::DictTable)
     return f(t)
 end
 
-@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::GetProperties, t::DictTable) where {N}
+@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::GetProperties, t::DictTable)
     return DictTable(f(t))
 end
 
-@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::Compute, t::DictTable) where {N}
+@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::Compute, t::DictTable)
     return map(f, t)
 end
 
-@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::Select, t::DictTable) where {N}
+@inline function Broadcast.broadcasted(::Dictionaries.DictionaryStyle, f::Select, t::DictTable)
     return map(f, t)
 end
 
