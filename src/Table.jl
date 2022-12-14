@@ -126,17 +126,12 @@ end
 
 @inline function Base.getindex(t::Table{T}, i::Int) where {T}
     @boundscheck checkbounds(t, i)
-    # AbstractArray{T} expects a subtype of T, and NamedTuples are invariant.
-    # For e.g. columns which are Union types we makes sure we emit a named tuple with Union
-    # elements. The convert should be a no-op in the case of strongly-typed columns.
-
-    # TODO find a way to make this faster than O(2^N) for N Union columns
-    convert(T, map(col -> @inbounds(getindex(col, i)), columns(t)))::T
+    return T(@inbounds(getindex(col, i)) for col in columns(t))
 end
 
 @inline function Base.getindex(t::Table{T}, i::Int...) where {T}
     @boundscheck checkbounds(t, i...)
-    convert(T, map(col -> @inbounds(getindex(col, i...)), columns(t)))::T
+    return T(@inbounds(getindex(col, i...) for col in columns(t)))
 end
 
 @inline function Base.setindex!(t::Table{T}, v::T, i::Int) where {T}
