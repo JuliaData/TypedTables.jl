@@ -166,7 +166,12 @@
         @test @inferred(map(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
         @test @inferred(mapview(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
         @test @inferred(broadcast(s, t))::Table == Table(sum = [3.0, 6.0, 9.0])
-        @test @inferred(mapreduce(s, (acc, row) -> acc + row.sum, t; init = 0.0)) === 18.0
+        @static if VERSION >= v"1.6.0"
+            @test @inferred(mapreduce(s, (acc, row) -> acc + row.sum, t; init = 0.0)) === 18.0
+        else
+            # Type inference fails on Julia 1.0
+            @test (mapreduce(s, (acc, row) -> acc + row.sum, t; init = 0.0)) === 18.0
+        end
     end
 
     @testset "missing in Tables" begin

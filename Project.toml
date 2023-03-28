@@ -1,7 +1,7 @@
 name = "TypedTables"
 uuid = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
 authors = ["Andy Ferris <ferris.andy@gmail.com>"]
-version = "1.4.2"
+version = "1.4.3"
 
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
