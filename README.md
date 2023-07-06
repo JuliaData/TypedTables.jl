@@ -15,7 +15,7 @@
 represent an array of `NamedTuple`s. This package is designed to be lightweight,
 easy-to-use and fast, and presents a very minimal new interface to learn.
 
-Data manipulation is possible throught the tools built into Julia (such as `map`, `filter`,
+Data manipulation is possible through the tools built into Julia (such as `map`, `filter`,
 and `reduce`) and those provide by [SplitApplyCombine.jl](https://github.com/JuliaData/SplitApplyCombine.jl)
 (like `group` and `innerjoin`). You can speed up data analysis tasks with acceleration indices, by using the [AcceleratedArrays.jl](https://github.com/andyferris/AcceleratedArrays.jl) package. This package is integrated the *Tables.jl* interface, and therefore the rest of
 the data ecosystem such as *Query.jl*.
