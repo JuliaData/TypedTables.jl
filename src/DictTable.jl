@@ -215,6 +215,14 @@ function Base.filter!(pred, t::DictTable)
     return t
 end
 
+function Base.copy(t::DictTable)
+    inds = copy(keys(t))
+    cols = _similar(inds, eltype(t))
+    out = DictTable{keytype(t), eltype(t), typeof(cols), typeof(inds)}(cols, inds)
+    copyto!(out, t)
+    return out
+end
+
 # Column-based operations: Some operations on rows are faster when considering columns
 
 Base.map(::typeof(identity), t::DictTable) = copy(t)

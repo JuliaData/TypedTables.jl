@@ -138,7 +138,7 @@ function showtable(io::IO, @nospecialize(t), keyname)
                 else
                     col = cols[col_inds[i-1]]
                     if isassigned(col, row_ind)
-                        push!(strings[i], compact_string(t[row_ind][col_inds[i-1]]))
+                        push!(strings[i], compact_string(col[row_ind]))
                     else
                         push!(strings[i], "#undef")
                     end
