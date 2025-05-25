@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # FlexTable
 
 This package defines a second tabular container type, `FlexTable`, that is designed to be a more **flex**ible **table**.
@@ -15,7 +20,7 @@ Amongst other things, using `FlexTable` might allow you to more easily port your
 
 A column can be added by using the `.` operator (also known as `setproperty!`).
 
-```julia
+```jldoctest flextable
 julia> ft = FlexTable(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
 FlexTable with 2 columns and 3 rows:
      name     age
@@ -37,7 +42,7 @@ FlexTable with 3 columns and 3 rows:
 
 The same syntax is used to replace a column.
 
-```julia
+```jldoctest flextable
 julia> ft.sex = ["female", "male", "male"];
 
 julia> ft

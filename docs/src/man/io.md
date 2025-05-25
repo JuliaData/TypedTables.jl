@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # Input and output
 
 Input and output of `Table` and `FlexTable` are mostly handled through externally-defined interfaces.
@@ -6,11 +11,11 @@ Input and output of `Table` and `FlexTable` are mostly handled through externall
 
 One can convert an `AbstractArray` of `NamedTuple`s to a `Table` using a simple constructor.
 
-```
+```jldoctest io
 julia> v = [(name="Alice", age=25), (name="Bob", age=42), (name= "Charlie", age=37)]
-3-element Array{NamedTuple{(:name, :age),Tuple{String,Int64}},1}:
- (name = "Alice", age = 25)  
- (name = "Bob", age = 42)    
+3-element Vector{@NamedTuple{name::String, age::Int64}}:
+ (name = "Alice", age = 25)
+ (name = "Bob", age = 42)
  (name = "Charlie", age = 37)
 
 julia> t = Table(v)
@@ -23,12 +28,12 @@ Table with 2 columns and 3 rows:
 ```
 In this way, we have converted a row-based storage container to a column-based storage container.
 
-One can convert back to row-based storage by `collect`ing the results in an `Array`. 
-```julia
+One can convert back to row-based storage by `collect`ing the results in an `Array`.
+```jldoctest io
 julia> collect(t)
-3-element Array{NamedTuple{(:name, :age),Tuple{String,Int64}},1}:
- (name = "Alice", age = 25)  
- (name = "Bob", age = 42)    
+3-element Vector{@NamedTuple{name::String, age::Int64}}:
+ (name = "Alice", age = 25)
+ (name = "Bob", age = 42)
  (name = "Charlie", age = 37)
 ```
 
@@ -63,7 +68,7 @@ Charlie,37
 
 We can load this file from disk using the `CSV.File` constructor.
 
-```julia
+```julia-repl
 julia> using TypedTables, CSV
 
 julia> csvfile = CSV.File("input.csv")
@@ -74,17 +79,17 @@ Tables.Schema:
 ```
 Note that *CSV* has inferred the column types from the data, but by default allows for `missing` data. This can be controlled via the `allowmissing` keyword argument (as either `:all`, `:none` or `:auto`).
 
-```julia
+```julia-repl
 julia> CSV.File("input.csv", allowmissing=:none)
 CSV.File("/home/ferris/example.csv", rows=3):
 Tables.Schema:
  :name  String
- :age   Int64 
+ :age   Int64
 ```
 
 Either of these can finally be converted to a `Table`.
 
-```julia
+```julia-repl
 julia> Table(csvfile)
 Table with 2 columns and 3 rows:
      name     age
@@ -96,7 +101,7 @@ Table with 2 columns and 3 rows:
 
 Similarly, the *CSV.jl* package supports writing tables with  `CSV.write` function.
 
-```julia
+```julia-repl
 julia> CSV.write("output.csv", t)
 "output.csv"
 ```

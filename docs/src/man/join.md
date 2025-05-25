@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # Joining data
 
 The methods defined so far work on single data sources (tables) at-a-time. Sometimes, we need to *join* information together from multiple tables.
@@ -10,9 +15,11 @@ Suppose `table1` has `n` rows, and `table2` has `m` rows. We can create a new ta
 
 The easiest way to do this is with the `SplitApplyCombine.product`. For a quick primer, `out = product(f, a, b)` returns an array `out` such that `out[i, j] = f(a, b)`. For example, let's take all combinations of the sums of `[1, 2, 3]` and `[10, 20, 30, 40]`.
 
-```julia
+```jldoctest product
+julia> using SplitApplyCombine: product
+
 julia> product(+, [1, 2, 3], [10, 20, 30, 40])
-3×4 Array{Int64,2}:
+3×4 Matrix{Int64}:
  11  21  31  41
  12  22  32  42
  13  23  33  43
@@ -20,9 +27,9 @@ julia> product(+, [1, 2, 3], [10, 20, 30, 40])
 
 One can also use `tuple` to simply collect both sets of data.
 
-```julia
+```jldoctest product
 julia> product(tuple, [1, 2, 3], [10, 20, 30, 40])
-3×4 Array{Tuple{Int64,Int64},2}:
+3×4 Matrix{Tuple{Int64, Int64}}:
  (1, 10)  (1, 20)  (1, 30)  (1, 40)
  (2, 10)  (2, 20)  (2, 30)  (2, 40)
  (3, 10)  (3, 20)  (3, 30)  (3, 40)
@@ -30,7 +37,9 @@ julia> product(tuple, [1, 2, 3], [10, 20, 30, 40])
 
 (Note that `tuple` is the *only* option for the similar function `Iterators.product`). Let's try this with a table. This time, for two tables with *distinct* column names, we can use the `merge` function to merge the rows into single `NamedTuple`s - for example, take this list of all pairings of firstnames and lastnames.
 
-```julia
+```jldoctest join
+julia> using SplitApplyCombine: product
+
 julia> t1 = Table(firstname = ["Alice", "Bob", "Charlie"])
 Table with 1 column and 3 rows:
      firstname
@@ -78,7 +87,7 @@ Finally, also note that there is a `productview` function for performing this op
 
 One can feed in multiple inputs into a generator, and Julia will automatically take the Cartesian product of all inputs. For example:
 
-```julia
+```jldoctest join
 julia> t3 = Table(merge(row1, row2) for row1 in t1, row2 in t2)
 Table with 2 columns and 12 rows:
       firstname  lastname
@@ -102,7 +111,7 @@ Table with 2 columns and 12 rows:
 In a nutshell: the relational "join" operation is simply the above Cartesian product followed by a filtering operation. Generally, the filtering operation will depend on information coming from *both* input data sets - for example, that the values in a particular column must match exactly. (Any filtering that depends only on information from one input table can be done more efficiently *before* the join operation).
 
 For a simple example, let's look for all pairings of firstnames and lastnames that have an equal number of characters. For efficiency, we combine this with `productview`.
-```julia
+```jldoctest join
 julia> filter(row -> length(row.firstname) == length(row.lastname), t3)
 Table with 2 columns and 2 rows:
      firstname  lastname
@@ -123,8 +132,11 @@ In fact, using the array index as the primary key can be the most efficient way 
 
 As an example, let's take a simplistic `customers` and `orders` database.
 
-```julia
-julia> customers = Table(name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
+```jldoctest join-2
+julia> customers = Table(
+           name = ["Alice", "Bob", "Charlie"],
+           address = ["12 Beach Street", "163 Moon Road", "6 George Street"]
+       )
 Table with 2 columns and 3 rows:
      name     address
    ┌─────────────────────────
@@ -132,7 +144,10 @@ Table with 2 columns and 3 rows:
  2 │ Bob      163 Moon Road
  3 │ Charlie  6 George Street
 
-julia> orders = Table(customer_id = [2, 2, 3, 3], items = ["Socks", "Tie", "Shirt", "Underwear"])
+julia> orders = Table(
+           customer_id = [2, 2, 3, 3],
+           items = ["Socks", "Tie", "Shirt", "Underwear"]
+       )
 Table with 2 columns and 4 rows:
      customer_id  items
    ┌───────────────────────
@@ -143,7 +158,7 @@ Table with 2 columns and 4 rows:
 ```
 To get the customer for each order is just a simple indexing operation.
 
-```julia
+```jldoctest join-2
 julia> customers[orders.customer_id]
 Table with 2 columns and 4 rows:
      name     address
@@ -156,7 +171,7 @@ Table with 2 columns and 4 rows:
 ```
 We can denormalize the orders and their customers to a single table by performing a `merge` on each row (in this case using broadcasting dot-syntax for brevity).
 
-```julia
+```jldoctest join-2
 julia> merge.(customers[orders.customer_id], orders)
 Table with 4 columns and 4 rows:
      name     address          customer_id  items
@@ -170,7 +185,9 @@ Table with 4 columns and 4 rows:
 
 We can perform these operation lazily for cost *O*(1) using `view` and `mapview` - after which the data can be processed further.
 
-```julia
+```jldoctest join-2
+julia> using SplitApplyCombine
+
 julia> mapview(merge, view(customers, orders.customer_id), orders)
 Table with 4 columns and 4 rows:
      name     address          customer_id  items
@@ -189,7 +206,7 @@ We now turn out attention to the relational join, implemented via *SplitApplyCom
 
 The `innerjoin` function is flexible, able to join any iterable data source via any comparing predicate, and perform an arbitrary mapping of the matching results. Using `?`, we can view its documentation at the REPL:
 
-```julia
+```julia-repl
 help?> innerjoin
 search: innerjoin
 
@@ -203,7 +220,7 @@ search: innerjoin
   ≡≡≡≡≡≡≡≡≡
 
   julia> innerjoin(iseven, iseven, tuple, ==, [1,2,3,4], [0,1,2])
-  6-element Array{Tuple{Int64,Int64},1}:
+  6-element Vector{Tuple{Int64, Int64}}:
    (1, 1)
    (2, 0)
    (2, 2)
@@ -216,14 +233,20 @@ Let's examine this. Assume the inputs `left` and `right` are `Table`s. We may wa
 
 As an example, we modify our `customers` table to explicitly include the customer's `id`, similarly to above.
 
-```julia
-julia> customers = Table(id = 1:3, name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
+```jldoctest join-2
+julia> customers = Table(
+           id = 1:3,
+           name = ["Alice", "Bob", "Charlie"],
+           address = ["12 Beach Street", "163 Moon Road", "6 George Street"]
+       )
 Table with 3 columns and 3 rows:
      id  name     address
    ┌─────────────────────────────
  1 │ 1   Alice    12 Beach Street
  2 │ 2   Bob      163 Moon Road
  3 │ 3   Charlie  6 George Street
+
+julia> using SplitApplyCombine
 
 julia> innerjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
 Table with 5 columns and 4 rows:
@@ -243,8 +266,12 @@ See the section on Acceleration Indices for methods of (a) attaching secondary a
 
 As a final example, generators provide a convenient syntax for filtering Cartesian products of collections - that is, to perform an inner join!
 
-```julia
-julia> Table(merge(customer, order) for customer in customers, order in orders if customer.id == order.customer_id)
+```jldoctest join-2
+julia> Table(
+           merge(customer, order)
+           for customer in customers, order in orders
+           if customer.id == order.customer_id
+       )
 Table with 5 columns and 4 rows:
      id  name     address          customer_id  items
    ┌─────────────────────────────────────────────────────
@@ -262,31 +289,25 @@ Currently *SplitApplyCombine* and *TypedTables* do not provide what in SQL is ca
 
 Such a query can be alternatively modeled as a hybrid group/join operation. *SplitApplyCombine* provides `leftgroupjoin` to perform precisely this. This is similar to LINQ's `GroupJoin` method. Let us investigate this query with the same data as for `innerjoin`, above.
 
-```julia
+```jldoctest join-2
 julia> groups = leftgroupjoin(getproperty(:id), getproperty(:customer_id), customers, orders)
-Dict{Int64,Table{NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Int64,String,String,Int64,String}},1,NamedTuple{(:id, :name, :address, :customer_id, :items),Tuple{Array{Int64,1},Array{String,1},Array{String,1},Array{Int64,1},Array{String,1}}}}} with 3 entries:
-  2 => Table with 5 columns and 2 rows:…
-  3 => Table with 5 columns and 2 rows:…
-  1 => Table with 5 columns and 0 rows:…
+3-element Dictionaries.Dictionary{Int64, Vector{@NamedTuple{id::Int64, name::String, address::String, customer_id::Int64, items::String}}}:
+ 1 │ @NamedTuple{id::Int64, name::String, address::String, customer_id::Int64, …
+ 2 │ [(id = 2, name = "Bob", address = "163 Moon Road", customer_id = 2, items …
+ 3 │ [(id = 3, name = "Charlie", address = "6 George Street", customer_id = 3, …
 
 julia> groups[1]
-Table with 5 columns and 0 rows:
-     id  name  address  customer_id  items
-   ┌──────────────────────────────────────
+@NamedTuple{id::Int64, name::String, address::String, customer_id::Int64, items::String}[]
 
 julia> groups[2]
-Table with 5 columns and 2 rows:
-     id  name  address        customer_id  items
-   ┌────────────────────────────────────────────
- 1 │ 2   Bob   163 Moon Road  2            Socks
- 2 │ 2   Bob   163 Moon Road  2            Tie
+2-element Vector{@NamedTuple{id::Int64, name::String, address::String, customer_id::Int64, items::String}}:
+ (id = 2, name = "Bob", address = "163 Moon Road", customer_id = 2, items = "Socks")
+ (id = 2, name = "Bob", address = "163 Moon Road", customer_id = 2, items = "Tie")
 
 julia> groups[3]
-Table with 5 columns and 2 rows:
-     id  name     address          customer_id  items
-   ┌─────────────────────────────────────────────────────
- 1 │ 3   Charlie  6 George Street  3            Shirt
- 2 │ 3   Charlie  6 George Street  3            Underwear
+2-element Vector{@NamedTuple{id::Int64, name::String, address::String, customer_id::Int64, items::String}}:
+ (id = 3, name = "Charlie", address = "6 George Street", customer_id = 3, items = "Shirt")
+ (id = 3, name = "Charlie", address = "6 George Street", customer_id = 3, items = "Underwear")
 ```
 
 As you can see - 3 groups were identified, according to the distinct keys in the `id` column of `customers`. While the first customer had no associated orders, note that an empty group has nonetheless been created. Much like SQL's `LEFT OUTER JOIN` command, `leftgroupjoin` lets us handle the case that no matching data is found. While SQL achieves this by noting there is `missing` data in the columns associated with the right table, here we use a set of nested containers (dictionaries of tables of rows) to denote the relationship.

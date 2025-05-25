@@ -15,7 +15,7 @@ of constant propagation. See also `getproperties`.
 
 Extract property `b` from a `NamedTuple`.
 
-```julia
+```jldoctest
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
@@ -47,7 +47,7 @@ selecting no properties returns an empty `NamedTuple`. Empty selections from a
 
 Extract properties `a` and `c` from a `NamedTuple`.
 
-```julia
+```jldoctest
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
@@ -74,7 +74,7 @@ the type of the object that is returned, which by default will be a `NamedTuple`
 
 Extract properties `a` and `c` from a `NamedTuple`.
 
-```julia
+```jldoctest
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
@@ -110,7 +110,7 @@ Return a copy of `object` with the property with the given `name` removed.
 
 # Example
 
-```
+```jldoctest
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
@@ -145,7 +145,7 @@ Return a copy of `object` with the property with the given `names` removed.
 
 # Example
 
-```
+```jldoctest
 julia> nt = (a = 1, b = 2.0, c = false, d = "abc")
 (a = 1, b = 2.0, c = false)
 
@@ -187,7 +187,7 @@ example. if you want to refer to a property named `a` then use `\$a` in the expr
 
 # Example
 
-```julia
+```jldoctest
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 
@@ -351,7 +351,7 @@ for example `@Select(a)` is synomous with `@Select(a = \$a)`.
 
 # Example
 
-```julia
+```jldoctest
 julia> nt = (a = 1, b = 2.0, c = false)
 (a = 1, b = 2.0, c = false)
 

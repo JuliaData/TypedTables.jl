@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # Mapping rows of data
 
 Some operations on your data will act by mapping each row of data in a table to a value, or even to new rows (in the case of relational operations). In either case, you are mapping an element of table (which is an array whose elements are rows) to create a new array of computed elements (whose elements may or may not be rows, and thus may or may not be a `Table`).
@@ -8,7 +13,7 @@ In Julia, the idiomatic way to perform such an operation is with the `map` funct
 
 One very simple example of this is extracting a column, let's say the column called `name` from a table of people's names and ages.
 
-```julia
+```jldoctest map
 julia> t = Table(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
 Table with 2 columns and 3 rows:
      name     age
@@ -18,30 +23,30 @@ Table with 2 columns and 3 rows:
  3 │ Charlie  37
 
 julia> map(row -> row.name, t)
-3-element Array{String,1}:
- "Alice"  
- "Bob"    
+3-element Vector{String}:
+ "Alice"
+ "Bob"
  "Charlie"
 ```
 
 This has returned and standard Julia array, which will be a *copy* of the array of the `name` column. We could also do a more complicated calculation.
 
-```julia
+```jldoctest map
 julia> is_old = map(row -> row.age > 40, t)
-3-element Array{Bool,1}:
- false
-  true
- false
+3-element Vector{Bool}:
+ 0
+ 1
+ 0
 ```
 Depending on your definition of "old", we have identified two younger people and one older person - though I suspect that Bob may have a different definition of old than Alice does.
 
 One can also `map` rows, which are `NamedTuple`s, to new `NamedTuples`, which will naturally result in a new tabular structure. Here is an example where we simply copy the names into a new table (but change the column name to `firstname`):
 
-```julia
+```jldoctest map
 julia> map(row -> (firstname = row.name,), t)
 Table with 1 column and 3 rows:
      firstname
-   ┌────────────
+   ┌──────────
  1 │ Alice
  2 │ Bob
  3 │ Charlie
@@ -51,7 +56,7 @@ Internally, this is leveraging Julia's `similar` interface for constructing new 
 
 Putting this all together, we can create a brand-new table using `map` to manipulate both columns.
 
-```julia
+```jldoctest map
 julia> map(row -> (name = row.name, is_old = row.age > 40), t)
 Table with 2 columns and 3 rows:
      name     is_old
@@ -65,22 +70,21 @@ Table with 2 columns and 3 rows:
 
 One can easily use `for` loops to iterate over your data and perform whatever mapping is required. For example, this loop takes the `first` character of the elements of the `name` column.
 
-```julia
+```jldoctest map
 julia> function firstletter(t::Table)
-    out = Vector{Char}(undef, length(t))
-
-    for i in 1:length(t)
-        out[i] = first(t.name[i])
-    end
-
-    return out
-end
+           out = Vector{Char}(undef, length(t))
+           for i in 1:length(t)
+               out[i] = first(t.name[i])
+           end
+           return out
+       end
+firstletter (generic function with 1 method)
 
 julia> firstletter(t)
-3-element Array{Char,1}:
- 'A'
- 'B'
- 'C'
+3-element Vector{Char}:
+ 'A': ASCII/Unicode U+0041 (category Lu: Letter, uppercase)
+ 'B': ASCII/Unicode U+0042 (category Lu: Letter, uppercase)
+ 'C': ASCII/Unicode U+0043 (category Lu: Letter, uppercase)
 ```
 
 Julia will use the type information it knows about `t` to create fast, compiled code. (Pro tip: to make the above loop *optimal*, adding an `@inbounds` annotation on the same line before the `for` loop will remove redundant array bounds checking and make the loop execute faster).
@@ -94,7 +98,7 @@ Julia syntax provide for compact syntax for generators and comprehensions to def
 
 Tables can be constructed from `Geneartor`s, allowing for some pretty neat syntax.
 
-```julia
+```jldoctest map
 julia> Table((name=row.name, isold=row.age>40) for row in t)
 Table with 2 columns and 3 rows:
      name     isold
@@ -119,9 +123,9 @@ When we want to perform more complex tasks, such as `group` or `innerjoin`, we m
 Given a `row`, a field is extracted with the `row.name` syntax - which Julia transforms to the function call `getproperty(row, :name)`. This package defines `getproperty(:name)` as returning a new, single-argument *function* that takes a `row` and returns `row.name`.
 
 Thus, one way of projecting a table down to a single column is to use the `getproperty` function, like so:
-```
+```jldoctest map
 julia> map(getproperty(:name), t)
-3-element Array{String,1}:
+3-element Vector{String}:
  "Alice"
  "Bob"
  "Charlie"
@@ -135,15 +139,15 @@ A naive implementation of this would be to iterate the rows and *then* project d
 If we wish to get more than one column, to subset our data or to create a multi-column group or join key, we can use
 the `getproperties` function, which works like `getproperty` but accepts a tuple of `Symbol`s for the column names.
 This works well on rows or tables.
-```
+```jldoctest
 julia> getproperties((a=1, b=2, c=3), (:a, :c))
 (a = 1, c = 3)
 ```
 
 By specifying just column names you can get the a curried function, as for `getproperty`. Even with just a single column selected, this function preserves the column names, in contrast to `getproperty`. For example:
-```
+```jldoctest map
 julia> map(getproperties((:name,)), t)
-Table with 2 columns and 3 rows:
+Table with 1 column and 3 rows:
      name
    ┌────────
  1 │ Alice
@@ -156,7 +160,7 @@ Table with 2 columns and 3 rows:
 Sometimes one just wants to remove one or more columns from a table, which we can do easily enough for
 rows or tables using `deleteproperty` and `deleteproperties`.
 
-```
+```jldoctest map
 julia> deleteproperty(t, :age)
 Table with 1 column and 3 rows:
      name
@@ -178,7 +182,7 @@ Table with 1 column and 3 rows:
 
 To help create arbitrary computations using data from multiple columns, the `@Compute` convenience macro is provided. Variables starting with `$` will be taken as column names.
 
-```
+```jldoctest map
 julia> map(@Compute($age > 40), t)
 3-element Vector{Bool}:
  0
@@ -192,7 +196,7 @@ The macro is able to pass along information about which columns are necessary to
 
 The `@Select` macro goes one step further, allowing you to assemble multiple columns of data in a single step. Columns can be copied by name, and new columns can be computed.
 
-```
+```jldoctest map
 julia> map(@Select(name, age, is_old = $age > 40), t)
 Table with 3 columns and 3 rows:
      name     age  is_old
@@ -208,9 +212,9 @@ Once again, only the subset of columns required for each computation is iterated
 
 Since tables are just arrays, the broadcast operation is defined and behaves similarly to `map`.
 
-```
+```jldoctest map
 julia> f = @Select(name, age, is_old = $age > 40)
-(::TypedTables.Select{(:name, :age, :is_old), Tuple{TypedTables.GetProperty{:name}, TypedTables.GetProperty{:age}, TypedTables.Compute{(:age,), var"#9#10"}}}) (generic function with 1 method)
+(::TypedTables.Select{(:name, :age, :is_old), Tuple{TypedTables.GetProperty{:name}, TypedTables.GetProperty{:age}, TypedTables.Compute{(:age,), var"#20#21"}}}) (generic function with 1 method)
 
 julia> f.(t)
 Table with 3 columns and 3 rows:

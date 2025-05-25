@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # DictTable
 
 `DictTable` is similar to `Table` except that instead of being an `AbstractArray` it is
@@ -7,7 +12,7 @@ The advantage of this is that rows can be indexed by a semantically-important ke
 case is that the first column of a table is a unique, primary-key column. When you construct
 a `DictTable` in with arrays it will assume the first column is the primary key.
 
-```julia
+```jldoctest dict-table
 julia> using TypedTables
 
 julia> t = DictTable(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
@@ -21,16 +26,16 @@ DictTable with 1 column and 3 rows:
 
 As mentioned, rows can be indexed by the value of the primary key.
 
-```julia
+```jldoctest dict-table
 julia> t["Alice"]
 (name = "Alice", age = 25)
 ```
 
 The columns themselves are dictionaries that can be also be indexed by primary key.
 
-```julia
+```jldoctest dict-table
 julia> t.age
-3-element Dictionaries.Dictionary{String, Int64}
+3-element Dictionaries.Dictionary{String, Int64}:
    "Alice" │ 25
      "Bob" │ 42
  "Charlie" │ 37
@@ -42,7 +47,7 @@ julia> t.age["Alice"]
 With the design of *Dictionaries.jl*, these dictionaries are able to share `Indices` so that
 this has very little overhead (even with many columns).
 
-```julia
+```jldoctest dict-table
 julia> keys(t.age) === t.name
 true
 ```

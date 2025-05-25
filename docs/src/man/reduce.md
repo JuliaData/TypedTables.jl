@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # Reducing data
 
 Here we demonstrate how to ask a few questions with "scalar" answers - like "Does the table contain *x*?", or "What is the average value of *y*?"
@@ -6,7 +11,7 @@ Here we demonstrate how to ask a few questions with "scalar" answers - like "Doe
 
 One of the most basic questions to ask is: "Is this element in the table/column?". Julia's `in` operator is perfect for this.
 
-```julia
+```jldoctest reduce
 julia> t = Table(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
 Table with 2 columns and 3 rows:
      name     age
@@ -28,7 +33,7 @@ The `in` function can also be used as an infix operator, as in `"Alice" in t.nam
 
 The `count` method is useful for asking how many rows satisfy a certain criterion.
 
-```julia
+```jldoctest reduce
 julia> count(row -> row.age > 40, t)
 1
 ```
@@ -37,7 +42,7 @@ julia> count(row -> row.age > 40, t)
 
 Individual columns can be reduced in the typical way for Julia arrays. Some examples.
 
-```julia
+```jldoctest reduce
 julia> sum(t.age)
 104
 
@@ -58,14 +63,14 @@ Note that `join` is a string joining function; see `innerjoin` (from *SplitApply
 
 It's just as easy to calculate multi-column statistics by reducing over the entire table.
 
-```julia
+```jldoctest reduce
 julia> mapreduce(row -> length(row.name) * row.age, +, t)
 510
 ```
 
 Reductions with `@Compute` accept the same options as reductions over array rows. Supply a neutral `init` value to handle empty inputs, or `dims` to reduce a multidimensional table along selected axes.
 
-```julia
+```jldoctest reduce
 julia> mapreduce(@Compute(length($name) * $age), +, t; init = 0)
 510
 
