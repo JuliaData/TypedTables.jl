@@ -28,6 +28,7 @@ TypedTables.getproperties
 TypedTables.propertytype
 TypedTables.deleteproperty
 TypedTables.deleteproperties
+TypedTables.propertytype
 ```
 
 ## Convenience macros
