@@ -29,7 +29,7 @@ makedocs(;
         ],
         "API reference" => "man/reference.md"
     ],
-    repo="https://github.com/JuliaData/TypedTables.jl/blob/{commit}{path}#L{line}",
+    repo=Documenter.Remotes.GitHub("JuliaData", "TypedTables.jl"),
     sitename="TypedTables.jl",
 )
 

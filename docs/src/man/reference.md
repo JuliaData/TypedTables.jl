@@ -23,7 +23,9 @@ TypedTables.columnnames
 ## Property selection
 
 ```@docs
+Base.getproperty(::Symbol)
 TypedTables.getproperties
+TypedTables.propertytype
 TypedTables.deleteproperty
 TypedTables.deleteproperties
 ```
