@@ -39,7 +39,9 @@ end
     getproperties(object, names::Tuple{Vararg{Symbol}})
 
 Extract a set of properties with the given `names` from an `object`,
-returning a new object with just those properties.
+returning a new object with just those properties. With the default constructor,
+selecting no properties returns an empty `NamedTuple`. Empty selections from a
+`Table` or `DictTable` preserve its dimensions or keys, respectively.
 
 # Example
 
@@ -88,7 +90,8 @@ end
 
 @generated function (::GetProperties{names})(x) where {names}
     exprs = [:($n = getproperty(x, $(QuoteNode(n)))) for n in names]
-    return Expr(:call, Expr(:call, :propertytype, :x), Expr(:tuple, exprs...))
+    properties = isempty(names) ? :(NamedTuple()) : Expr(:tuple, exprs...)
+    return Expr(:call, Expr(:call, :propertytype, :x), properties)
 end
 
 """
