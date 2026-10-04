@@ -153,8 +153,21 @@ function Dictionaries.issettable(d::DictTable)
     return all(col -> issettable(col), columns(d))
 end
 
+_has_index_column(d::DictTable) = any(col -> col isa AbstractIndices, columns(d))
+
+function _check_index_values(d::DictTable, i, val)
+    _has_index_column(d) || return
+    for (col, v) in zip(columns(d), val)
+        if col isa AbstractIndices
+            isequal(i, v) || throw(ArgumentError("Index column values must match the row key"))
+        end
+    end
+    return
+end
+
 function Dictionaries.settokenvalue!(d::DictTable{I, V}, t, val::V) where {I, V}
-    foreach((col, v) -> settokenvalue!(col, t, v), columns(d), val)
+    _has_index_column(d) && _check_index_values(d, gettokenvalue(keys(d), t), val)
+    foreach((col, v) -> col isa AbstractIndices || settokenvalue!(col, t, v), columns(d), val)
     return d
 end
 
@@ -162,17 +175,56 @@ function Dictionaries.isinsertable(d::DictTable)
     return all(col -> isinsertable(col), columns(d))
 end
 
+# Index columns are already managed through keys(d); only data columns need resizing.
+function _tokenized_columns(d::DictTable)
+    cols = map(col -> col isa AbstractIndices ? nothing : col, columns(d))
+    return map(tokenized, removenothings_dict(cols))
+end
+
 function Dictionaries.gettoken!(d::DictTable{I}, i::I) where {I}
-    return gettoken!(keys(d), i, map(tokenized, columns(d)))
+    return gettoken!(keys(d), i, _tokenized_columns(d))
 end
 
 function Dictionaries.deletetoken!(d::DictTable, t)
-    return deletetoken!(keys(d), t, map(tokenized, columns(d)))
+    return deletetoken!(keys(d), t, _tokenized_columns(d))
 end
 
 function Base.empty!(d::DictTable)
-    empty!(keys(d), map(tokenized, columns(d)))
+    empty!(keys(d), _tokenized_columns(d))
     return d
+end
+
+function Base.insert!(d::DictTable{I, V}, i::I, val::V) where {I, V}
+    _check_index_values(d, i, val)
+    return invoke(insert!, Tuple{AbstractDictionary{I, V}, I, V}, d, i, val)
+end
+
+function Dictionaries.set!(d::DictTable{I, V}, i::I, val::V) where {I, V}
+    _check_index_values(d, i, val)
+    return invoke(set!, Tuple{AbstractDictionary{I, V}, I, V}, d, i, val)
+end
+
+function Base.get!(d::DictTable{I, V}, i::I, default::V) where {I, V}
+    if _has_index_column(d)
+        haskey(d, i) && return d[i]
+        _check_index_values(d, i, default)
+    end
+    return invoke(get!, Tuple{AbstractDictionary{I, V}, I, V}, d, i, default)
+end
+
+function Base.get!(f::Union{Function, Type}, d::DictTable{I, V}, i::I) where {I, V}
+    !_has_index_column(d) && return invoke(get!, Tuple{typeof(f), AbstractDictionary{I, V}, I}, f, d, i)
+    haskey(d, i) && return d[i]
+    return get!(d, i, convert(V, f()))
+end
+
+@static if isdefined(Dictionaries, :setwith!)
+    function Dictionaries.setwith!(f, d::DictTable{I, V}, i, val) where {I, V}
+        !_has_index_column(d) && return invoke(setwith!, Tuple{typeof(f), AbstractDictionary{I, V}, typeof(i), typeof(val)}, f, d, i, val)
+        key = convert(I, i)
+        value = haskey(d, key) ? f(d[key], val) : val
+        return set!(d, key, value)
+    end
 end
 
 columnnames(::AbstractDictionary{<:Any, <:NamedTuple{names}}) where {names} = names
@@ -211,7 +263,7 @@ propertytype(::DictTable) = DictTable
 
 function Base.filter!(pred, t::DictTable)
     pred2 = token -> pred(map(col -> gettokenvalue(col, token), columns(t)))
-    Dictionaries._filter!(pred2, keys(t), map(tokenized, columns(t)))
+    Dictionaries._filter!(pred2, keys(t), _tokenized_columns(t))
     return t
 end
 

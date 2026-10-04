@@ -49,3 +49,13 @@ true
 
 Note that it is not *required* that the first column is the primary key. The `DictTable`
 constructor can accept arbitrary dictionaries as columns (so long as the keys agree).
+
+To add or remove rows, use `insert!` and `delete!`:
+
+```julia
+insert!(t, "Dana", (name = "Dana", age = 30))
+delete!(t, "Bob")
+```
+
+The primary-key column is read-only. Its value in an inserted or updated row must
+match the key used to index that row.
