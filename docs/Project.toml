@@ -1,3 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 TypedTables = "9d95f2ec-7b3d-5a63-8d20-e2491e220bb9"
+
+[compat]
+Documenter = "1"

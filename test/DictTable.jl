@@ -74,6 +74,108 @@
     delete!(t3, 'D')
     @test isempty(t3)
 
+    @testset "Named index mutation" begin
+        for n in (0, 3, 100), indexfirst in (false, true), alias in (false, true)
+            inds = Indices(collect(1:n))
+            data = Dictionary(inds, string.(1:n))
+            cols = indexfirst ? (idx = inds, name = data) : (name = data, idx = inds)
+            alias && (cols = merge(cols, (otheridx = inds,)))
+            table = DictTable(cols)
+            row = i -> NamedTuple{columnnames(table)}(map(name -> name === :name ? string(i) : i, columnnames(table)))
+
+            @test insert!(table, n + 1, row(n + 1)) === table
+            @test table[n + 1] == row(n + 1)
+            @test collect(table.name) == string.(1:n + 1)
+            @test collect(table.idx) == collect(1:n + 1)
+            alias && @test collect(table.otheridx) == collect(table.idx)
+            @test delete!(table, n + 1) === table
+            @test collect(table.name) == string.(1:n)
+            @test collect(table.idx) == collect(1:n)
+            @test filter!(r -> isodd(r.idx), table) === table
+            expected = collect(1:2:n)
+            @test collect(keys(table)) == expected
+            @test collect(table.name) == string.(expected)
+            @test collect(table.idx) == expected
+            @test empty!(table) === table
+            @test isempty(table)
+            @test insert!(table, 7, row(7)) === table
+            @test table[7] == row(7)
+            before = collect(table)
+            @test_throws ArgumentError setindex!(table, merge(row(7), (idx = 8,)), 7)
+            @test collect(table) == before
+        end
+    end
+
+    @testset "Row key validation" begin
+        for indexonly in (false, true)
+            table = indexonly ? DictTable(idx = [1]) : DictTable(idx = [1], name = ["A"])
+            row = i -> indexonly ? (idx = i,) : (idx = i, name = string(i))
+            bad = i -> indexonly ? (idx = i + 1,) : (idx = i + 1, name = "invalid")
+            operations = (t -> insert!(t, 2, bad(2)), t -> set!(t, 2, bad(2)),
+                          t -> get!(t, 2, bad(2)), t -> get!(() -> bad(2), t, 2),
+                          t -> set!(t, 1, bad(1)))
+            if isdefined(Dictionaries, :setwith!)
+                operations = (operations..., t -> setwith!((x, y) -> y, t, 2, bad(2)),
+                              t -> setwith!((x, y) -> y, t, 1, bad(1)))
+            end
+            for operation in operations
+                before = collect(table)
+                @test_throws ArgumentError operation(table)
+                @test collect(keys(table)) == [1]
+                @test collect(table) == before
+            end
+            @test get!(table, 1, bad(1)) == table[1]
+            calls = Ref(0)
+            @test get!(() -> (calls[] += 1; bad(1)), table, 1) == table[1]
+            @test calls[] == 0
+            @test_throws ArgumentError get!(() -> throw(ArgumentError("callback")), table, 2)
+            @test collect(keys(table)) == [1]
+            @test get!(() -> row(2), table, 2) == row(2)
+            @test set!(table, 3, row(3)) === table
+            @test collect(table) == [table[i] for i in 1:3]
+            if isdefined(Dictionaries, :setwith!)
+                @test setwith!((x, y) -> y, table, 3, row(3)) === table
+                @test setwith!((x, y) -> y, table, 4, row(4)) === table
+                @test table[4] == row(4)
+            end
+            @test_throws IndexError insert!(table, 1, table[1])
+        end
+
+        table = DictTable(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
+        @test insert!(table, "Dana", (name = "Dana", age = 30)) === table
+        @test delete!(table, "Bob") === table
+        @test table["Dana"] == (name = "Dana", age = 30)
+
+        inds = Indices([1])
+        table = DictTable(a = Dictionary(inds, [1]))
+        @test get!(() -> (a = 2,), table, 2) == (a = 2,)
+        @test get!(table, 2, (a = 0,)) == (a = 2,)
+        @test set!(table, 3, (a = 3,)) === table
+        if isdefined(Dictionaries, :setwith!)
+            @test setwith!((x, y) -> (a = x.a + y.a,), table, 3, (a = 4,)) === table
+            @test table[3] == (a = 7,)
+            @test setwith!((x, y) -> error("unused"), table, 4, (a = 4,)) === table
+            @test table[4] == (a = 4,)
+        end
+    end
+
+    @testset "Abstract index column types" begin
+        inds = Indices([1])
+        data = Dictionary(inds, ["A"])
+        cols = NamedTuple{(:name, :idx), Tuple{AbstractDictionary{Int, String}, AbstractIndices{Int}}}((data, inds))
+        table = DictTable(cols)
+        @test insert!(table, 2, (name = "B", idx = 2)) === table
+        @test table[2] == (name = "B", idx = 2)
+        for operation in (t -> setindex!(t, (name = "wrong", idx = 3), 2),
+                          t -> set!(t, 2, (name = "wrong", idx = 3)),
+                          t -> insert!(t, 3, (name = "wrong", idx = 4)),
+                          t -> get!(() -> (name = "wrong", idx = 4), t, 3))
+            @test_throws ArgumentError operation(table)
+            @test collect(keys(table)) == [1, 2]
+            @test table[2] == (name = "B", idx = 2)
+        end
+    end
+
     @testset "Merging Tables" begin
         i = Indices(['A', 'B', 'C'])
         t1 = DictTable(a = Dictionary(i, [1,2,3]),)
