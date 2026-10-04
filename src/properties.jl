@@ -96,10 +96,9 @@ end
 
 Return a constructor for an object similar to `x` that can accept a `NamedTuple` with
 arbitrary properties and support `getproperty`. Used for determining the return type of a
-`getproperties` function. The default constructor is `identity`, so selected properties
-remain a `NamedTuple`.
+`getproperties` function. The default constructor is `identity`.
 """
-propertytype(x) = identity # the input is always a `NamedTuple`, and so this is the default propertytype
+propertytype(x) = identity
 
 """
     deleteproperty(object, name::Symbol)
