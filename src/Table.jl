@@ -91,7 +91,7 @@ function Base.setproperty!(t::Table, name::Symbol, a)
 end
 
 propertytype(::Table) = Table
-(::GetProperties{()})(t::Table) = mapview(_ -> (;), t)
+(::GetProperties{()})(t::Table) = mapview(_ -> NamedTuple(), t)
 
 """
     columnnames(table)

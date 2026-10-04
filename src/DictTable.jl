@@ -205,7 +205,7 @@ end
 # end
 
 propertytype(::DictTable) = DictTable
-(::GetProperties{()})(t::DictTable) = FillDictionary(keys(t), (;))
+(::GetProperties{()})(t::DictTable) = FillDictionary(keys(t), NamedTuple())
 
 # filter!
 
