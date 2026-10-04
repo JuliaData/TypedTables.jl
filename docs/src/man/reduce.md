@@ -62,3 +62,13 @@ It's just as easy to calculate multi-column statistics by reducing over the enti
 julia> mapreduce(row -> length(row.name) * row.age, +, t)
 510
 ```
+
+Reductions with `@Compute` accept the same options as reductions over array rows. Supply a neutral `init` value to handle empty inputs, or `dims` to reduce a multidimensional table along selected axes.
+
+```julia
+julia> mapreduce(@Compute(length($name) * $age), +, t; init = 0)
+510
+
+julia> mapreduce(@Compute(length($name) * $age), +, t[1:0]; init = 0)
+0
+```

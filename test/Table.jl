@@ -174,6 +174,29 @@
         end
     end
 
+    @testset "Compute reduction options" begin
+        fs = (@Compute(2*$a), @Compute($a+$b), @Compute($a+$b+($c ? 1 : 0)))
+        for n in (0, 1, 3), f in fs
+            t = Table(a = collect(1:n), b = collect(2:2:2n), c = trues(n))
+            rows = collect(t)
+            for (op, init) in ((+, 0), (min, typemax(Int)), (max, typemin(Int)))
+                @test isequal(mapreduce(f, op, t; init = init), mapreduce(f, op, rows; init = init))
+            end
+            if n > 0
+                @test isequal(mapreduce(f, +, t), mapreduce(f, +, rows))
+            end
+        end
+
+        for shape in ((3,), (2, 3), (0,), (0, 3), (3, 0))
+            a = reshape(collect(1:prod(shape)), shape)
+            t = Table(a = a, b = 2 .* a, c = trues(shape...))
+            for f in fs, dims in (1, 2, (1, 2), Colon())
+                @test isequal(mapreduce(f, +, t; dims = dims, init = 0),
+                              mapreduce(f, +, collect(t); dims = dims, init = 0))
+            end
+        end
+    end
+
     @testset "missing in Tables" begin
         t = Table(a = [1, 2, 3], b = [2.0, 4.0, missing])
 
