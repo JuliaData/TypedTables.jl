@@ -83,6 +83,16 @@ Convert a `Table` into a `NamedTuple` of its columns.
 
 @inline Tables.rows(t::Table) = t
 
+@generated function _map_columns(f::F, nt::NamedTuple{names, T}) where {F, names, T <: Tuple}
+    exprs = [:(f(Core.getfield(nt, $i))) for i in eachindex(T.parameters)]
+    return :(NamedTuple{names}(tuple($(exprs...))))
+end
+
+@generated function _map_columns(::Type{R}, f::F, nt::NamedTuple{names, T}) where {R <: NamedTuple, F, names, T <: Tuple}
+    exprs = [:(f(Core.getfield(nt, $i))) for i in eachindex(T.parameters)]
+    return :(R(tuple($(exprs...))))
+end
+
 # Simple column access via `table.columnname`
 @inline Base.getproperty(t::Table, name::Symbol) = getproperty(columns(t), name)
 
@@ -126,12 +136,12 @@ end
 
 @inline function Base.getindex(t::Table{T}, i::Int) where {T}
     @boundscheck checkbounds(t, i)
-    return T(@inbounds(getindex(col, i)) for col in columns(t))
+    return _map_columns(T, col -> @inbounds(getindex(col, i)), columns(t))
 end
 
 @inline function Base.getindex(t::Table{T}, i::Int...) where {T}
     @boundscheck checkbounds(t, i...)
-    return T(@inbounds(getindex(col, i...) for col in columns(t)))
+    return _map_columns(T, col -> @inbounds(getindex(col, i...)), columns(t))
 end
 
 @inline function Base.setindex!(t::Table{T}, v::T, i::Int) where {T}
@@ -315,7 +325,7 @@ end
 # Speedups for column-based storage
 
 function Base.getindex(t::Table, inds::Union{AbstractArray, Colon}...)
-    return Table(map(col -> getindex(col, inds...), columns(t)))
+    return Table(_map_columns(col -> getindex(col, inds...), columns(t)))
 end
 
 function Base.view(t::Table, inds::Union{AbstractArray, Colon}...)

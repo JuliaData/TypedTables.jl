@@ -28,6 +28,14 @@
     @test @inferred(view(t, :))::Table == t
     @test_throws BoundsError t[4]
 
+    # Issue #121: keep wide row construction and column slicing fully inferred.
+    wide_names = ntuple(i -> Symbol(:c, i), 32)
+    wide_table = Table(NamedTuple{wide_names}(ntuple(i -> [i], 32)))
+    @test @inferred(wide_table[1]) == NamedTuple{wide_names}(ntuple(identity, 32))
+
+    filter_table = Table(c1 = [1], c2 = [1], c3 = [1], c4 = [1], c5 = [1], c6 = [1])
+    @test @inferred(filter(row -> row.c1 == 1, filter_table)) == filter_table
+
     @test similar(t) isa typeof(t)
     @test axes(similar(t)) === axes(t)
 
