@@ -133,7 +133,7 @@ function Base.mapreduce(f::Compute{names}, op, t::Table{<:NamedTuple{names}}; kw
     # efficient to iterate over rows with a minimal number of columns
     if length(names) == 1 # unwrap in the simple cases
         return mapreduce(f.f, op, getproperty(names[1])(t); kwargs...)
-    elseif length(names) == 2 && VERSION >= v"1.2" && !haskey(kwargs, :dims)
+    elseif length(names) == 2 && VERSION >= v"1.2" # multi-array mapreduce needs Julia 1.2
         return mapreduce(f.f, op, getproperty(names[1])(t), getproperty(names[2])(t); kwargs...)
     end
     
