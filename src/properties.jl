@@ -96,9 +96,9 @@ end
 
 Return a constructor for an object similar to `x` that can accept a `NamedTuple` with
 arbitrary properties and support `getproperty`. Used for determining the return type of a
-`getproperties` function. The defaults return type is `NamedTuple`.
+`getproperties` function. The default constructor is `identity`.
 """
-propertytype(x) = identity # the input is always a `NamedTuple`, and so this is the default propertytype
+propertytype(x) = identity
 
 """
     deleteproperty(object, name::Symbol)
@@ -339,7 +339,7 @@ The `@Select` macro returns a function which performs an arbitrary transformatio
 properties of an object, such as a `NamedTuple`.
 
 The input expression is a comma-seperated list of `lhs = rhs` pairs. The `lhs` is the name
-of the new property to calculate. The `rhs is  standard Julia code, with `\$` prepended to
+of the new property to calculate. The `rhs` is standard Julia code, with `\$` prepended to
 input property names. For example. if you want to rename an input property `a` to be called
 `b`, use `@Select(b = \$a)`.
 
