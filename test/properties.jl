@@ -1,3 +1,10 @@
+struct PropertySelectionRow{T <: NamedTuple}
+    fields::T
+end
+Base.getproperty(row::PropertySelectionRow, name::Symbol) = getproperty(getfield(row, :fields), name)
+Base.propertynames(row::PropertySelectionRow, private::Bool=false) = propertynames(getfield(row, :fields), private)
+TypedTables.propertytype(::PropertySelectionRow) = PropertySelectionRow
+
 @testset "Property interface" begin
     nt = (a=1, b=2.0, c=false, d=:abc)
 
@@ -66,5 +73,44 @@ end
         @test Tables.istable(T) === true
         @test Tables.rowaccess(T) === true
         @test Tables.columnaccess(T) === true
+    end
+end
+
+@testset "Empty property selection" begin
+    row = PropertySelectionRow((a = 1, b = "B"))
+    for selected in (getproperties(row, ()), getproperties(())(row), (@Select())(row), deleteproperties(row, (:a, :b)))
+        @test selected isa PropertySelectionRow
+        @test propertynames(selected) == ()
+        @test typeof(selected) === PropertySelectionRow{NamedTuple{(), Tuple{}}}
+    end
+    @test getproperties(row, (:a,)).a === 1
+
+    @testset "Empty rows" begin
+        for row in (NamedTuple(), (a = 1,), (a = 1, b = "B"))
+            @test getproperties(row, ()) === NamedTuple()
+            @test getproperties(())(row) === NamedTuple()
+            @test (@Select())(row) === NamedTuple()
+            @test deleteproperties(row, propertynames(row)) === NamedTuple()
+        end
+        @test deleteproperty((a = 1,), :a) === NamedTuple()
+    end
+    @testset "Table axes" begin
+        for a in (Int[], [1, 2], reshape([1, 2, 3, 4], 2, 2), reshape([1], ()))
+            table = Table(a = a)
+            selected = getproperties(())(table)
+            @test size(selected) == size(table)
+            @test axes(selected) == axes(table)
+            @test eltype(selected) == NamedTuple{(), Tuple{}}
+            @test collect(selected) == fill(NamedTuple(), size(table))
+        end
+    end
+    @testset "Dictionary keys" begin
+        for n in (0, 2)
+            table = DictTable(idx = collect(1:n), a = collect(1:n))
+            selected = getproperties(())(table)
+            @test keys(selected) === keys(table)
+            @test eltype(selected) == NamedTuple{(), Tuple{}}
+            @test collect(selected) == fill(NamedTuple(), n)
+        end
     end
 end
