@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # TypedTables.jl
 
 *Simple, fast, column-based storage for data analysis in Julia.*
@@ -16,7 +21,7 @@ and `reduce`) and those provide by [SplitApplyCombine.jl](https://github.com/Jul
 
 Start Julia 1.0, and press `]` to enter "package" mode. Then type:
 
-```julia
+```julia-repl
 pkg> add TypedTables
 ```
 
@@ -26,7 +31,7 @@ That's it!
 
 Here's a table:
 
-```julia
+```jldoctest
 julia> using TypedTables
 
 julia> t = Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0])

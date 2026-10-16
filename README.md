@@ -24,7 +24,7 @@ the data ecosystem such as *Query.jl*.
 
 It's simple to get started and create a table!
 
-```julia
+```julia-repl
 julia> using TypedTables
 
 julia> t = Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0])
@@ -39,7 +39,7 @@ julia> t[1]  # Get first row
 (a = 1, b = 2.0)
 
 julia> t.a  # Get column `a`
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  2
  3

@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # Quick start tutorial
 
 After reading this tutorial, you should be able to use Julia to perform a range of data
@@ -11,7 +16,7 @@ It's simple to get started and create a table!
 A `Table` is a wrapper around column arrays. Suppose you have an array containing names and
 an array containing ages, then you can create a table with two columns:
 
-```julia
+```jldoctest tutorial
 julia> t = Table(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
 Table with 2 columns and 3 rows:
      name     age
@@ -29,7 +34,7 @@ collection of named tuples is a "relation", and `Table`s are useful for performi
 
 You can access elements (rows) exactly like any other Julia array.
 
-```julia
+```jldoctest tutorial
 julia> t[1]
 (name = "Alice", age = 25)
 
@@ -43,7 +48,7 @@ Table with 2 columns and 2 rows:
 
 A element (row) of the table can be updated with the usual array syntax.
 
-```julia
+```jldoctest tutorial
 julia> t[1] = (name = "Alice", age = 26);  # Alice had a birthday!
 
 julia> t
@@ -57,18 +62,18 @@ Table with 2 columns and 3 rows:
 
 You can easily access a column by the tables "properties", use the `.` operator.
 
-```julia
+```jldoctest tutorial
 julia> t.name
-3-element Array{String,1}:
- "Alice"  
- "Bob"    
+3-element Vector{String}:
+ "Alice"
+ "Bob"
  "Charlie"
 ```
 
 You can ask what the properties (column names) of a `Table` with the `propertynames`
 function (as well as the `columnnames` function).
 
-```julia
+```jldoctest tutorial
 julia> propertynames(t)
 (:name, :age)
 ```
@@ -78,7 +83,7 @@ compiler works with when considering Julia code itself.
 
 Individual cells can be accessed in two, symmetric ways.
 
-```julia
+```jldoctest tutorial
 julia> t.name[2]
 "Bob"
 
@@ -90,7 +95,7 @@ Note that the first way is more efficient, and recommended, because in the secon
 intermediate value `t[2]` is assembled from the elements of *all* the columns. The first
 syntax also supports updating.
 
-```julia
+```jldoctest tutorial
 julia> t.name[2] = "Robert";  # No nicknames here...
 
 julia> t
@@ -109,7 +114,7 @@ table by the old variable name, if you want.
 Multiple tables and additional columns can be created in the one `Table` constructor. For
 example, it is easy to add an additional column.
 
-```julia
+```jldoctest tutorial
 julia> Table(t; lastname = ["Smith", "Smith", "Smith"])
 Table with 3 columns and 3 rows:
      name     age  lastname
@@ -121,7 +126,7 @@ Table with 3 columns and 3 rows:
 
 And we can delete a column by setting it to `nothing`.
 
-```julia
+```jldoctest tutorial
 julia> Table(t; age = nothing)
 Table with 1 column and 3 rows:
      name
@@ -139,7 +144,7 @@ is able to produce lightning fast machine code for processing your data.
 Sometimes, it *is* handy to be able to add, remove and rename columns without create a new
 `Table` container. The `FlexTable` type allows for this.
 
-```julia
+```jldoctest tutorial-flextable
 julia> ft = FlexTable(names = ["Alice", "Bob", "Charlie"])
 FlexTable with 1 column and 3 rows:
      names
@@ -161,7 +166,7 @@ FlexTable with 2 columns and 3 rows:
 
 A column can be deleted by setting it to `nothing`.
 
-```julia
+```jldoctest tutorial-flextable
 julia> ft.age = nothing;
 
 julia> ft
@@ -185,7 +190,7 @@ The recommended way to handle missing data in Julia is by using `missing`, which
 with its very own type `Missing`. For example, we may create a table where some people
 haven't specified their age.
 
-```julia
+```jldoctest
 julia> Table(name = ["Alice", "Bob", "Charlie"], age = [25, missing, 37])
 Table with 2 columns and 3 rows:
      name     age
@@ -215,7 +220,7 @@ Charlie,37
 
 We can load this file from disk using the `CSV.read` function.
 
-```julia
+```julia-repl
 julia> using CSV
 
 julia> t = CSV.read("input.csv", Table)
@@ -229,17 +234,17 @@ FlexTable with 2 columns and 3 rows:
 
 Similary, we can write a table to a new file `output.csv` with the `CSV.write` function.
 
-```julia
+```julia-repl
 julia> CSV.write("output.csv", t)
 ```
 
 ## Finding data
 
 Julia's broadcasting and indexing syntax can work together to make it easy to find rows
-of data based on given creteria. Suppose we wanted to find all the "old" people in the 
+of data based on given creteria. Suppose we wanted to find all the "old" people in the
 table.
 
-```julia
+```jldoctest find
 julia> t = Table(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
 Table with 2 columns and 3 rows:
      name     age
@@ -249,19 +254,19 @@ Table with 2 columns and 3 rows:
  3 │ Charlie  37
 
 julia> t.age .> 40
-3-element BitArray{1}:
- false
-  true
- false
+3-element BitVector:
+ 0
+ 1
+ 0
 ```
 
 Bob and Alice might disagree about what "old" means, but here we have identified all the
-people over 40 years of age. Note the difference between the "scalar" operator `>` and the 
+people over 40 years of age. Note the difference between the "scalar" operator `>` and the
 "broadcasting" operator `.>`.
 
 We can use "logical" indexing to collect the rows for which the above predicate is `true`.
 
-```julia
+```jldoctest find
 julia> t[t.age .> 40]
 Table with 2 columns and 1 row:
      name  age
@@ -277,14 +282,14 @@ Julia has a range of standard functions for asking common questions about a set 
 
 For example, we can use the `in` operator to test if an entry is in a column.
 
-```julia
+```jldoctest find
 julia> "Bob" in t.name
 true
 ```
 
 Or if a given row is `in` the table.
 
-```julia
+```jldoctest find
 julia> (name = "Bob", age = 41) in t
 false
 ```
@@ -294,7 +299,7 @@ false
 We can `sum` columns, and with the `Statistics` standard library, we can find the `mean`,
 `median`, and so-on.
 
-```julia
+```jldoctest find
 julia> sum(t.age)
 104
 
@@ -311,13 +316,13 @@ By these metrics, Bob's age *is* above average!
 
 ## Mapping data
 
-Functions which map rows to new rows can be used to create new tables. 
+Functions which map rows to new rows can be used to create new tables.
 
 Below, we create an annonymous function which takes a row containing a name and an age, and
 returns an inital letter and whether the person is old (greater than 40), and use Julia's
 built-in `map` function.
 
-```julia
+```jldoctest find
 julia> map(row -> (initial = first(row.name), is_old = row.age > 40), t)
 Table with 2 columns and 3 rows:
      initial  is_old
@@ -334,7 +339,7 @@ The `@Select` macro returns a function that can map a row to a new row (or a tab
 new table) by defining a functional mapping for each output column. The above example can
 alternatively be written as:
 
-```julia
+```jldoctest find
 julia> map(@Select(initial = first($name), is_old = $age > 40), t)
 Table with 2 columns and 3 rows:
      initial  is_old
@@ -347,7 +352,7 @@ Table with 2 columns and 3 rows:
 For shorthand, the `= ...` can be omitted to simply extract a column. For example, we can
 reorder the columns via
 
-```
+```jldoctest find
 julia> @Select(age, name)(t)
 Table with 2 columns and 3 rows:
      age  name
@@ -362,11 +367,11 @@ of each row.)
 The `@Compute` macro returns a function that maps a row to a value. As for `@Select`, the
 input column names are prepended with `$`, for example:
 
-```julia
+```jldoctest find
 julia> map(@Compute($name), t)
-3-element Array{String,1}:
- "Alice"  
- "Bob"    
+3-element Vector{String}:
+ "Alice"
+ "Bob"
  "Charlie"
 ```
 
@@ -389,8 +394,11 @@ and joining data (if you wish, you may view its documentation
 
 We will demonstrate grouping data with a slightly more complex dataset.
 
-```julia
-julia> t2 = Table(firstname = ["Alice", "Bob", "Charlie", "Adam", "Eve", "Cindy", "Arthur"], lastname = ["Smith", "Smith", "Smith", "Williams", "Williams", "Brown", "King"], age = [25, 42, 37, 65, 18, 33, 54])
+```jldoctest tutorial-grouping
+julia> t2 = Table(;
+               firstname = ["Alice", "Bob", "Charlie", "Adam", "Eve", "Cindy", "Arthur"],
+               lastname = ["Smith", "Smith", "Smith", "Williams", "Williams", "Brown", "King"],
+               age = [25, 42, 37, 65, 18, 33, 54])
 Table with 3 columns and 7 rows:
      firstname  lastname  age
    ┌─────────────────────────
@@ -406,15 +414,15 @@ Table with 3 columns and 7 rows:
 Let us begin with basic usage of the `group` function from *SplitApplyCombine*, where we
 wish to group firstnames by their initial letter.
 
-```julia
+```jldoctest tutorial-grouping
 julia> using SplitApplyCombine
 
 julia> group(first, t2.firstname)
-Dict{Char,Array{String,1}} with 4 entries:
-  'C' => ["Charlie", "Cindy"]
-  'A' => ["Alice", "Adam", "Arthur"]
-  'E' => ["Eve"]
-  'B' => ["Bob"]
+4-element Dictionaries.Dictionary{Char, Vector{String}}:
+ 'A' │ ["Alice", "Adam", "Arthur"]
+ 'B' │ ["Bob"]
+ 'C' │ ["Charlie", "Cindy"]
+ 'E' │ ["Eve"]
 ```
 
 The `group` function returns a dictionary (`Dict`) where the grouping key is calculated on
@@ -424,13 +432,13 @@ firstnames starting with the letter `A` belong to the same group, and so on.
 Sometimes you may want to transform the grouped data - you can do so by passing a second
 mapping function. For example, we may want to group firstnames by lastname.
 
-```julia
-julia> group(@Compute($lastname), $Compute($firstname), t2)
-Dict{String,Array{String,1}} with 4 entries:
-  "King"     => ["Arthur"]
-  "Williams" => ["Adam", "Eve"]
-  "Brown"    => ["Cindy"]
-  "Smith"    => ["Alice", "Bob", "Charlie"]
+```jldoctest tutorial-grouping
+julia> group(@Compute($lastname), @Compute($firstname), t2)
+4-element Dictionaries.Dictionary{String, Vector{String}}:
+    "Smith" │ ["Alice", "Bob", "Charlie"]
+ "Williams" │ ["Adam", "Eve"]
+    "Brown" │ ["Cindy"]
+     "King" │ ["Arthur"]
 ```
 Note that the returned structure is still not a `Table` at all - it is a dictionary with the
 unique `lastname` values as keys, returing (non-tabular) arrays of `firstname`.
@@ -438,18 +446,18 @@ unique `lastname` values as keys, returing (non-tabular) arrays of `firstname`.
 If instead, our group elements are rows (named tuples), each group will itslef be a table.
 For example, we can keep the entire row by dropping the second function.
 
-```julia
+```jldoctest tutorial-grouping
 julia> families = group(@Compute($lastname), t2)
-Groups{String,Any,Table{NamedTuple{(:firstname, :lastname, :age),Tuple{String,String,Int64}},1,NamedTuple{(:firstname, :lastname, :age),Tuple{Array{String,1},Array{String,1},Array{Int64,1}}}},Dict{String,Array{Int64,1}}} with 4 entries:
-  "King"     => Table with 3 columns and 1 row:…
-  "Williams" => Table with 3 columns and 2 rows:…
-  "Brown"    => Table with 3 columns and 1 row:…
-  "Smith"    => Table with 3 columns and 3 rows:…
+4-element Dictionaries.Dictionary{String, Table{@NamedTuple{firstname::String, lastname::String, age::Int64}, 1, @NamedTuple{firstname::Vector{String}, lastname::Vector{String}, age::Vector{Int64}}}}:
+    "Smith" │ [(firstname = "Alice", lastname = "Smith", age = 25), (firstname …
+ "Williams" │ [(firstname = "Adam", lastname = "Williams", age = 65), (firstnam…
+    "Brown" │ [(firstname = "Cindy", lastname = "Brown", age = 33)]
+     "King" │ [(firstname = "Arthur", lastname = "King", age = 54)]
 ```
 
 The results are only summarized above (for compactness), but can be easily accessed.
 
-```julia
+```jldoctest tutorial-grouping
 julia> families["Smith"]
 Table with 3 columns and 3 rows:
      firstname  lastname  age
@@ -473,7 +481,7 @@ concatenate strings).
 Let's suppose we have a small database of customers, and the items they have ordered from
 an online store.
 
-```julia
+```jldoctest tutorial-joining
 julia> customers = Table(id = 1:3, name = ["Alice", "Bob", "Charlie"], address = ["12 Beach Street", "163 Moon Road", "6 George Street"])
 Table with 3 columns and 3 rows:
      id  name     address
@@ -497,7 +505,9 @@ this column to determine the `address` that we need to send the `items` to. The 
 function expects two functions, to describe the joining key of the first table and the
 joining key of the second table. We will use `getproperty` to select the columns.
 
-```julia
+```jldoctest tutorial-joining
+julia> using SplitApplyCombine
+
 julia> innerjoin(@Compute($id), @Compute($customer_id), customers, orders)
 Table with 5 columns and 4 rows:
      id  name     address          customer_id  items
@@ -518,5 +528,5 @@ types of joins are covered in later sections of this manual.
 Congratulations on completing the introductory tutorial. You should now know enough basics
 to get started with data analysis in Julia using *TypedTables.jl* and related packages.
 
-The following setions of the manual demonstrate more advanced techniques, explain the 
+The following setions of the manual demonstrate more advanced techniques, explain the
 design of this (and related) packages, and provide an API reference.

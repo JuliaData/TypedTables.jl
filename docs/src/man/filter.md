@@ -1,3 +1,8 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # Finding data
 
 Frequently, we need to find data (i.e. rows of the table) that matches certain criteria, and there are multiple mechanisms for achieving this in Julia. Here we will briefly review `map`, `findall` and `filter` as options.
@@ -6,7 +11,7 @@ Frequently, we need to find data (i.e. rows of the table) that matches certain c
 
 Following the previous section, we can identify row satisfying an arbitrary predicate using the `map` function. Note that "predicate" is just a name for function that takes an input and returns either `true` or `false`.
 
-```julia
+```jldoctest finding
 julia> t = Table(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
 Table with 2 columns and 3 rows:
      name     age
@@ -16,15 +21,15 @@ Table with 2 columns and 3 rows:
  3 │ Charlie  37
 
 julia> is_old = map(row -> row.age > 40, t)
-3-element Array{Bool,1}:
- false
-  true
- false
+3-element Vector{Bool}:
+ 0
+ 1
+ 0
 ```
 
 Finally, we can use "logical" (i.e. Boolean) indexing to extract the rows where the predicate is `true`.
 
-```julia
+```jldoctest finding
 julia> t[is_old]
 Table with 2 columns and 1 row:
      name  age
@@ -39,9 +44,9 @@ The `map(predicate, table)` approach will allocate one `Bool` for each row in th
 
 If we wish to locate the indices of the rows where the predicate returns `true`, we can use Julia's `findall` function.
 
-```julia
+```jldoctest finding
 julia> inds = findall(row -> row.age > 40, t)
-1-element Array{Int64,1}:
+1-element Vector{Int64}:
  2
 
 julia> t[inds]
@@ -57,7 +62,7 @@ This method may be less resource intensive (result in less memory allocated) if 
 
 Finally, if we wish to directly `filter` the table and obtain the rows of interest, we can do that as well.
 
-```julia
+```jldoctest finding
 julia> filter(row -> row.age > 40, t)
 Table with 2 columns and 1 row:
      name  age
@@ -71,7 +76,7 @@ Internally, the `filter` method may rely on one of the implementations above.
 
 Julia's "generator" syntax also allows for filtering operations using `if`.
 
-```
+```jldoctest finding
 julia> Table(row for row in t if row.age > 40)
 Table with 2 columns and 1 row:
      name  age
@@ -88,9 +93,9 @@ As mentioned in other sections, it is frequently worthwhile to preselect the col
 
 One simple example of such a transformation is to first project to the column(s) of interest, followed by using `map` or `findall` to identify the indices of the rows where `predicate` is `true`, and finally to use `getindex` or `view` to obtain the result of the full table.
 
-```julia
+```jldoctest finding
 julia> inds = findall(age -> age > 40, t.age)
-1-element Array{Int64,1}:
+1-element Vector{Int64}:
  2
 
 julia> t[inds]

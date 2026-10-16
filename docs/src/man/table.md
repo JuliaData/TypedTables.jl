@@ -1,8 +1,13 @@
+```@meta
+DocTestSetup = quote
+    using TypedTables
+end
+```
 # Table
 
 It's simple to get started and create a table!
 
-```julia
+```jldoctest
 julia> using TypedTables
 
 julia> t = Table(a = [1, 2, 3], b = [2.0, 4.0, 6.0])
@@ -17,7 +22,7 @@ julia> t[1]  # Get first row
 (a = 1, b = 2.0)
 
 julia> t.a  # Get column `a`
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  2
  3
@@ -31,7 +36,7 @@ Table is actually a Julia array type, where each element (row) is a `NamedTuple`
 
  * Internally, a `Table` stores a (named) tuple of arrays, and is a convenient structure for column-based storage of tabular data.
 
-Thus, manipulating data as a `Table` is as easy as manipulating arrays and named tuples - which is something Julia was specifically designed to make simple, efficient and *fun*. 
+Thus, manipulating data as a `Table` is as easy as manipulating arrays and named tuples - which is something Julia was specifically designed to make simple, efficient and *fun*.
 
 `Table`s (and their columns) may be an `AbstractArray` of any dimensionality. This lets you take advantage of Julia's powerful array functionality, such as multidimensional broadcasting. Each column must be an array of the same dimensionality and size of the other columns.
 
@@ -49,7 +54,7 @@ Finally, since `Table` is unoppinionated about the underlying array storage (and
 
 The easiest way to create a table from columns is with keyword arguments, such as
 
-```julia
+```jldoctest creating-tables
 julia> t = Table(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
 Table with 2 columns and 3 rows:
      name     age
@@ -62,7 +67,7 @@ The constructor will equally accept a `NamedTuple` of columns, as `Table((name =
 
 Also, one can easily convert the row-storage-based vector of named tuples into columnar storage using the `Table` constructor:
 
-```julia
+```jldoctest
 julia> Table([(name = "Alice", age = 25), (name = "Bob", age = 42), (name = "Charlie", age = 37)])
 Table with 2 columns and 3 rows:
      name     age
@@ -78,13 +83,13 @@ Table with 2 columns and 3 rows:
 
 A single row of a `Table` is just a `NamedTuple`, which is easy to access.
 
-```julia
+```jldoctest creating-tables
 julia> t[1]
 (name = "Alice", age = 25)
 ```
 
 Multiple rows can be indexed similarly to standard arrays in Julia:
-```
+```jldoctest creating-tables
 julia> t[2:3]
 Table with 2 columns and 2 rows:
      name     age
@@ -94,7 +99,7 @@ Table with 2 columns and 2 rows:
 ```
 
 One can interrogate the `length`, `size` or `axes` of a `Table` just like any other `AbstractArray`:
-```
+```jldoctest creating-tables
 julia> length(t)
 3
 
@@ -106,8 +111,10 @@ julia> size(t)
 
 Finally, if the backing arrays support mutation, rows can be mutated with `setindex!`
 
-```
-julia> t[3] = (name = Charlie, name = 38)  # Charlie had a birthday
+```jldoctest creating-tables
+julia> t[3] = (name = "Charlie", age = 38);  # Charlie had a birthday
+
+julia> t
 Table with 2 columns and 3 rows:
      name     age
    ┌─────────────
@@ -121,24 +128,24 @@ Similarly, rows can be added or removed with `push!`, `pop!` and [so-on](https:/
 ### Column access
 
 A single column can be recovered using Julia's new `getproperty` syntax using the `.` operator.
-```julia
+```jldoctest creating-tables
 julia> t.name
-3-element Array{String,1}:
- "Alice"  
- "Bob"    
+3-element Vector{String}:
+ "Alice"
+ "Bob"
  "Charlie"
 ```
 
 Currently, the simplest way to extract more than one column is to construct a brand new table out of the columns (as in `table2 = Table(column1 = table1.column1, column2 = table1.column2, ...)`).
 
 The columns of a `Table` can be accessed directly as a `NamedTuple` of arrays using the `columns` function.
-```julia
+```jldoctest creating-tables
 julia> columns(t)
-(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 37])
+(name = ["Alice", "Bob", "Charlie"], age = [25, 42, 38])
 ```
 
 There is a `columnnames` function for getting the names of the columns:
-```julia
+```jldoctest creating-tables
 julia> columnnames(t)
 (:name, :age)
 ```
@@ -151,7 +158,7 @@ Finally, the values contained in entire columns may be updated using `.=`, such 
 
 From the above, we can see two identical ways to get a cell of data:
 
-```julia
+```jldoctest creating-tables
 julia> t[1].name
 "Alice"
 
@@ -163,7 +170,7 @@ While Julia's compiler will elide a lot of unnecessary code, you may find it fas
 
 Similarly, the value of a cell can be updated via `setindex!`, for example using the syntax `t.name[1] = "Alicia"`. Note that the syntax `t[1].name = "Alicia"` will error because you are trying to mutate `t[1]`, which is an immutable *copy* of the row (completely independent from `t`).
 
-## Comparison with other packages 
+## Comparison with other packages
 
 ### `DataFrame`
 

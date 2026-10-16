@@ -1,5 +1,7 @@
 using Documenter, TypedTables
 
+DocMeta.setdocmeta!(TypedTables, :DocTestSetup, :(using TypedTables); recursive=true)
+
 makedocs(;
     modules=[TypedTables],
     format=Documenter.HTML(),
